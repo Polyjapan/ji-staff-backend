@@ -7,16 +7,15 @@ import models.FormModel._
 import play.api.libs.json.Json
 import play.api.mvc._
 import services.AuthParserService
-import tools.FutureMappers
+import tools.{FutureMappers, TemporaryForms}
 
 import scala.concurrent.ExecutionContext
 
 @Singleton
 class FormController @Inject()(cc: ControllerComponents, actorSystem: ActorSystem, auth: AuthParserService, model: FormModel)(implicit exec: ExecutionContext) extends AbstractController(cc) with FutureMappers {
   def getForm(formId: String): Action[AnyContent] = {
-    Action.async { implicit request => {
+    Action.async {
       model getForm formId map optionalMapper
-    }
     }
   }
 
@@ -27,7 +26,10 @@ class FormController @Inject()(cc: ControllerComponents, actorSystem: ActorSyste
     *
     * @param formId the id of the form
     */
-  def setForm(formId: String): Action[AnyContent] = TODO
+  def setForm(formId: String): Action[AnyContent] = Action {
+    //TemporaryForms.createForms(model)
+    Ok
+  }
 
   /*{
      Action.async { implicit request => {

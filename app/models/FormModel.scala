@@ -1,9 +1,7 @@
 package models
 
-import java.util.Date
 import javax.inject.Inject
 
-import models.FormModel.FormEntryDecorator
 import play.api.libs.json._
 import play.modules.reactivemongo.ReactiveMongoApi
 import reactivemongo.api.ReadPreference
@@ -18,6 +16,19 @@ import reactivemongo.play.json._
   * @author Louis Vialar
   */
 object FormModel {
+  type Errors = List[String]
+
+  def mapFormWithInput(form: Form, sourceObject: JsObject, inputJson: JsObject): (Errors, JsObject) =
+    form.entries.foldLeft((List[String](), sourceObject))(
+      (pair, entry) => (pair, entry) match {
+        // We map the pair (list of errors, source js object) and the current entry to usable names
+        case ((list: Errors, source: JsObject), (key: String, value: FormEntry)) =>
+          if (inputJson.keys(key)) { // The input json contains the key
+            if (value.decorator.validateInput(inputJson(key))) (list, source + (key, inputJson(key))) // the value is valid
+            else (key :: list, source) // the value is invalid
+          } else (list, source)
+      }
+    )
 
   class FormModel @Inject()(val reactiveMongoApi: ReactiveMongoApi, implicit val ec: ExecutionContext) {
     private def collection: Future[JSONCollection] = reactiveMongoApi.database.map(_.collection[JSONCollection]("forms"))
@@ -83,7 +94,7 @@ object FormModel {
     * @param onlyIfMinor true if this field is required for users that won't be adults during the next edition
     * @param decorator   additional info
     */
-  case class FormEntry(label: String, helpText: String, required: Boolean, onlyIfMinor: Boolean, decorator: FormEntryDecorator)
+  case class FormEntry(label: String, helpText: String, required: Boolean = true, onlyIfMinor: Boolean = false, decorator: FormEntryDecorator)
 
   object FormEntry {
     implicit val formEntryFormat: OFormat[FormEntry] = Json.format[FormEntry]
@@ -94,8 +105,10 @@ object FormModel {
     * Register your types here !
     */
   object FormEntryDecorator {
+    implicit val converter: OFormat[FormEntryDecorator] = FormDecoratorFormat
+
     def apply(typeName: String, doc: JsObject): FormEntryDecorator = typeName match {
-        case "string" => StringDecorator(doc("minLength").as[Int], doc("maxLength").as[Int])
+        case "string" => StringDecorator(doc("regex").as[String])
         case "integer" => IntegerDecorator(doc("minValue").as[Int], doc("maxValue").as[Int], doc("step").as[Int])
         case "date" => DateDecorator()
         case "boolean" => BooleanDecorator()
@@ -104,7 +117,7 @@ object FormModel {
 
     def unapply(arg: FormEntryDecorator): (String, JsObject) =
       arg match {
-        case e: StringDecorator => ("string", Json.obj("minLength" -> e.minLength, "maxLength" -> e.maxLength))
+        case e: StringDecorator => ("string", Json.obj("regex" -> e.regex))
         case e: IntegerDecorator => ("integer", Json.obj("minValue" -> e.minValue, "maxValue" -> e.maxValue, "step" -> e.step))
         case _: DateDecorator => ("date", Json.obj())
         case _: BooleanDecorator => ("boolean", Json.obj())
@@ -138,9 +151,9 @@ object FormModel {
     * @param minLength the minimal length of the string (inclusive)
     * @param maxLength the maximal length of the string (exclusive)
     */
-  case class StringDecorator(minLength: Int, maxLength: Int) extends FormEntryDecorator {
+  case class StringDecorator(regex: String) extends FormEntryDecorator {
     override def validateInput(input: Any): Boolean = input match {
-      case (input: String) => input.length >= minLength && input.length < maxLength
+      case (input: String) => input.matches(regex)
       case _ => false
     }
   }
@@ -163,10 +176,35 @@ object FormModel {
     * The decorator for a Date field
     */
   case class DateDecorator() extends FormEntryDecorator {
+    object Int {
+      // Use this to automatically convert the matched date strings to int when parsing the date
+      def unapply(s : String) : Option[Int] = try {
+        Some(s.toInt)
+      } catch {
+        case _ : java.lang.NumberFormatException => None
+      }
+    }
+
     override def validateInput(input: Any): Boolean = input match {
-      case (_: Date) => true // all dates are valid right
+      case (s: String) =>
+        val pattern = "^([0-9]{2})/([0-9]{2})/([0-9]{4})$".r
+        if (!s.matches(pattern.regex)) false
+        else {
+          val pattern(Int(day), Int(month), Int(year)) = s
+          val days: Map[Int, Int] = Map(1 -> 31, 2 -> 29, 3 -> 31, 4 -> 30, 5 -> 31, 6 -> 30, 7 -> 31, 8 -> 31, 9 -> 30,
+            10 -> 31, 11 -> 30, 12 -> 31)
+
+          if (month <= 0 || month > 12) false
+          else if (day <= 0 || day > days(month)) false
+          else if (month == 2 && day == 29 && !isBissex(year)) false
+          else true
+        }
       case _ => false
     }
+
+    private def isBissex(year: Int): Boolean =
+      (year % 4 == 0) && (year % 100 != 0 || year % 400 == 0)
+
   }
 
   /**

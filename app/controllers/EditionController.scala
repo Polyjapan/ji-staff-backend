@@ -20,19 +20,19 @@ class EditionController @Inject()(cc: ControllerComponents, actorSystem: ActorSy
     model.getActiveEditions map listMapper
   }
 
-  def setEdition(year: String): Action[AnyContent] = TODO
-
-  /*Action.async { implicit request => {
-     if (auth.isAdmin._1)
-       model setEdition EditionWrapper(Document(request.body.asText.get)) transform {
-         case Success(_) => Try.apply(Ok("OK"))
-         case Failure(t) => Try.apply(InternalServerError(t.getMessage))
-       }
-     else Future {Unauthorized}
-   }
-   }*/
 
   def getEdition(year: String): Action[AnyContent] = Action.async {
     model.getEdition(year) map optionalMapper
   }
+
+  def setEdition(year: String): Action[AnyContent] = TODO
+  /*Action.async { implicit request => {
+       if (auth.isAdmin._1)
+         model setEdition EditionWrapper(Document(request.body.asText.get)) transform {
+           case Success(_) => Try.apply(Ok("OK"))
+           case Failure(t) => Try.apply(InternalServerError(t.getMessage))
+         }
+       else Future {Unauthorized}
+     }
+     }*/
 }

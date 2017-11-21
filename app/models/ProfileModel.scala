@@ -72,7 +72,7 @@ object ProfileModel {
     *
     * @param profile the underlying document containing the profile
     */
-  case class ProfileWrapper(userId: String, profile: JsObject, applications: Map[String, JsObject]) {
+  case class ProfileWrapper(userId: String, email: String, profile: JsObject, applications: Map[String, JsObject]) {
     def wrappedApplications: Map[String, ApplicationWrapper] = applications.mapValues(ApplicationWrapper)
 
     /**
@@ -87,11 +87,15 @@ object ProfileModel {
       * Return a new ProfileWrapper containing an updated application for a given year
       *
       * @param year        the year that should be updated
-      * @param application the application to set that year
+      * @param application the application to set that year as a JsObject
       * @return an updated ProfileWrapper
       */
-    def withApplication(year: String, application: ApplicationWrapper) =
-      ProfileWrapper(userId, profile, applications + (year -> application.application))
+    def withApplication(year: String, application: JsObject) =
+      ProfileWrapper(userId, email, profile, applications + (year -> application))
+
+    def withProfile(p: JsObject): ProfileWrapper = ProfileWrapper(userId, email, p, applications)
+
+    def withEmail(m: String): ProfileWrapper = ProfileWrapper(userId, m, profile, applications)
   }
 
   object ProfileWrapper {
