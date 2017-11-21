@@ -1,5 +1,6 @@
 package models
 
+import java.util.{Date, GregorianCalendar}
 import javax.inject.Inject
 
 import play.api.libs.json._
@@ -29,6 +30,27 @@ object FormModel {
           } else (list, source)
       }
     )
+
+  /**
+    * Lists the field from `form` that are not present in the `jsObject` object
+    * @param form the form to check
+    * @param jsObject the object to check
+    * @param isMinor true if the `onlyIfMinor` fields should be considered as required
+    * @return a list of pairs (field id, field name) of all the fields that are missing
+    */
+  def listMissingFields(form: Form, jsObject: JsObject, isMinor: Boolean): List[(String, String)] = {
+    // Fonction qui collecte les champs de formulaires non remplis
+    val folder = (list: List[(String, String)], entry: (String, FormEntry)) =>
+      if (jsObject.keys(entry._1)) list
+      else (entry._1, entry._2.label) :: list
+
+    // Filtre pour ne garder que les champs de formulaires obligatoires
+    var filter: ((String, FormEntry)) => Boolean = {
+      case (_, entry) => entry.required || (entry.onlyIfMinor && isMinor)
+    }
+
+    form.entries.filter(filter).foldLeft(List[(String, String)]())(folder)
+  }
 
   class FormModel @Inject()(val reactiveMongoApi: ReactiveMongoApi, implicit val ec: ExecutionContext) {
     private def collection: Future[JSONCollection] = reactiveMongoApi.database.map(_.collection[JSONCollection]("forms"))
@@ -92,9 +114,10 @@ object FormModel {
     * @param helpText    a longer description for the field, when needed
     * @param required    true if this field is required
     * @param onlyIfMinor true if this field is required for users that won't be adults during the next edition
+    * @param ordering    a number specifying where the field should be rendered (lower value : displayed before)
     * @param decorator   additional info
     */
-  case class FormEntry(label: String, helpText: String, required: Boolean = true, onlyIfMinor: Boolean = false, decorator: FormEntryDecorator)
+  case class FormEntry(label: String, helpText: String, required: Boolean = true, onlyIfMinor: Boolean = false, ordering: Int = Int.MaxValue, decorator: FormEntryDecorator)
 
   object FormEntry {
     implicit val formEntryFormat: OFormat[FormEntry] = Json.format[FormEntry]
@@ -147,9 +170,6 @@ object FormModel {
 
   /**
     * The decorator for a string field
-    *
-    * @param minLength the minimal length of the string (inclusive)
-    * @param maxLength the maximal length of the string (exclusive)
     */
   case class StringDecorator(regex: String) extends FormEntryDecorator {
     override def validateInput(input: Any): Boolean = input match {
@@ -175,7 +195,8 @@ object FormModel {
   /**
     * The decorator for a Date field
     */
-  case class DateDecorator() extends FormEntryDecorator {
+
+  object DateDecorator {
     object Int {
       // Use this to automatically convert the matched date strings to int when parsing the date
       def unapply(s : String) : Option[Int] = try {
@@ -185,25 +206,43 @@ object FormModel {
       }
     }
 
-    override def validateInput(input: Any): Boolean = input match {
-      case (s: String) =>
-        val pattern = "^([0-9]{2})/([0-9]{2})/([0-9]{4})$".r
-        if (!s.matches(pattern.regex)) false
-        else {
-          val pattern(Int(day), Int(month), Int(year)) = s
-          val days: Map[Int, Int] = Map(1 -> 31, 2 -> 29, 3 -> 31, 4 -> 30, 5 -> 31, 6 -> 30, 7 -> 31, 8 -> 31, 9 -> 30,
-            10 -> 31, 11 -> 30, 12 -> 31)
+    val pattern = "^([0-9]{2})/([0-9]{2})/([0-9]{4})$".r
 
-          if (month <= 0 || month > 12) false
-          else if (day <= 0 || day > days(month)) false
-          else if (month == 2 && day == 29 && !isBissex(year)) false
-          else true
-        }
-      case _ => false
+    def extractDate(s: String, yearOffset: Int = 0, monthOffset: Int = 0, dayOffset: Int = 0): Date = {
+      val pattern(Int(day), Int(month), Int(year)) = s
+      val calendar = new GregorianCalendar
+      calendar.set(year + yearOffset, month + monthOffset, day + dayOffset, 0, 0, 0)
+      calendar.getTime
+    }
+
+
+
+    def isValidDate(s: String): Boolean = {
+      if (!s.matches(pattern.regex)) false
+      else {
+        val pattern(Int(day), Int(month), Int(year)) = s
+        val days: Map[Int, Int] = Map(1 -> 31, 2 -> 29, 3 -> 31, 4 -> 30, 5 -> 31, 6 -> 30, 7 -> 31, 8 -> 31, 9 -> 30,
+          10 -> 31, 11 -> 30, 12 -> 31)
+
+        if (month <= 0 || month > 12) false
+        else if (day <= 0 || day > days(month)) false
+        else if (month == 2 && day == 29 && !isBissex(year)) false
+        else true
+      }
     }
 
     private def isBissex(year: Int): Boolean =
       (year % 4 == 0) && (year % 100 != 0 || year % 400 == 0)
+  }
+
+  case class DateDecorator() extends FormEntryDecorator {
+
+
+    override def validateInput(input: Any): Boolean = input match {
+      case (s: String) => DateDecorator.isValidDate(s)
+      case _ => false
+    }
+
 
   }
 

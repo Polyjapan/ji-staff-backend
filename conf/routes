@@ -24,6 +24,8 @@ GET     /editions/:year             controllers.EditionController.getEdition(yea
 
 # update your application for an edition
 PUT     /applications/:year         controllers.ApplicationsController.updateApplication(year: String)
+# send your application for an edition
+PUT     /applications/send/:year         controllers.ApplicationsController.sendApplication(year: String)
 # get your application for an edition
 GET     /applications/:year         controllers.ApplicationsController.getApplication(year: String)
 # get all sent applications with user profile for an edition (comitee only)

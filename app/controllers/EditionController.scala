@@ -6,7 +6,7 @@ import akka.actor.ActorSystem
 import models.EditionsModel.EditionsModel
 import play.api.mvc._
 import services.AuthParserService
-import tools.FutureMappers
+import tools.{FutureMappers, TemporaryEdition}
 
 import scala.concurrent.ExecutionContext
 
@@ -25,7 +25,10 @@ class EditionController @Inject()(cc: ControllerComponents, actorSystem: ActorSy
     model.getEdition(year) map optionalMapper
   }
 
-  def setEdition(year: String): Action[AnyContent] = TODO
+  def setEdition(year: String): Action[AnyContent] = Action {
+    TemporaryEdition.createEditions(model)
+    Ok
+  }
   /*Action.async { implicit request => {
        if (auth.isAdmin._1)
          model setEdition EditionWrapper(Document(request.body.asText.get)) transform {

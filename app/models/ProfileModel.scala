@@ -2,7 +2,7 @@ package models
 
 import javax.inject.Inject
 
-import play.api.libs.json.{Format, JsObject, Json, OFormat}
+import play.api.libs.json._
 import play.modules.reactivemongo.ReactiveMongoApi
 import reactivemongo.api.Cursor.FailOnError
 import reactivemongo.api.ReadPreference
@@ -73,7 +73,7 @@ object ProfileModel {
     * @param profile the underlying document containing the profile
     */
   case class ProfileWrapper(userId: String, email: String, profile: JsObject, applications: Map[String, JsObject]) {
-    def wrappedApplications: Map[String, ApplicationWrapper] = applications.mapValues(ApplicationWrapper)
+    def wrappedApplications: Map[String, ApplicationWrapper] = applications.withDefaultValue(Json.obj()).mapValues(ApplicationWrapper)
 
     /**
       * Get the application for a given year
@@ -114,6 +114,8 @@ object ProfileModel {
       * @return true if the application was sent by the user, false if it was not
       */
     def wasSent: Boolean = application.keys("sent") && application("sent").as[Boolean]
+
+    def withSent(sent: Boolean) = ApplicationWrapper(application + ("sent" -> JsBoolean(sent)))
   }
 
 }

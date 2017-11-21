@@ -40,9 +40,7 @@ object EditionsModel {
   }
 
 
-  case class EditionWrapper(applicationsStart: Date, applicationsEnd: Date, year: String) {
-    def withYear(y: String): EditionWrapper = EditionWrapper(applicationsStart, applicationsEnd, y)
-
+  case class EditionWrapper(applicationsStart: Date, applicationsEnd: Date, conventionStart: Date, year: String) {
     /**
       * Whether or not this edition accepts applications
       *
@@ -50,7 +48,7 @@ object EditionsModel {
       */
     def isActive: Boolean = {
       val today = new Date()
-      (today before applicationsEnd) && (today after applicationsEnd)
+      (today before applicationsEnd) && (today after applicationsStart)
     }
   }
 
