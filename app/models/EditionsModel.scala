@@ -3,12 +3,15 @@ package models
 import java.util.Date
 import javax.inject.Inject
 
-import org.mongodb.scala.model.{Filters, UpdateOptions}
-import org.mongodb.scala.result.UpdateResult
-import org.mongodb.scala.{Document, MongoCollection}
-import services.MongoDBService
+import play.api.libs.json.{Format, Json, OFormat}
+import play.modules.reactivemongo.ReactiveMongoApi
+import reactivemongo.api.Cursor.FailOnError
+import reactivemongo.api.ReadPreference
+import reactivemongo.api.commands.UpdateWriteResult
+import reactivemongo.play.json.collection.JSONCollection
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
+import reactivemongo.play.json._
 
 /**
   * An edition is a set of parameters about a Japan Impact edition. It typically contains a year, an application start
@@ -18,30 +21,26 @@ import scala.concurrent.Future
   */
 object EditionsModel {
 
-  class EditionsModel @Inject()(mongo: MongoDBService) {
-    private def collection: MongoCollection[Document] = mongo.database.getCollection("editions")
+  class EditionsModel @Inject()(val reactiveMongoApi: ReactiveMongoApi, implicit val ec: ExecutionContext) {
+    private def collection: Future[JSONCollection] = reactiveMongoApi.database.map(_.collection[JSONCollection]("editions"))
 
-    def getAllEditions: Future[Seq[EditionWrapper]] =
-      collection.find.map(EditionWrapper(_)).toFuture
+    def getAllEditions: Future[Seq[EditionWrapper]] = {
+      collection.flatMap(_.find(Json.obj()).cursor[EditionWrapper](ReadPreference.primary).collect[List](-1, FailOnError[List[EditionWrapper]]()))
 
-    def getEdition(year: String): Future[EditionWrapper] =
-      collection.find(Filters.eq("year", year)).first.toFuture.map(EditionWrapper(_))
+    }
+
+    def getEdition(year: String): Future[Option[EditionWrapper]] =
+      collection.flatMap(_.find(Json.obj("year" -> year)).one[EditionWrapper](ReadPreference.primary))
 
     def getActiveEditions: Future[Seq[EditionWrapper]] =
       getAllEditions.map(_.filter(_.isActive))
 
-    def setEdition(editionWrapper: EditionWrapper): Future[UpdateResult] =
-      collection.replaceOne(Filters.eq("year", editionWrapper.year), editionWrapper.toDocument, UpdateOptions().upsert(true)).toFuture
+    def setEdition(editionWrapper: EditionWrapper): Future[UpdateWriteResult] =
+      collection.flatMap(_.update(Json.obj("year" -> editionWrapper.year), editionWrapper, upsert = true))
   }
 
 
   case class EditionWrapper(applicationsStart: Date, applicationsEnd: Date, year: String) {
-    lazy val toDocument: Document = Document(
-      "applicationsStart" -> applicationsStart,
-      "applicationsEnd" -> applicationsEnd,
-      "year" -> year
-    )
-
     def withYear(y: String): EditionWrapper = EditionWrapper(applicationsStart, applicationsEnd, y)
 
     /**
@@ -54,10 +53,10 @@ object EditionsModel {
       (today before applicationsEnd) && (today after applicationsEnd)
     }
   }
+
   object EditionWrapper {
-    def apply(document: Document): EditionWrapper = {
-      EditionWrapper(document("applicationsStart"), document("applicationsEnd"), document("year"))
-    }
+    implicit val editionFormat: OFormat[EditionWrapper] = Json.format[EditionWrapper]
   }
+
 
 }

@@ -3,8 +3,8 @@ package controllers
 import javax.inject._
 
 import akka.actor.ActorSystem
-import models.ProfileModel
 import models.FormModel.FormModel
+import models.ProfileModel.ProfileModel
 import play.api.mvc._
 import services.AuthParserService
 

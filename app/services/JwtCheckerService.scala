@@ -18,7 +18,6 @@ import play.api.Configuration
   */
 @Singleton
 class JwtCheckerService @Inject()(config: Configuration) {
-  private val issuer: String = config.get[String]("jwt.issuer")
   private val domain: String = config.get[String]("jwt.domain")
 
   /**
@@ -31,14 +30,14 @@ class JwtCheckerService @Inject()(config: Configuration) {
     */
   private lazy val keyProvider: RSAKeyProvider = new RSAKeyProvider {
     // We don't want to return private keys as our backend will only have to verify signatures
-    override def getPrivateKeyId: Nothing = throw UnsupportedOperationException
-    override def getPrivateKey: Nothing = throw UnsupportedOperationException
+    override def getPrivateKeyId: Nothing = throw new UnsupportedOperationException
+    override def getPrivateKey: Nothing = throw new UnsupportedOperationException
 
     override def getPublicKeyById(keyId: String): RSAPublicKey = jwksStore.get(keyId).getPublicKey.asInstanceOf[RSAPublicKey]
   }
 
   private lazy val algorithm: Algorithm = Algorithm.RSA256(keyProvider)
-  private lazy val jwtVerifier: JWTVerifier = JWT.require(algorithm).withIssuer(issuer).build()
+  private lazy val jwtVerifier: JWTVerifier = JWT.require(algorithm).build()
 
   /**
     * Checks if a token is valid
