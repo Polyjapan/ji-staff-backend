@@ -12,13 +12,14 @@ class ErrorHandler extends HttpErrorHandler {
 
   def onClientError(request: RequestHeader, statusCode: Int, message: String) = {
     Future.successful(
-      Status(statusCode)(Json.toJson(Json.obj("code" -> statusCode, "message" -> message)))
+      Status(statusCode)(Json.toJson(Json.obj("code" -> statusCode, "messages" -> List(message))))
     )
   }
 
   def onServerError(request: RequestHeader, exception: Throwable) = {
+    exception.printStackTrace()
     Future.successful(
-      InternalServerError(Json.toJson(Json.obj("code" -> 500, "message" -> exception.getMessage)))
+      InternalServerError(Json.toJson(Json.obj("code" -> 500, "messages" -> List(exception.getMessage))))
     )
   }
 }

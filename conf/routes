@@ -3,16 +3,6 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-# get the content of a form
-GET     /forms/:formId              controllers.FormController.getForm(formId: String)
-# update the content of a form (comitee only)
-PUT     /forms/:formId              controllers.FormController.setForm(formId: String)
-
-# get your own profile
-GET     /profile                    controllers.ProfileController.getProfile
-# update your own profile
-PUT     /profile                    controllers.ProfileController.setProfile
-
 # get all the Japan Impact editions
 GET     /editions                   controllers.EditionController.getAll
 # get the Japan Impact editions for which applications are open
@@ -22,12 +12,11 @@ PUT     /editions/:year             controllers.EditionController.setEdition(yea
 # get a specific edition
 GET     /editions/:year             controllers.EditionController.getEdition(year: String)
 
-# update your application for an edition
-PUT     /applications/:year         controllers.ApplicationsController.updateApplication(year: String)
-# send your application for an edition
-PUT     /applications/send/:year         controllers.ApplicationsController.sendApplication(year: String)
-# get your application for an edition
+# send and get your application for an edition
+PUT     /applications/:year/:page   controllers.ApplicationsController.updateApplication(year: String, page: Int)
+PUT     /applications/:year         controllers.ApplicationsController.validateApplication(year: String)
 GET     /applications/:year         controllers.ApplicationsController.getApplication(year: String)
+
 # get all sent applications with user profile for an edition (comitee only)
 GET     /applications/sent/:year    controllers.ApplicationsController.getSentApplications(year: String)
 # accept or refuse an application (comitee only)
