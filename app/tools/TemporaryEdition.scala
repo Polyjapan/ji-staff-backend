@@ -26,7 +26,7 @@ object TemporaryEdition {
     val first = FormPage(0, minorOnly = false, "Informations personnelles", List(
       FormField("lastname", "Nom", order = 0).withValidator(StringRegexValidator("Nom invalide", strRegex)),
       FormField("firstname", "Prénom", order = 1).withValidator(StringRegexValidator("Prénom invalide", strRegex)),
-      FormField("birthdate", "Date de naissance", order = 2).withValidator(DateValidator("Date de naissance invalide")),
+      FormField("birthdate", "Date de naissance", "Au format JJ/MM/AAAA", order = 2).withValidator(DateValidator("Date de naissance invalide")),
 
       FormField("cellphone", "Numéro de téléphone portable", "Préciser l'extension si ce n'est pas un numéro suisse. Si tu n'as pas de numéro de téléphone, indique 000 000 00 00",
         order = 3).withValidator(StringRegexValidator("Numéro de portable invalide", phoneRegex)),
@@ -67,14 +67,12 @@ object TemporaryEdition {
         FormField("skills", "Compétences particulières", "Tout ce qui pourraît nous servir !", order = 5).withValidator(StringRegexValidator("Les compétences contiennent des caractères interdits", addressRegex))
     ))
 
-    val staffBetter = Set("Oui", "Bien sûr", "Of course", "Tellement", "Le Jeu", "Julien est un troll")
 
 
     val motivations = FormPage(4, minorOnly = false, "Motivation & Remarques", List(
       FormField("motivation", "Motivation", "Un petit paragraphe pour nous dire pourquoi tu veux être staff", order = 0, controlType = "textarea"),
-        FormField("prefered-job", "Préférence de poste", "Quel poste préfèrerais tu exercer, et pourquoi ?", order = 1, required = false, controlType = "textarea"),
-        FormField("remarks", "Remarques", "Un truc de plus à nous dire ?", order = 2, required = false, controlType = "textarea"),
-          FormField("staffing-used-to-be-better", "Staff c'était mieux avant", order = 3, controlType = "select", additionalData = Json.obj("values" -> staffBetter)).withValidator(SetContainedValidator("Non mais t'es sérieux ?", staffBetter))
+        FormField("prefered-job", "Préférence de poste", "Quel poste préfèrerais tu exercer, et pourquoi ? (par exemple : Billetterie, Restauration, Information, Entrée, Surveillance d'activités)", order = 1, required = false, controlType = "textarea"),
+        FormField("remarks", "Remarques", "Un truc de plus à nous dire ?", order = 2, required = false, controlType = "textarea")
     ))
 
     List(first, legal, orga, skills, motivations)
@@ -84,13 +82,10 @@ object TemporaryEdition {
     /*
 Disponibilités dates
    */
-    val testStart = 1511283180000L
-    val testEnd = 1511373599000L
-    val officialStart = 1511373600000L
+    val officialStart = 1511348400000L
     val officialEnd = 1514761200000L
     var conventionStart = 1518822000000L
 
-    model.setEdition(Edition("2017", new Date(testStart), new Date(testEnd), new Date(conventionStart), pages))
     model.setEdition(Edition("2018", new Date(officialStart), new Date(officialEnd), new Date(conventionStart), pages))
   }
 }
