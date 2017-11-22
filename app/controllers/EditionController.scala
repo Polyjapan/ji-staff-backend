@@ -26,7 +26,7 @@ class EditionController @Inject()(cc: ControllerComponents, actorSystem: ActorSy
   }
 
   def setEdition(year: String): Action[AnyContent] = Action {
-    TemporaryEdition.createEditions(model)
+    // TemporaryEdition.createEditions(model)
     Ok
   }
   /*Action.async { implicit request => {
