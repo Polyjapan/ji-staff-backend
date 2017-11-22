@@ -8,16 +8,22 @@ GET     /editions                   controllers.EditionController.getAll
 # get the Japan Impact editions for which applications are open
 GET     /editions/active            controllers.EditionController.getActive
 # create or update an edition (comitee only)
++nocsrf
 PUT     /editions/:year             controllers.EditionController.setEdition(year: String)
 # get a specific edition
 GET     /editions/:year             controllers.EditionController.getEdition(year: String)
 
 # send and get your application for an edition
++nocsrf
 PUT     /applications/:year/:page   controllers.ApplicationsController.updateApplication(year: String, page: Int)
++nocsrf
 PUT     /applications/:year         controllers.ApplicationsController.validateApplication(year: String)
 GET     /applications/:year         controllers.ApplicationsController.getApplication(year: String)
 
+OPTIONS /                           controllers.OptionsController.rootOptions
+OPTIONS /*url                       controllers.OptionsController.options(url: String)
 # get all sent applications with user profile for an edition (comitee only)
 GET     /applications/sent/:year    controllers.ApplicationsController.getSentApplications(year: String)
 # accept or refuse an application (comitee only)
-PUT     /applications/:userId/:year controllers.ApplicationsController.setAccepted(userId: String, year: String)
++nocsrf
+PUT     /applications/accepted/:userId/:year controllers.ApplicationsController.setAccepted(userId: String, year: String)

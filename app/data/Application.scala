@@ -34,7 +34,7 @@ case class Application(userId: String, mail: String, year: String,
     else if (year != edition.year) (false, List("Année incorrecte"), this)
     else if (!edition.isActive) (false, List("Les inscriptions sont fermées pour cette édition"), this)
     else {
-      val minor = birthDateString.map(DateUtils.extractDate(_, yearOffset = -18)).exists(_ before edition.conventionStart)
+      val minor = birthDateString.map(DateUtils.extractDate(_, yearOffset = 18)).exists(_ after edition.conventionStart)
       val (succ, err, obj) = edition.verifyEditionAndBuildObject(content, minor)
 
       (succ, err, Application(userId, mail, year, isValidated = succ, isAccepted, obj))

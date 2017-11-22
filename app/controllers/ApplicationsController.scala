@@ -42,7 +42,7 @@ PUT     /applications/:userId/:year controllers.ApplicationsController.setAccept
         case (false, err, _) => Future(BadRequest(Json.obj("messages" -> err)))
       }
     }
-
+    
     (auth.isOnline, request.body.asJson) match {
       case ((false, _), _) => Future(Unauthorized)
       case ((_, _), None) => Future(BadRequest)

@@ -22,7 +22,7 @@ object DateUtils {
   def extractDate(s: String, yearOffset: Int = 0, monthOffset: Int = 0, dayOffset: Int = 0): Date = {
     val pattern(Int(day), Int(month), Int(year)) = s
     val calendar = new GregorianCalendar
-    calendar.set(year + yearOffset, month + monthOffset, day + dayOffset, 0, 0, 0)
+    calendar.set(year + yearOffset, month + monthOffset - 1, day + dayOffset, 0, 0, 0)
     calendar.getTime
   }
 
