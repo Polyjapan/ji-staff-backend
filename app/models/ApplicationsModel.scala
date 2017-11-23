@@ -48,6 +48,11 @@ class ApplicationsModel @Inject()(val reactiveMongoApi: ReactiveMongoApi, implic
     .flatMap(_.find(Json.obj("year" -> year, "userId" -> userId))
         .one[Application](ReadPreference.primary))
 
+  def getApplication(objectId: String): Future[Option[Application]] =
+    collection
+    .flatMap(_.find(Json.obj("_id" -> objectId))
+        .one[Application](ReadPreference.primary))
+
   def setApplication(application: Application): Future[UpdateWriteResult] =
     collection.flatMap(_.update(Json.obj("userId" -> application.userId, "year" -> application.year), application, upsert = true))
 }

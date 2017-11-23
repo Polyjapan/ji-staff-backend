@@ -93,6 +93,16 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
       }
   }
 
+
+  def getApplicationByUser(year: String, userid: String): Action[AnyContent] = Action.async {
+    implicit request =>
+      auth.isAdmin match {
+        case (true, _) => model.getApplication(year, userid) map optionalMapper
+        case (false, _) => Future(Unauthorized)
+      }
+  }
+
+
   def getRefusedApplications(year: String): Action[AnyContent] = Action.async {
     implicit request =>
       auth.isAdmin match {

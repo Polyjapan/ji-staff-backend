@@ -21,6 +21,7 @@ GET     /editions/:year             controllers.EditionController.getEdition(yea
 GET     /applications/:year/validated    controllers.ApplicationsController.getSentApplications(year: String)
 GET     /applications/:year/accepted    controllers.ApplicationsController.getAcceptedApplications(year: String)
 GET     /applications/:year/refused    controllers.ApplicationsController.getRefusedApplications(year: String)
+GET     /applications/:year/:userid  controllers.ApplicationsController.getApplicationByUser(year: String, userid: String)
 
 # accept or refuse an application (comitee only)
 +nocsrf
