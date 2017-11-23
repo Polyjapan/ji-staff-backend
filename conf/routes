@@ -19,6 +19,7 @@ GET     /editions/:year             controllers.EditionController.getEdition(yea
 
 # get all sent applications with user profile for an edition (comitee only)
 GET     /applications/:year/validated    controllers.ApplicationsController.getSentApplications(year: String)
+GET     /applications/:year/waiting    controllers.ApplicationsController.getWaitingApplications(year: String)
 GET     /applications/:year/accepted    controllers.ApplicationsController.getAcceptedApplications(year: String)
 GET     /applications/:year/refused    controllers.ApplicationsController.getRefusedApplications(year: String)
 GET     /applications/:year/:userid  controllers.ApplicationsController.getApplicationByUser(year: String, userid: String)

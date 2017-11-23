@@ -85,6 +85,14 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
       }
   }
 
+  def getWaitingApplications(year: String): Action[AnyContent] = Action.async {
+    implicit request =>
+      auth.isAdmin match {
+        case (true, _) => model.getAllWaiting(year) map listMapper
+        case (false, _) => Future(Unauthorized)
+      }
+  }
+
   def getAcceptedApplications(year: String): Action[AnyContent] = Action.async {
     implicit request =>
       auth.isAdmin match {
