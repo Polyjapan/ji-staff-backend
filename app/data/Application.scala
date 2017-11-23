@@ -10,6 +10,7 @@ case class Application(userId: String, mail: String, year: String,
                         isValidated: Boolean = false, isAccepted: Boolean = false,
                         isRefused: Option[Boolean] = Option.apply(false),
                         validationDate: Option[Long] = Option.empty,
+                        statusChangedBy: Option[(String, String)] = Option.empty,
                         content: JsObject = Json.obj()) {
   /**
     * Try to update the content of this application with a provided content
@@ -19,7 +20,21 @@ case class Application(userId: String, mail: String, year: String,
     */
   def withContent(content: JsObject): (Boolean, Application) = {
     if (isValidated) (false, this)
-    else (true, Application(userId, mail, year, isValidated = false, isAccepted, isRefused, validationDate, content))
+    else (true, Application(userId, mail, year, isValidated = false, isAccepted, isRefused, validationDate,
+      statusChangedBy, content))
+  }
+
+  def removeSensitiveFields: Application = {
+    // For now it removes the name of the person who accepted or refused the application
+    Application(userId, mail, year, isValidated, isAccepted, isRefused, validationDate, Option.empty, content)
+  }
+
+  def accept(adminId: String, adminName: String): Application = {
+    Application(userId, mail, year, isValidated, true, Option.apply(false), validationDate, Option.apply((adminId, adminName)), content)
+  }
+
+  def refuse(adminId: String, adminName: String): Application = {
+    Application(userId, mail, year, isValidated, false, Option.apply(true), validationDate, Option.apply((adminId, adminName)), content)
   }
 
   lazy val birthDateString: Option[String] = content.value.get("birthdate").flatMap(_.asOpt[String])
@@ -40,7 +55,7 @@ case class Application(userId: String, mail: String, year: String,
       val (succ, err, obj) = edition.verifyEditionAndBuildObject(content, minor)
 
       (succ, err, Application(userId, mail, year, isValidated = succ, isAccepted, isRefused,
-        if (succ) Option.apply(System.currentTimeMillis) else Option.empty, obj))
+        if (succ) Option.apply(System.currentTimeMillis) else Option.empty, statusChangedBy, obj))
     }
   }
 

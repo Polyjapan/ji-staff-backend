@@ -32,10 +32,7 @@ class ApplicationsModel @Inject()(val reactiveMongoApi: ReactiveMongoApi, implic
         .collect[List](-1, FailOnError[List[Application]]()))
 
   def getAllWaiting(year: String): Future[Seq[Application]] =
-    collection
-      .flatMap(_.find(Json.obj("year" -> year, "isValidated" -> true, "isAccepted" -> false, "isRefused" -> false))
-        .cursor[Application](ReadPreference.primary)
-        .collect[List](-1, FailOnError[List[Application]]()))
+    getAllValidated(year).map(_.filter(app => !app.isRefused.getOrElse(false) && !app.isAccepted))
 
   def getAllAccepted(year: String): Future[Seq[Application]] =
     collection

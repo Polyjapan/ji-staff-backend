@@ -72,7 +72,7 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
   def getApplication(year: String): Action[AnyContent] = Action.async {
     implicit request =>
       auth.isOnline match {
-        case (true, data) => model.getApplication(year, data.getSubject) map optionalMapper
+        case (true, data) => model.getApplication(year, data.getSubject) map (_.map(_.removeSensitiveFields)) map optionalMapper
         case (false, _) => Future(Unauthorized)
       }
   }
@@ -119,6 +119,26 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
       }
   }
 
-  def setAccepted(year: String): Action[AnyContent] = TODO
-  def setRefused(year: String): Action[AnyContent] = TODO
+  def setAccepted(year: String): Action[AnyContent] = Action.async {
+    implicit request => this.setState(year, (app, user, name) => app.accept(user, name))
+  }
+
+  def setRefused(year: String): Action[AnyContent] = Action.async {
+    implicit request => this.setState(year, (app, user, name) => app.refuse(user, name))
+  }
+
+  private def setState(year: String, setter: (Application, String, String) => Application)(implicit request: Request[AnyContent]): Future[Result] = {
+    (auth.isAdmin, request.body.asJson) match {
+      case ((true, token), Some(json: JsObject)) =>
+        model.getApplication(year, json("userId").as[String]).flatMap {
+          case Some(application) =>
+            model.setApplication(setter(application, token.getSubject, token.getClaim("name").asString()))
+              .map(result => Ok(Json.toJson(Json.obj("n" -> result.n))))
+          case None => Future(NotFound)
+        }
+
+      case ((false, _), _) => Future(Unauthorized)
+      case ((true, _), _) => Future(BadRequest)
+    }
+  }
 }

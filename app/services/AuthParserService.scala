@@ -47,10 +47,8 @@ class AuthParserService @Inject()(auth0Service: JwtCheckerService) {
     isOnline match {
       case (true, jwt) =>
         (
-          jwt.getClaim("email_verified").asBoolean() && // Is the e-mail verified (meaning the user controls it)
-            jwt.getClaim("email").asString() != null && // Is the e-mail non null
-            jwt.getClaim("email").asString().endsWith("@japan-impact.ch") && // is the email belonging to Japan Impact
-            jwt.getSubject.startsWith("google"),  // is the user authenticated though Google OAuth2 ?
+          !jwt.getClaim("https://staff.japan-impact.ch/admin").isNull &&
+            jwt.getClaim("https://staff.japan-impact.ch/admin").asBoolean(),
           jwt)
       case (false, _) => (false, null)
     }
