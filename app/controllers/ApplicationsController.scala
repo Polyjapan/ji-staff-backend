@@ -14,17 +14,6 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: ActorSystem, auth: AuthParserService, model: ApplicationsModel, editionsModel: EditionsModel)(implicit exec: ExecutionContext) extends AbstractController(cc) with FutureMappers {
-  /*
-  PUT     /applications/:year/:page   controllers.ApplicationsController.updateApplication(year: String, page: Int)
-PUT     /applications/:year         controllers.ApplicationsController.validateApplication(year: String)
-GET     /applications/:year         controllers.ApplicationsController.getApplication(year: String)
-
-# get all sent applications with user profile for an edition (comitee only)
-GET     /applications/sent/:year    controllers.ApplicationsController.getSentApplications(year: String)
-# accept or refuse an application (comitee only)
-PUT     /applications/:userId/:year controllers.ApplicationsController.setAccepted(userId: String, year: String)
-
-   */
   def updateApplication(year: String, page: Int): Action[AnyContent] = Action.async { implicit request =>
     def update(application: Application, edition: Option[Edition],
                page: Int, data: JsObject): Future[Result] = {
@@ -42,7 +31,7 @@ PUT     /applications/:userId/:year controllers.ApplicationsController.setAccept
         case (false, err, _) => Future(BadRequest(Json.obj("messages" -> err)))
       }
     }
-    
+
     (auth.isOnline, request.body.asJson) match {
       case ((false, _), _) => Future(Unauthorized)
       case ((_, _), None) => Future(BadRequest)
@@ -88,7 +77,30 @@ PUT     /applications/:userId/:year controllers.ApplicationsController.setAccept
       }
   }
 
-  def getSentApplications(year: String): Action[AnyContent] = TODO
+  def getSentApplications(year: String): Action[AnyContent] = Action.async {
+    implicit request =>
+      auth.isAdmin match {
+        case (true, _) => model.getAllValidated(year) map listMapper
+        case (false, _) => Future(Unauthorized)
+      }
+  }
 
-  def setAccepted(userId: String, year: String): Action[AnyContent] = TODO
+  def getAcceptedApplications(year: String): Action[AnyContent] = Action.async {
+    implicit request =>
+      auth.isAdmin match {
+        case (true, _) => model.getAllAccepted(year) map listMapper
+        case (false, _) => Future(Unauthorized)
+      }
+  }
+
+  def getRefusedApplications(year: String): Action[AnyContent] = Action.async {
+    implicit request =>
+      auth.isAdmin match {
+        case (true, _) => model.getAllRefused(year) map listMapper
+        case (false, _) => Future(Unauthorized)
+      }
+  }
+
+  def setAccepted(year: String): Action[AnyContent] = TODO
+  def setRefused(year: String): Action[AnyContent] = TODO
 }

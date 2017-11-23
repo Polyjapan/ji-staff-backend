@@ -7,7 +7,7 @@ import tools.DateUtils
   * @author Louis Vialar
   */
 case class Application(userId: String, mail: String, year: String,
-                        isValidated: Boolean = false, isAccepted: Boolean = false,
+                        isValidated: Boolean = false, isAccepted: Boolean = false, isRefused: Option[Boolean] = Option.apply(false),
                         content: JsObject = Json.obj()) {
   /**
     * Try to update the content of this application with a provided content
@@ -17,7 +17,7 @@ case class Application(userId: String, mail: String, year: String,
     */
   def withContent(content: JsObject): (Boolean, Application) = {
     if (isValidated) (false, this)
-    else (true, Application(userId, mail, year, isValidated = false, isAccepted, content))
+    else (true, Application(userId, mail, year, isValidated = false, isAccepted, isRefused, content))
   }
 
   lazy val birthDateString: Option[String] = content.value.get("birthdate").flatMap(_.asOpt[String])
@@ -37,7 +37,7 @@ case class Application(userId: String, mail: String, year: String,
       val minor = birthDateString.map(DateUtils.extractDate(_, yearOffset = 18)).exists(_ after edition.conventionStart)
       val (succ, err, obj) = edition.verifyEditionAndBuildObject(content, minor)
 
-      (succ, err, Application(userId, mail, year, isValidated = succ, isAccepted, obj))
+      (succ, err, Application(userId, mail, year, isValidated = succ, isAccepted, isRefused, obj))
     }
   }
 

@@ -31,6 +31,18 @@ class ApplicationsModel @Inject()(val reactiveMongoApi: ReactiveMongoApi, implic
         .cursor[Application](ReadPreference.primary)
         .collect[List](-1, FailOnError[List[Application]]()))
 
+  def getAllAccepted(year: String): Future[Seq[Application]] =
+    collection
+      .flatMap(_.find(Json.obj("year" -> year, "isAccepted" -> true))
+        .cursor[Application](ReadPreference.primary)
+        .collect[List](-1, FailOnError[List[Application]]()))
+
+  def getAllRefused(year: String): Future[Seq[Application]] =
+    collection
+      .flatMap(_.find(Json.obj("year" -> year, "isRefused" -> true))
+        .cursor[Application](ReadPreference.primary)
+        .collect[List](-1, FailOnError[List[Application]]()))
+
   def getApplication(year: String, userId: String): Future[Option[Application]] =
     collection
     .flatMap(_.find(Json.obj("year" -> year, "userId" -> userId))

@@ -1,7 +1,9 @@
-
 # Routes
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
+
+OPTIONS /                           controllers.OptionsController.rootOptions
+OPTIONS /*url                       controllers.OptionsController.options(url: String)
 
 # get all the Japan Impact editions
 GET     /editions                   controllers.EditionController.getAll
@@ -13,17 +15,22 @@ PUT     /editions/:year             controllers.EditionController.setEdition(yea
 # get a specific edition
 GET     /editions/:year             controllers.EditionController.getEdition(year: String)
 
+
+
+# get all sent applications with user profile for an edition (comitee only)
+GET     /applications/:year/validated    controllers.ApplicationsController.getSentApplications(year: String)
+GET     /applications/:year/accepted    controllers.ApplicationsController.getAcceptedApplications(year: String)
+GET     /applications/:year/refused    controllers.ApplicationsController.getRefusedApplications(year: String)
+
+# accept or refuse an application (comitee only)
++nocsrf
+PUT     /applications/:year/accepted controllers.ApplicationsController.setAccepted(year: String)
++nocsrf
+PUT     /applications/:year/refused controllers.ApplicationsController.setRefused(year: String)
+
 # send and get your application for an edition
 +nocsrf
 PUT     /applications/:year/:page   controllers.ApplicationsController.updateApplication(year: String, page: Int)
 +nocsrf
 PUT     /applications/:year         controllers.ApplicationsController.validateApplication(year: String)
 GET     /applications/:year         controllers.ApplicationsController.getApplication(year: String)
-
-OPTIONS /                           controllers.OptionsController.rootOptions
-OPTIONS /*url                       controllers.OptionsController.options(url: String)
-# get all sent applications with user profile for an edition (comitee only)
-GET     /applications/sent/:year    controllers.ApplicationsController.getSentApplications(year: String)
-# accept or refuse an application (comitee only)
-+nocsrf
-PUT     /applications/accepted/:userId/:year controllers.ApplicationsController.setAccepted(userId: String, year: String)
