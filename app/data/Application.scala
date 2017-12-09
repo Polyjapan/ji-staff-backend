@@ -11,7 +11,8 @@ case class Application(userId: String, mail: String, year: String,
                         isRefused: Option[Boolean] = Option.apply(false),
                         validationDate: Option[Long] = Option.empty,
                         statusChangedBy: Option[(String, String)] = Option.empty,
-                        content: JsObject = Json.obj()) {
+                        content: JsObject = Json.obj(),
+                        comments: Option[List[String]] = Option.empty) {
   /**
     * Try to update the content of this application with a provided content
     *
@@ -24,17 +25,25 @@ case class Application(userId: String, mail: String, year: String,
       statusChangedBy, content))
   }
 
+  /**
+    * Returns an application in which any sensitive fields (like the one who accepted/refused or any comments made) are
+    * excluded
+    * @return this application, without sensitive fields
+    */
   def removeSensitiveFields: Application = {
     // For now it removes the name of the person who accepted or refused the application
     Application(userId, mail, year, isValidated, isAccepted, isRefused, validationDate, Option.empty, content)
   }
 
-  def accept(adminId: String, adminName: String): Application = {
-    Application(userId, mail, year, isValidated, true, Option.apply(false), validationDate, Option.apply((adminId, adminName)), content)
-  }
-
-  def refuse(adminId: String, adminName: String): Application = {
-    Application(userId, mail, year, isValidated, false, Option.apply(true), validationDate, Option.apply((adminId, adminName)), content)
+  /**
+    * Mark an application as accepted
+    * @param adminId the id of the admin accepting the application
+    * @param adminName the name of the admin accepting the application
+    * @param accepted true or false, depending if the application is set accepted or refused
+    * @return
+    */
+  def accept(adminId: String, adminName: String, accepted: Boolean): Application = {
+    Application(userId, mail, year, isValidated, accepted, Option.apply(!accepted), validationDate, Option.apply((adminId, adminName)), content, comments)
   }
 
   lazy val birthDateString: Option[String] = content.value.get("birthdate").flatMap(_.asOpt[String])
