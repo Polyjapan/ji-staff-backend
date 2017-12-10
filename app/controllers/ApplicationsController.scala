@@ -3,9 +3,9 @@ package controllers
 import javax.inject._
 
 import akka.actor.ActorSystem
-import data.{Application, Edition}
+import data.{Application, Comment, Edition}
 import models.{ApplicationsModel, EditionsModel}
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{JsObject, JsSuccess, Json}
 import play.api.mvc._
 import services.AuthParserService
 import tools.FutureMappers
@@ -234,4 +234,23 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
       case ((true, _), _) => Future(BadRequest)   // admin with invalid data
     }
   }
+
+  def addComment(year: String): Action[AnyContent] = Action.async {
+    implicit request =>
+      (auth.isAdmin, request.body.asJson) match {
+        case ((false, _), _) => Future(Unauthorized)
+        case ((_, _), None) => Future(BadRequest)
+        case ((true, token), Some(json: JsObject)) =>
+          val comment = Comment(token.getClaim("name").asString(), token.getSubject, System.currentTimeMillis, json("comment").as[String])
+
+          model.getApplication(year, json("userId").as[String]).flatMap {
+            case Some(application) =>
+              model.setApplication(application withComment comment)
+                .map(result => Ok(Json.toJson(Json.obj("n" -> result.n, "comment" -> comment))))
+          }
+
+        case _ => Future(BadRequest)
+      }
+  }
+
 }

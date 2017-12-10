@@ -29,8 +29,8 @@ GET     /applications/:year/:userid  controllers.ApplicationsController.getAppli
 PUT     /applications/:year/accepted controllers.ApplicationsController.setAccepted(year: String)
 +nocsrf
 PUT     /applications/:year/refused controllers.ApplicationsController.setRefused(year: String)
-# +nocsrf
-# POST     /applications/:year/comments controllers.ApplicationsController.addComment(year: String)
++nocsrf
+POST     /applications/:year/comments controllers.ApplicationsController.addComment(year: String)
 
 # send and get your application for an edition
 +nocsrf

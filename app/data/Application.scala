@@ -12,7 +12,7 @@ case class Application(userId: String, mail: String, year: String,
                         validationDate: Option[Long] = Option.empty,
                         statusChangedBy: Option[(String, String)] = Option.empty,
                         content: JsObject = Json.obj(),
-                        comments: Option[List[String]] = Option.empty) {
+                        comments: Option[List[Comment]] = Option.empty) {
   /**
     * Try to update the content of this application with a provided content
     *
@@ -34,6 +34,11 @@ case class Application(userId: String, mail: String, year: String,
   def removeSensitiveFields: Application = {
     // For now it removes the name of the person who accepted or refused the application
     Application(userId, mail, year, isValidated, isAccepted, isRefused, validationDate, Option.empty, content)
+  }
+
+  def withComment(comment: Comment): Application = {
+    Application(userId, mail, year, isValidated, isAccepted, isRefused, validationDate, statusChangedBy, content,
+      Option.apply(comment :: comments.getOrElse(List())))
   }
 
   /**
