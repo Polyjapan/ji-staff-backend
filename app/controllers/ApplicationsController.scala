@@ -21,11 +21,11 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
     * @param userid the user whose application is to be updated
     * @param page the page of the application to update
     */
-  def updateApplication(year: String, userid: String, page: Int): Action[AnyContent] = Action.async { implicit request =>
+  def adminUpdateApplication(year: String, userid: String, page: Int): Action[AnyContent] = Action.async { implicit request =>
     (auth.isAdmin, request.body.asJson) match {
       case ((false, _), _) => Future(Unauthorized)
       case ((_, _), None) => Future(BadRequest)
-      case ((true, token), Some(json: JsObject)) => doUpdateApplication(year, userid, "", page, json)
+      case ((true, token), Some(json: JsObject)) => doUpdateApplication(year, userid, "", page, json, bypassValidated = true)
       case _ => Future(BadRequest)
     }
   }
@@ -52,17 +52,17 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
     * @param email the email of the user applying (used to create the application if it doesn't exist yet)
     * @param page the page of the application to update (refers to a page in the edition)
     * @param data the data contained in the request body
+    * @param bypassValidated if true, a validated application will still be modifiable
     * @return a future holding the result
     */
-  private def doUpdateApplication(year: String, userid: String, email: String, page: Int, data: JsObject): Future[Result] = {
-    def update(application: Application, edition: Option[Edition]): Future[Result] = {
+  private def doUpdateApplication(year: String, userid: String, email: String, page: Int, data: JsObject, bypassValidated: Boolean = false): Future[Result] = {    def update(application: Application, edition: Option[Edition]): Future[Result] = {
       if (edition.isEmpty) Future(NotFound(Json.obj("messages" -> List("Cette édition n'existe pas"))))
       else if (!edition.get.isActive) Future(BadRequest(Json.obj("messages" -> List("Les inscriptions sont fermées pour cette édition"))))
       else if (!edition.get.formData.exists(_.pageNumber == page)) Future(NotFound(Json.obj("messages" -> List("Cette page n'existe pas"))))
       else edition.get.formData.filter(_.pageNumber == page).head.verifyPageAndBuildObject(data, application.content) match {
         case (true, _, content) =>
           // We try to set the content that we know is valid
-          application.withContent(content) match {
+          application.withContent(content, bypassValidated) match {
             // We save it in the database or throw an error
             case (true, updatedApplication) =>
               model.setApplication(updatedApplication).map(result => Ok(Json.toJson(Json.obj("n" -> result.n))))

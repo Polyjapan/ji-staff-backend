@@ -17,10 +17,11 @@ case class Application(userId: String, mail: String, year: String,
     * Try to update the content of this application with a provided content
     *
     * @param content the content to put in this application
+    * @param bypassValidated if true, a validated application will still be modifiable
     * @return a pair (success, new application). The operation will fail only if this application is already validated
     */
-  def withContent(content: JsObject): (Boolean, Application) = {
-    if (isValidated) (false, this)
+  def withContent(content: JsObject, bypassValidated: Boolean = false): (Boolean, Application) = {
+    if (isValidated && !bypassValidated) (false, this)
     else (true, Application(userId, mail, year, isValidated = false, isAccepted, isRefused, validationDate,
       statusChangedBy, content))
   }
