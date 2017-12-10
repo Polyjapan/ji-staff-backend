@@ -3,6 +3,9 @@ package data
 import play.api.libs.json._
 import tools.DateUtils
 
+/**
+  * A package containing classes and tools about forms
+  */
 package object forms {
 
   /**
@@ -21,11 +24,21 @@ package object forms {
                       ) {
     val convertedValidators: List[FormFieldValidator] = validators.map(FormFieldValidator.fromJson)
 
+    /**
+      * Returns a new FormField with the provided new validators in addition of those already in this formfield
+      * @param newValidators a list of validators to add to the current field
+      * @return a new FormField with the new validators provided
+      */
     def withValidators(newValidators: List[FormFieldValidator]): FormField = {
       FormField(key, label, helpText, controlType, required, order,
         additionalData, validators ::: newValidators.map(_.toJson))
     }
 
+    /**
+      * Returns a new FormField with the provided new validator in addition of those already in this formfield
+      * @param validator the validator to add to the current field
+      * @return a new FormField
+      */
     def withValidator(validator: FormFieldValidator): FormField = withValidators(List(validator))
 
     /**

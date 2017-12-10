@@ -4,6 +4,7 @@ import play.api.libs.json.{JsObject, Json, OFormat}
 import tools.DateUtils
 
 /**
+  * A class representing an application
   * @author Louis Vialar
   */
 case class Application(userId: String, mail: String, year: String,
@@ -77,5 +78,8 @@ case class Application(userId: String, mail: String, year: String,
 }
 
 object Application {
+  /**
+    * The formatter used by the play framework Json library to convert json to/from applications
+    */
   implicit val format: OFormat[Application] = Json.format[Application]
 }

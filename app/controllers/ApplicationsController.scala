@@ -235,6 +235,12 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
     }
   }
 
+  /**
+    * Endpoint POST /applications/:year/comments <br/>
+    * Enables admins to add comments to a given application <br/>
+    * The request body is expected to contain fields "userId" and "comment"
+    * @param year the edition for the application
+    */
   def addComment(year: String): Action[AnyContent] = Action.async {
     implicit request =>
       (auth.isAdmin, request.body.asJson) match {

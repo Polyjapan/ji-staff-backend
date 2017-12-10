@@ -6,9 +6,14 @@ import data.forms.FormPage
 import play.api.libs.json.{JsObject, Json, OFormat}
 
 /**
+  * A class representing an Edition
   * @author Louis Vialar
   */
 case class Edition(year: String, applicationsStart: Date, applicationsEnd: Date, conventionStart: Date, formData: List[FormPage]) {
+  /**
+    * Check if this edition is active, i.e. whether or not it accepts new applications
+    * @return true if this edition is active and accepts new applications
+    */
   def isActive: Boolean = {
     val today = new Date()
     (today before applicationsEnd) && (today after applicationsStart)
@@ -38,5 +43,8 @@ case class Edition(year: String, applicationsStart: Date, applicationsEnd: Date,
 }
 
 object Edition {
+  /**
+    * The formatter used by the play framework Json library to convert json to/from editions
+    */
   implicit val format: OFormat[Edition] = Json.format[Edition]
 }

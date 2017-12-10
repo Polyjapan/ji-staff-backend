@@ -10,6 +10,9 @@ import tools.{FutureMappers, TemporaryEdition}
 
 import scala.concurrent.ExecutionContext
 
+/**
+  * This controller replies to all OPTIONS requests
+  */
 @Singleton
 class OptionsController @Inject()(cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends AbstractController(cc) with FutureMappers {
   def headers = List(
