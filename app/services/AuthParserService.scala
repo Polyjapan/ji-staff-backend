@@ -7,6 +7,7 @@ import play.api.libs.typedmap.{TypedKey, TypedMap}
 import play.api.mvc.{Headers, RequestHeader}
 
 /**
+  * This class provides a parser for authorization headers and authorization attributes
   * @author Louis Vialar
   */
 @Singleton

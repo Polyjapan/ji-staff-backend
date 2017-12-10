@@ -10,7 +10,8 @@ import play.api.libs.json.Json
 import scala.concurrent.ExecutionContext
 
 /**
-  * An object that allows you to create the two basic forms
+  * An object that allows you to create the two basic forms. It should disappear when the endpoint to create/update
+  * an edition and its client implementation will be done.
   *
   * @author Louis Vialar
   */

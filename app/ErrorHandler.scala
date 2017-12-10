@@ -7,6 +7,9 @@ import play.api.libs.json.Json
 
 import scala.concurrent.Future
 
+/**
+  * A class to convert all server and client errors to Json errors.
+  */
 @Singleton
 class ErrorHandler extends HttpErrorHandler {
 
