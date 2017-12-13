@@ -23,7 +23,7 @@ case class Application(userId: String, mail: String, year: String,
     */
   def withContent(content: JsObject, bypassValidated: Boolean = false): (Boolean, Application) = {
     if (isValidated && !bypassValidated) (false, this)
-    else (true, Application(userId, mail, year, isValidated = false, isAccepted, isRefused, validationDate,
+    else (true, Application(userId, mail, year, isValidated = false || bypassValidated, isAccepted, isRefused, validationDate,
       statusChangedBy, content))
   }
 
