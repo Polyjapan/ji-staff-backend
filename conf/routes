@@ -24,6 +24,11 @@ GET     /applications/:year/accepted    controllers.ApplicationsController.getAc
 GET     /applications/:year/refused    controllers.ApplicationsController.getRefusedApplications(year: String)
 GET     /applications/:year/:userid  controllers.ApplicationsController.getApplicationByUser(year: String, userid: String)
 
++nocsrf
+POST    /applications/:year/unclaimed   controllers.ApplicationsController.adminCreateApplication(year: String)
++nocsrf
+POST    /applications/:year/claim/:claimToken controllers.ApplicationsController.userClaimApplication(year: String, claimToken: String)
+
 # accept or refuse an application (comitee only)
 +nocsrf
 PUT     /applications/:year/accepted controllers.ApplicationsController.setAccepted(year: String)

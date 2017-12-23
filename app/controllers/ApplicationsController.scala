@@ -1,5 +1,6 @@
 package controllers
 
+import java.util.UUID
 import javax.inject._
 
 import akka.actor.ActorSystem
@@ -31,6 +32,43 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
   }
 
   /**
+    * Creates an already accepted application with no content. This generates an unique ID for this application to
+    * allow an user to claim it.
+    * @param year the year for the application
+    */
+  def adminCreateApplication(year: String): Action[AnyContent] = Action.async { implicit request =>
+    auth.isAdmin match {
+      case (false, _) => Future(Unauthorized)
+      case (true, token) =>
+        val app = Application.unclaimed(year).setValidated.accept(token.getSubject, token.getClaim("name").asString(), accepted = true)
+        model.setApplication(app).map(_ => Ok(Json.toJson(app)))
+      case _ => Future(BadRequest)
+    }
+  }
+
+  /**
+    * Allows an user to become the owner of an admin created application
+    * @param year the year for which the user wishes to claim an application
+    * @param claimToken the token of the application to claim
+    * @return a [[BadRequest]] if the claim didn't succeed, a [[Ok]] containing the serialized new [[Application]] if it
+    *         did
+    */
+  def userClaimApplication(year: String, claimToken: String): Action[AnyContent] = Action.async { implicit request =>
+      auth.isOnline match {
+        case (false, _) => Future(Unauthorized)
+        case (true, token) =>
+          model.getApplication(year, claimToken)
+            .map(_ flatMap (_.claimApplication(token.getSubject, token.getClaim("email").asString())))
+            .flatMap {
+              case Some(app) =>
+                model.setApplication(app).map(_ => Ok(Json.toJson(app.removeSensitiveFields)))
+              case None =>
+                Future(BadRequest(Json.obj("messages" -> List("Le jeton de candidature n'est pas utilisable."))))
+            }
+      }
+  }
+
+  /**
     * Endpoint /applications/:year/:page <br>
     * Updates the authenticated user's application
     * @param year the edition for which the application is made
@@ -57,16 +95,16 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
     */
   private def doUpdateApplication(year: String, userid: String, email: String, page: Int, data: JsObject, bypassValidated: Boolean = false): Future[Result] = {    def update(application: Application, edition: Option[Edition]): Future[Result] = {
       if (edition.isEmpty) Future(NotFound(Json.obj("messages" -> List("Cette édition n'existe pas"))))
-      else if (!edition.get.isActive) Future(BadRequest(Json.obj("messages" -> List("Les inscriptions sont fermées pour cette édition"))))
+      else if (!edition.get.isActive && !bypassValidated) Future(BadRequest(Json.obj("messages" -> List("Les inscriptions sont fermées pour cette édition"))))
       else if (!edition.get.formData.exists(_.pageNumber == page)) Future(NotFound(Json.obj("messages" -> List("Cette page n'existe pas"))))
       else edition.get.formData.filter(_.pageNumber == page).head.verifyPageAndBuildObject(data, application.content) match {
         case (true, _, content) =>
           // We try to set the content that we know is valid
           application.withContent(content, bypassValidated) match {
             // We save it in the database or throw an error
-            case (true, updatedApplication) =>
+            case Some(updatedApplication) =>
               model.setApplication(updatedApplication).map(result => Ok(Json.toJson(Json.obj("n" -> result.n))))
-            case (false, _) => Future(BadRequest(Json.obj("messages" -> List("Impossible de modifier une candidature envoyée"))))
+            case None => Future(BadRequest(Json.obj("messages" -> List("Impossible de modifier une candidature envoyée"))))
           }
         case (false, err, _) => Future(BadRequest(Json.obj("messages" -> err)))
       }
