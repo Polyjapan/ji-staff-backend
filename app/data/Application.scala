@@ -16,7 +16,9 @@ case class Application(userId: String, mail: String, year: String,
                         statusChangedBy: Option[(String, String)] = Option.empty,
                         content: JsObject = Json.obj(),
                         comments: Option[List[Comment]] = Option.empty,
-                        claimToken: Option[String] = Option.empty
+                        claimToken: Option[String] = Option.empty,
+                        picture: Option[String] = Option.empty,
+                        parentalAllowance: Option[String] = Option.empty
                       ) {
 
   /**
@@ -29,8 +31,11 @@ case class Application(userId: String, mail: String, year: String,
                       statusChangedBy: Option[(String, String)] = this.statusChangedBy,
                       content: JsObject = this.content,
                       comments: Option[List[Comment]] = this.comments,
-                      claimToken: Option[String] = this.claimToken) =
-    Application(userId, mail, year, isValidated, isAccepted, isRefused, validationDate, statusChangedBy, content, comments, claimToken)
+                      claimToken: Option[String] = this.claimToken,
+                      picture: Option[String] = this.picture,
+                      parentalAllowance: Option[String] = this.parentalAllowance
+                     ) =
+    Application(userId, mail, year, isValidated, isAccepted, isRefused, validationDate, statusChangedBy, content, comments, claimToken, picture, parentalAllowance)
 
   /**
     * Try to update the content of this application with a provided content
@@ -42,6 +47,24 @@ case class Application(userId: String, mail: String, year: String,
   def withContent(content: JsObject, bypassValidated: Boolean = false): Option[Application] = {
     if (isValidated && !bypassValidated) Option.empty
     else Option apply rebuild(isValidated = false || bypassValidated, content = content)
+  }
+
+  /**
+    * Updates the application with a picture
+    * @param newPicture the new picture file id to set
+    * @return the application with a picture
+    */
+  def updatePicture(newPicture: String): Application = {
+    rebuild(picture = Option.apply(newPicture))
+  }
+
+  /**
+    * Updates the application with a parental authorization
+    * @param auth the parental authorization file id
+    * @return the application with a parental authorization
+    */
+  def updateParentalAuthorization(auth: String): Application = {
+    rebuild(parentalAllowance = Option.apply(auth))
   }
 
   /**

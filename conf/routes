@@ -37,6 +37,11 @@ PUT     /applications/:year/refused controllers.ApplicationsController.setRefuse
 +nocsrf
 POST     /applications/:year/comments controllers.ApplicationsController.addComment(year: String)
 
++nocsrf
+PUT     /applications/:year/picture     controllers.ApplicationsController.updatePicture(year: String)
++nocsrf
+PUT     /applications/:year/parentalAuthorization   controllers.ApplicationsController.updateParentalAuthorization(year: String)
+
 # send and get your application for an edition
 +nocsrf
 PUT     /applications/:year/:userid/:page   controllers.ApplicationsController.adminUpdateApplication(year: String, userid: String, page: Int)

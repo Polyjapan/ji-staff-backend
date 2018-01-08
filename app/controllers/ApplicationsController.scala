@@ -1,20 +1,24 @@
 package controllers
 
+import java.nio.file.{Files, Paths}
 import java.util.UUID
 import javax.inject._
 
 import akka.actor.ActorSystem
 import data.{Application, Comment, Edition}
 import models.{ApplicationsModel, EditionsModel}
+import play.api.http.MediaRange.parse
+import play.api.libs.Files.TemporaryFile
 import play.api.libs.json.{JsObject, JsSuccess, Json}
-import play.api.mvc._
-import services.AuthParserService
+import play.api.mvc.Results.Ok
+import play.api.mvc.{Action, _}
+import services.{AuthParserService, UploadsService}
 import tools.FutureMappers
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: ActorSystem, auth: AuthParserService, model: ApplicationsModel, editionsModel: EditionsModel)(implicit exec: ExecutionContext) extends AbstractController(cc) with FutureMappers {
+class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: ActorSystem, auth: AuthParserService, model: ApplicationsModel, editionsModel: EditionsModel, uploads: UploadsService)(implicit exec: ExecutionContext) extends AbstractController(cc) with FutureMappers {
   /**
     * Endpoint /applications/:year/:userid/:page <br/>
     * Allows an admin to update someone else's application
@@ -80,6 +84,34 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
       case ((_, _), None) => Future(BadRequest)
       case ((true, token), Some(json: JsObject)) => doUpdateApplication(year, token.getSubject, token.getClaim("email").asString(), page, json)
       case _ => Future(BadRequest)
+    }
+  }
+
+  def updateParentalAuthorization(year: String): Action[TemporaryFile] =
+    uploadAndCall(year, UploadsService.pdf :: UploadsService.images, (app, path) => app.updateParentalAuthorization(path))
+
+  def updatePicture(year: String): Action[TemporaryFile] =
+    uploadAndCall(year, UploadsService.images, (app, path) => app.updatePicture(path))
+
+  private def uploadAndCall(year: String, allowedTypes: List[UploadsService.MimeType], applyNext: (Application, String) => Application): Action[TemporaryFile] = Action.async(parse.temporaryFile) { implicit request =>
+    auth.isOnline match {
+      case (false, _) => Future(Unauthorized)
+      case (true, token) =>
+        for {
+          // Get application and edition from database
+          application <- model.getApplication(year, token.getSubject)
+          edition <- editionsModel.getEdition(year)
+
+          res <- {
+            if (edition.isEmpty) Future(NotFound(Json.obj("messages" -> List("Cette édition n'existe pas"))))
+            else if (application.isEmpty) Future(NotFound(Json.obj("messages" -> List("Vous n'avez pas envoyé de candidature pour cette édition"))))
+            else uploads.upload(request.body, allowedTypes) match {
+              case (false, _) => Future(BadRequest(Json.obj("messages" -> List("Le format de fichier est incorrect"))))
+              case (true, path) =>
+                model.setApplication(applyNext(application.get, path)).map(result => Ok(Json.toJson(Json.obj("n" -> result.n))))
+            }
+          }
+        } yield res
     }
   }
 
