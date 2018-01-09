@@ -54,4 +54,14 @@ class AuthParserService @Inject()(auth0Service: JwtCheckerService) {
       case (false, _) => (false, null)
     }
 
+  def isStaff(edition: String)(implicit request: RequestHeader): (Boolean, DecodedJWT) =
+    isOnline match {
+      case (true, jwt) =>
+        (
+          !jwt.getClaim("https://staff.japan-impact.ch/isStaff").isNull &&
+            jwt.getClaim("https://staff.japan-impact.ch/isStaff").asList[String](classOf[String]).contains(edition),
+          jwt)
+      case (false, _) => (false, null)
+    }
+
 }
