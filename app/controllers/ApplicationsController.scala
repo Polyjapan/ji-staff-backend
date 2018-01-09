@@ -1,16 +1,12 @@
 package controllers
 
-import java.nio.file.{Files, Paths}
-import java.util.UUID
 import javax.inject._
 
 import akka.actor.ActorSystem
 import data.{Application, Comment, Edition}
 import models.{ApplicationsModel, EditionsModel}
-import play.api.http.MediaRange.parse
 import play.api.libs.Files.TemporaryFile
-import play.api.libs.json.{JsObject, JsSuccess, Json}
-import play.api.mvc.Results.Ok
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, _}
 import services.{Auth0ManagementService, AuthParserService, UploadsService}
 import tools.FutureMappers
@@ -22,9 +18,10 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
   /**
     * Endpoint /applications/:year/:userid/:page <br/>
     * Allows an admin to update someone else's application
-    * @param year the edition for which the application is made
+    *
+    * @param year   the edition for which the application is made
     * @param userid the user whose application is to be updated
-    * @param page the page of the application to update
+    * @param page   the page of the application to update
     */
   def adminUpdateApplication(year: String, userid: String, page: Int): Action[AnyContent] = Action.async { implicit request =>
     (auth.isAdmin, request.body.asJson) match {
@@ -38,6 +35,7 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
   /**
     * Creates an already accepted application with no content. This generates an unique ID for this application to
     * allow an user to claim it.
+    *
     * @param year the year for the application
     */
   def adminCreateApplication(year: String): Action[AnyContent] = Action.async { implicit request =>
@@ -52,29 +50,31 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
 
   /**
     * Allows an user to become the owner of an admin created application
-    * @param year the year for which the user wishes to claim an application
+    *
+    * @param year       the year for which the user wishes to claim an application
     * @param claimToken the token of the application to claim
     * @return a [[BadRequest]] if the claim didn't succeed, a [[Ok]] containing the serialized new [[Application]] if it
     *         did
     */
   def userClaimApplication(year: String, claimToken: String): Action[AnyContent] = Action.async { implicit request =>
-      auth.isOnline match {
-        case (false, _) => Future(Unauthorized)
-        case (true, token) =>
-          model.getApplication(year, claimToken)
-            .map(_ flatMap (_.claimApplication(token.getSubject, token.getClaim("email").asString())))
-            .flatMap {
-              case Some(app) =>
-                model.setApplication(app).map(_ => Ok(Json.toJson(app.removeSensitiveFields)))
-              case None =>
-                Future(BadRequest(Json.obj("messages" -> List("Le jeton de candidature n'est pas utilisable."))))
-            }
-      }
+    auth.isOnline match {
+      case (false, _) => Future(Unauthorized)
+      case (true, token) =>
+        model.getApplication(year, claimToken)
+          .map(_ flatMap (_.claimApplication(token.getSubject, token.getClaim("email").asString())))
+          .flatMap {
+            case Some(app) =>
+              model.setApplication(app).map(_ => Ok(Json.toJson(app.removeSensitiveFields)))
+            case None =>
+              Future(BadRequest(Json.obj("messages" -> List("Le jeton de candidature n'est pas utilisable."))))
+          }
+    }
   }
 
   /**
     * Endpoint /applications/:year/:page <br>
     * Updates the authenticated user's application
+    *
     * @param year the edition for which the application is made
     * @param page the page of the application to update
     */
@@ -117,15 +117,17 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
 
   /**
     * Update an application using the request content
-    * @param year the edition for which the application is made
-    * @param userid the id of the user applying (token subject)
-    * @param email the email of the user applying (used to create the application if it doesn't exist yet)
-    * @param page the page of the application to update (refers to a page in the edition)
-    * @param data the data contained in the request body
+    *
+    * @param year            the edition for which the application is made
+    * @param userid          the id of the user applying (token subject)
+    * @param email           the email of the user applying (used to create the application if it doesn't exist yet)
+    * @param page            the page of the application to update (refers to a page in the edition)
+    * @param data            the data contained in the request body
     * @param bypassValidated if true, a validated application will still be modifiable
     * @return a future holding the result
     */
-  private def doUpdateApplication(year: String, userid: String, email: String, page: Int, data: JsObject, bypassValidated: Boolean = false): Future[Result] = {    def update(application: Application, edition: Option[Edition]): Future[Result] = {
+  private def doUpdateApplication(year: String, userid: String, email: String, page: Int, data: JsObject, bypassValidated: Boolean = false): Future[Result] = {
+    def update(application: Application, edition: Option[Edition]): Future[Result] = {
       if (edition.isEmpty) Future(NotFound(Json.obj("messages" -> List("Cette édition n'existe pas"))))
       else if (!edition.get.isActive && !bypassValidated) Future(BadRequest(Json.obj("messages" -> List("Les inscriptions sont fermées pour cette édition"))))
       else if (!edition.get.formData.exists(_.pageNumber == page)) Future(NotFound(Json.obj("messages" -> List("Cette page n'existe pas"))))
@@ -157,6 +159,7 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
     * Endpoint /applications/:year (PUT) <br>
     * Mark an application as validated, meaning the user will not be able to modify it anymore<br>
     * It also should check that the application CAN be validated <=> all the required fields are present and valid
+    *
     * @param year the year for which the application is made
     */
   def validateApplication(year: String): Action[AnyContent] = Action.async {
@@ -185,6 +188,7 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
   /**
     * Endpoint /applications/:year (GET)<br>
     * Enables an user to access their own application for a given edition
+    *
     * @param year the year for which the user wants to see their application
     */
   def getApplication(year: String): Action[AnyContent] = Action.async {
@@ -198,6 +202,7 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
   /**
     * Endpoint /applications/:year/validated <br/>
     * Enables an admin to list all the applications sent for a given edition
+    *
     * @param year the year for which the admin wants to see the applications
     */
   def getSentApplications(year: String): Action[AnyContent] = Action.async {
@@ -211,6 +216,7 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
   /**
     * Endpoint /applications/:year/waiting <br/>
     * Enables an admin to list all the applications sent and not yet given a response for a given edition
+    *
     * @param year the year for which the admin wants to see the applications
     */
   def getWaitingApplications(year: String): Action[AnyContent] = Action.async {
@@ -224,6 +230,7 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
   /**
     * Endpoint /applications/:year/accepted <br/>
     * Enables an admin to list all the accepted applications for a given edition
+    *
     * @param year the year for which the admin wants to see the applications
     */
   def getAcceptedApplications(year: String): Action[AnyContent] = Action.async {
@@ -237,6 +244,7 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
   /**
     * Endpoint /applications/:year/:userid <br/>
     * Enables an admin to get an application sent by a given user for a given edition
+    *
     * @param year the year for which the admin wants to see the application
     */
   def getApplicationByUser(year: String, userid: String): Action[AnyContent] = Action.async {
@@ -250,6 +258,7 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
   /**
     * Endpoint /applications/:year/refused <br/>
     * Enables an admin to list all the refused applications for a given edition
+    *
     * @param year the year for which the admin wants to see the applications
     */
   def getRefusedApplications(year: String): Action[AnyContent] = Action.async {
@@ -265,6 +274,7 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
     * Enables an admin to accept an application. The request body must contain the id of the user for which the application
     * is being accepted. <br/>
     * The request is passed to the `setState` method handling the actual database update
+    *
     * @param year the year for which the admin wants to set the application state
     */
   def setAccepted(year: String): Action[AnyContent] = Action.async {
@@ -276,6 +286,7 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
     * Enables an admin to refuse an application. The request body must contain the id of the user for which the application
     * is being refused. <br/>
     * The request is passed to the `setState` method handling the actual database update
+    *
     * @param year the year for which the admin wants to set the application state
     */
   def setRefused(year: String): Action[AnyContent] = Action.async {
@@ -284,6 +295,7 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
 
   /**
     * Grant all applications their rights
+    *
     * @param year the year of the applications
     */
   def refreshRights(year: String): Action[AnyContent] = Action.async { implicit request =>
@@ -296,9 +308,9 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
           .flatMap(accepted => model.getAllRefused(year)
             map (refused => // map the Future[Seq] to Future[(Seq, Seq)] where the 1st seq is the list of granted ids and the second the list of ungranted ids
             (accepted, refused map (app => {
-            auth0.unmakeStaff(app.userId, year) // unmake the refused staffs
-            app.userId // return their user id
-          }))))
+              auth0.unmakeStaff(app.userId, year) // unmake the refused staffs
+              app.userId // return their user id
+            }))))
           .flatMap(pair => model.getAllWaiting(year)
             map (waiting => (pair._1, pair._2 ++ (waiting map (app => {
             auth0.unmakeStaff(app.userId, year)
@@ -313,14 +325,15 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
 
   /**
     * Updates the state of an application
-    * @param year the year of the application
+    *
+    * @param year     the year of the application
     * @param accepted the status (true = accepted, false = refused)
-    * @param request the request whose body contains the userId
+    * @param request  the request whose body contains the userId
     * @return the request result
     */
   private def setState(year: String, accepted: Boolean)(implicit request: Request[AnyContent]): Future[Result] = {
     (auth.isAdmin, request.body.asJson) match {
-      case ((true, token), Some(json: JsObject)) =>   // admin with valid json in the request body
+      case ((true, token), Some(json: JsObject)) => // admin with valid json in the request body
         model.getApplication(year, json("userId").as[String]).flatMap {
           case Some(application) => // the body contains an userId field corresponding to an actual application
             // We add or remove the staff
@@ -334,7 +347,7 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
         }
 
       case ((false, _), _) => Future(Unauthorized) // not an admin
-      case ((true, _), _) => Future(BadRequest)   // admin with invalid data
+      case ((true, _), _) => Future(BadRequest) // admin with invalid data
     }
   }
 
@@ -342,6 +355,7 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
     * Endpoint POST /applications/:year/comments <br/>
     * Enables admins to add comments to a given application <br/>
     * The request body is expected to contain fields "userId" and "comment"
+    *
     * @param year the edition for the application
     */
   def addComment(year: String): Action[AnyContent] = Action.async {
