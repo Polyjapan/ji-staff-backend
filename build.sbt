@@ -16,6 +16,7 @@ libraryDependencies ++= Seq( jdbc , ehcache , ws , specs2 % Test , guice,
 )
 libraryDependencies += "com.auth0" % "java-jwt" % "3.3.0" // For json web token validation
 libraryDependencies += "com.auth0" % "jwks-rsa" % "0.3.0" // For json web token public key finding
+libraryDependencies += "com.auth0" % "auth0" % "1.5.0" // Auth0 management API
 
 
 unmanagedResourceDirectories in Test <+=  baseDirectory ( _ /"target/web/public/test" )  

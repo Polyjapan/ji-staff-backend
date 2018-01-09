@@ -15,7 +15,9 @@ PUT     /editions/:year             controllers.EditionController.setEdition(yea
 # get a specific edition
 GET     /editions/:year             controllers.EditionController.getEdition(year: String)
 
-
+# An endpoint that refresh grants automatically
++nocsrf
+POST     /applications/:year/grants  controllers.ApplicationsController.refreshRights(year: String)
 
 # get all sent applications with user profile for an edition (comitee only)
 GET     /applications/:year/validated    controllers.ApplicationsController.getSentApplications(year: String)

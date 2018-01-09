@@ -3,7 +3,7 @@ package services
 import java.nio.ByteBuffer
 import java.nio.file.{Files, Paths}
 import java.util.{Base64, UUID}
-import javax.inject.Inject
+import javax.inject.{Inject,Singleton}
 
 import play.api.Configuration
 import play.api.libs.Files.TemporaryFile
@@ -25,7 +25,7 @@ object UploadsService {
   val pdf: MimeType = ("application/pdf", ".pdf")
 }
 
-@Singleton()
+@Singleton
 class UploadsService @Inject()(config: Configuration) {
 
   /**

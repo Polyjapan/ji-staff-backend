@@ -12,13 +12,13 @@ import play.api.libs.Files.TemporaryFile
 import play.api.libs.json.{JsObject, JsSuccess, Json}
 import play.api.mvc.Results.Ok
 import play.api.mvc.{Action, _}
-import services.{AuthParserService, UploadsService}
+import services.{Auth0ManagementService, AuthParserService, UploadsService}
 import tools.FutureMappers
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: ActorSystem, auth: AuthParserService, model: ApplicationsModel, editionsModel: EditionsModel, uploads: UploadsService)(implicit exec: ExecutionContext) extends AbstractController(cc) with FutureMappers {
+class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: ActorSystem, auth: AuthParserService, model: ApplicationsModel, editionsModel: EditionsModel, uploads: UploadsService, auth0: Auth0ManagementService)(implicit exec: ExecutionContext) extends AbstractController(cc) with FutureMappers {
   /**
     * Endpoint /applications/:year/:userid/:page <br/>
     * Allows an admin to update someone else's application
@@ -229,7 +229,7 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
   def getAcceptedApplications(year: String): Action[AnyContent] = Action.async {
     implicit request =>
       auth.isAdmin match {
-        case (true, _) => model.getAllAccepted(year) map listMapper
+        case (true, data) => model.getAllAccepted(year) map listMapper
         case (false, _) => Future(Unauthorized)
       }
   }
@@ -283,6 +283,35 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
   }
 
   /**
+    * Grant all applications their rights
+    * @param year the year of the applications
+    */
+  def refreshRights(year: String): Action[AnyContent] = Action.async { implicit request =>
+    auth.isAdmin match {
+      case (true, token) =>
+        (model.getAllAccepted(year) map (_ map (app => {
+          auth0.makeStaff(app.userId, year) // make the users staffs
+          app.userId // rerturn their user id
+        })))
+          .flatMap(accepted => model.getAllRefused(year)
+            map (refused => // map the Future[Seq] to Future[(Seq, Seq)] where the 1st seq is the list of granted ids and the second the list of ungranted ids
+            (accepted, refused map (app => {
+            auth0.unmakeStaff(app.userId, year) // unmake the refused staffs
+            app.userId // return their user id
+          }))))
+          .flatMap(pair => model.getAllWaiting(year)
+            map (waiting => (pair._1, pair._2 ++ (waiting map (app => {
+            auth0.unmakeStaff(app.userId, year)
+            app.userId
+          })))))
+          .map(u => Ok(Json.toJson(Json.obj("granted" -> u._1, "removed" -> u._2))))
+
+
+      case _ => Future(Unauthorized) // not an admin
+    }
+  }
+
+  /**
     * Updates the state of an application
     * @param year the year of the application
     * @param accepted the status (true = accepted, false = refused)
@@ -294,6 +323,10 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
       case ((true, token), Some(json: JsObject)) =>   // admin with valid json in the request body
         model.getApplication(year, json("userId").as[String]).flatMap {
           case Some(application) => // the body contains an userId field corresponding to an actual application
+            // We add or remove the staff
+            if (accepted) auth0.makeStaff(application.userId, year)
+            else auth0.unmakeStaff(application.userId, year)
+
             // We update the application and insert it in the database
             model.setApplication(application.accept(token.getSubject, token.getClaim("name").asString(), accepted))
               .map(result => Ok(Json.toJson(Json.obj("n" -> result.n))))
