@@ -1,12 +1,14 @@
 package services
 
 import java.nio.ByteBuffer
+import java.nio.file.attribute.PosixFilePermission
 import java.nio.file.{Files, Paths}
 import java.util.{Base64, UUID}
-import javax.inject.{Inject,Singleton}
+import javax.inject.{Inject, Singleton}
 
 import play.api.Configuration
 import play.api.libs.Files.TemporaryFile
+import collection.JavaConverters._
 
 
 /**
@@ -47,6 +49,7 @@ class UploadsService @Inject()(config: Configuration) {
       val fileName = name + matching.head._2
       val path = config.get[String]("uploads.path") + fileName
       file.moveTo(Paths.get(path), replace = true)
+      Files.setPosixFilePermissions(Paths.get(path), Set(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE, PosixFilePermission.OTHERS_READ, PosixFilePermission.GROUP_READ).asJava)
       println("file saved at " + path)
       (true, fileName)
     }
