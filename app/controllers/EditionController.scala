@@ -3,15 +3,18 @@ package controllers
 import javax.inject._
 
 import akka.actor.ActorSystem
+import data.Application
 import models.EditionsModel
+import play.api.libs.Files.TemporaryFile
+import play.api.libs.json.Json
 import play.api.mvc._
-import services.AuthParserService
+import services.{AuthParserService, UploadsService}
 import tools.{FutureMappers, TemporaryEdition}
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class EditionController @Inject()(cc: ControllerComponents, actorSystem: ActorSystem, auth: AuthParserService, model: EditionsModel)(implicit exec: ExecutionContext) extends AbstractController(cc) with FutureMappers {
+class EditionController @Inject()(cc: ControllerComponents, actorSystem: ActorSystem, auth: AuthParserService, model: EditionsModel, uploads: UploadsService)(implicit exec: ExecutionContext) extends AbstractController(cc) with FutureMappers {
   /**
     * Endpoint /editions (GET) <br/>
     * Returns a list of all editions existing in the database
@@ -36,6 +39,17 @@ class EditionController @Inject()(cc: ControllerComponents, actorSystem: ActorSy
     */
   def getEdition(year: String): Action[AnyContent] = Action.async {
     model.getEdition(year) map optionalMapper
+  }
+
+  def uploadForm(year: String): Action[TemporaryFile] = Action(parse.temporaryFile) { implicit request =>
+    auth.isOnline match {
+      case (false, _) => Unauthorized
+      case (true, token) =>
+        uploads.upload(request.body, List(UploadsService.pdf), "formulaire-autorisation-" + year) match {
+          case (true, _) => Ok
+          case (false, _) => BadRequest
+        }
+    }
   }
 
   /**

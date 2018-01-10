@@ -12,6 +12,8 @@ GET     /editions/active            controllers.EditionController.getActive
 # create or update an edition (comitee only)
 +nocsrf
 PUT     /editions/:year             controllers.EditionController.setEdition(year: String)
++nocsrf
+PUT     /editions/:year/parentalForm    controllers.EditionController.uploadForm(year: String)
 # get a specific edition
 GET     /editions/:year             controllers.EditionController.getEdition(year: String)
 

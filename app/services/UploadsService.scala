@@ -35,7 +35,7 @@ class UploadsService @Inject()(config: Configuration) {
     * @param allowedTypes a list of mime types that are accepted for this upload
     * @return a pair (success, new file name)
     */
-  def upload(file: TemporaryFile, allowedTypes: List[UploadsService.MimeType]): (Boolean, String) = {
+  def upload(file: TemporaryFile, allowedTypes: List[UploadsService.MimeType], name: => String = randomId): (Boolean, String) = {
     val t = Files.probeContentType(file.path)
 
     val matching = allowedTypes.filter(_._1 == t)
@@ -44,9 +44,10 @@ class UploadsService @Inject()(config: Configuration) {
       file.delete()
       (false, "")
     } else {
-      val fileName = randomId + matching.head._2
+      val fileName = name + matching.head._2
       val path = config.get[String]("uploads.path") + fileName
       file.moveTo(Paths.get(path), replace = true)
+      println("file saved at " + path)
       (true, fileName)
     }
   }
