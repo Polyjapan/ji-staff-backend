@@ -88,14 +88,15 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
   }
 
   def updateParentalAuthorization(year: String): Action[TemporaryFile] =
-    uploadAndCall(year, UploadsService.pdf :: UploadsService.images, (app, path) => app.updateParentalAuthorization(path))
+    uploadAndCall(year, UploadsService.pdf :: UploadsService.images,
+      (app, path) => app.updateParentalAuthorization(path), !_.isParentalAllowanceAccepted)
 
   def updatePicture(year: String): Action[TemporaryFile] =
     uploadAndCall(year, UploadsService.images, (app, path) => app.updatePicture(path))
 
-  private def uploadAndCall(year: String, allowedTypes: List[UploadsService.MimeType], applyNext: (Application, String) => Application): Action[TemporaryFile] = Action.async(parse.temporaryFile) { implicit request =>
-    auth.isOnline match {
-      case (false, _) => Future(Unauthorized)
+  private def uploadAndCall(year: String, allowedTypes: List[UploadsService.MimeType], applyNext: (Application, String) => Application, allowUpdate: Application => Boolean = _ => true): Action[TemporaryFile] = Action.async(parse.temporaryFile) { implicit request =>
+    auth.isStaff(year) match {
+      case (false, _) => Future(Unauthorized(Json.obj("messages" -> List("Vous n'êtes pas staff sur cette édition"))))
       case (true, token) =>
         for {
           // Get application and edition from database
@@ -105,6 +106,7 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
           res <- {
             if (edition.isEmpty) Future(NotFound(Json.obj("messages" -> List("Cette édition n'existe pas"))))
             else if (application.isEmpty) Future(NotFound(Json.obj("messages" -> List("Vous n'avez pas envoyé de candidature pour cette édition"))))
+            else if (!allowUpdate(application)) Future(BadRequest(Json.obj("messages" -> List("Impossible de mettre à jour ce fichier car il est en lecture seule"))))
             else uploads.upload(request.body, allowedTypes) match {
               case (false, _) => Future(BadRequest(Json.obj("messages" -> List("Le format de fichier est incorrect"))))
               case (true, path) =>
@@ -350,6 +352,32 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
       case ((true, _), _) => Future(BadRequest) // admin with invalid data
     }
   }
+
+  /**
+    * Accepts or refuses a parental authorization for a user
+    *
+    * @param year the year for the application
+    */
+  def adminAcceptParentalAllowance(year: String): Action[AnyContent] = Action.async { implicit request =>
+    (auth.isAdmin, request.body.asJson) match {
+      case ((false, _), _) => Future(Unauthorized)
+      case ((true, token), Some(json: JsObject)) =>
+        if (!json.keys("userId") || !json.keys("status")) Future(BadRequest)
+        else model.getApplication(year, json("userId").as[String]).flatMap {
+          case Some(application) => // the body contains an userId field corresponding to an actual application
+            // We update the application and insert it in the database
+            model.setApplication(
+              if (json("status").as[Boolean]) // if it is accepted
+                application.acceptParentalAuthorization
+              else // else we read the refuse reason
+                application.refuseParentalAuthorization(json.value.get("reason").flatMap(_.asOpt[String]).getOrElse(""))
+            ).map(result => Ok(Json.toJson(Json.obj("n" -> result.n))))
+          case None => Future(NotFound) // no userId field or no application
+        }
+      case _ => Future(BadRequest)
+    }
+  }
+
 
   /**
     * Endpoint POST /applications/:year/comments <br/>

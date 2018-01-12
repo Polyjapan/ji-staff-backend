@@ -18,7 +18,9 @@ case class Application(userId: String, mail: String, year: String,
                         comments: Option[List[Comment]] = Option.empty,
                         claimToken: Option[String] = Option.empty,
                         picture: Option[String] = Option.empty,
-                        parentalAllowance: Option[String] = Option.empty
+                        parentalAllowance: Option[String] = Option.empty,
+                        parentalAllowanceAccepted: Option[Boolean] = Option.empty,
+                        parentalAllowanceRefused: Option[String] = Option.empty
                       ) {
 
   /**
@@ -33,9 +35,12 @@ case class Application(userId: String, mail: String, year: String,
                       comments: Option[List[Comment]] = this.comments,
                       claimToken: Option[String] = this.claimToken,
                       picture: Option[String] = this.picture,
-                      parentalAllowance: Option[String] = this.parentalAllowance
+                      parentalAllowance: Option[String] = this.parentalAllowance,
+                      parentalAllowanceAccepted: Option[Boolean] = this.parentalAllowanceAccepted,
+                      parentalAllowanceRefused: Option[String] = this.parentalAllowanceRefused
                      ) =
-    Application(userId, mail, year, isValidated, isAccepted, isRefused, validationDate, statusChangedBy, content, comments, claimToken, picture, parentalAllowance)
+    Application(userId, mail, year, isValidated, isAccepted, isRefused, validationDate, statusChangedBy, content,
+      comments, claimToken, picture, parentalAllowance, parentalAllowanceAccepted, parentalAllowanceRefused)
 
   /**
     * Try to update the content of this application with a provided content
@@ -64,7 +69,28 @@ case class Application(userId: String, mail: String, year: String,
     * @return the application with a parental authorization
     */
   def updateParentalAuthorization(auth: String): Application = {
-    rebuild(parentalAllowance = Option.apply(auth))
+    if (isParentalAllowanceAccepted) this // cannot change accepted authorization
+    else rebuild(parentalAllowance = Option.apply(auth),
+      parentalAllowanceRefused = Option.empty,
+      parentalAllowanceAccepted = Option.empty)
+  }
+
+  def isParentalAllowanceAccepted: Boolean = this.parentalAllowanceAccepted.getOrElse(false)
+
+  /**
+    * Accept the parental authorization as valid
+    */
+  def acceptParentalAuthorization: Application = {
+    rebuild(parentalAllowanceAccepted = Option.apply(true))
+  }
+
+  /**
+    * Refuse the parental authorization with a motive
+    * @param reason the reason why the authorization is refused
+    * @return this application
+    */
+  def refuseParentalAuthorization(reason: String): Application = {
+    rebuild(parentalAllowanceAccepted = Option.apply(false), parentalAllowanceRefused = Option.apply(reason))
   }
 
   /**

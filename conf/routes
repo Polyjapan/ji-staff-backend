@@ -1,5 +1,6 @@
 # Routes
 # This file defines all application routes (Higher priority routes first)
+# These endpoints are fucking messy I know.
 # ~~~~
 
 OPTIONS /                           controllers.OptionsController.rootOptions
@@ -45,6 +46,8 @@ POST     /applications/:year/comments controllers.ApplicationsController.addComm
 PUT     /applications/:year/picture     controllers.ApplicationsController.updatePicture(year: String)
 +nocsrf
 PUT     /applications/:year/parentalAuthorization   controllers.ApplicationsController.updateParentalAuthorization(year: String)
++nocsrf
+PUT     /applications/:year/parentalAuthorization/accepted   controllers.ApplicationsController.adminAcceptParentalAllowance(year: String)
 
 # send and get your application for an edition
 +nocsrf
