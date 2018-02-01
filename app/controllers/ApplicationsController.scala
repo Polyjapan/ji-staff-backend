@@ -64,6 +64,8 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
           .map(_ flatMap (_.claimApplication(token.getSubject, token.getClaim("email").asString())))
           .flatMap {
             case Some(app) =>
+              auth0.makeStaff(app.userId, year)
+              model.removeApplication(claimToken, year)
               model.setApplication(app).map(_ => Ok(Json.toJson(app.removeSensitiveFields)))
             case None =>
               Future(BadRequest(Json.obj("messages" -> List("Le jeton de candidature n'est pas utilisable."))))
@@ -106,7 +108,7 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
           res <- {
             if (edition.isEmpty) Future(NotFound(Json.obj("messages" -> List("Cette édition n'existe pas"))))
             else if (application.isEmpty) Future(NotFound(Json.obj("messages" -> List("Vous n'avez pas envoyé de candidature pour cette édition"))))
-            else if (!allowUpdate(application)) Future(BadRequest(Json.obj("messages" -> List("Impossible de mettre à jour ce fichier car il est en lecture seule"))))
+            else if (!allowUpdate(application.get)) Future(BadRequest(Json.obj("messages" -> List("Impossible de mettre à jour ce fichier car il est en lecture seule"))))
             else uploads.upload(request.body, allowedTypes) match {
               case (false, _) => Future(BadRequest(Json.obj("messages" -> List("Le format de fichier est incorrect"))))
               case (true, path) =>

@@ -7,7 +7,7 @@ import play.api.libs.json.Json
 import play.modules.reactivemongo.ReactiveMongoApi
 import reactivemongo.api.Cursor.FailOnError
 import reactivemongo.api.ReadPreference
-import reactivemongo.api.commands.UpdateWriteResult
+import reactivemongo.api.commands.{UpdateWriteResult, WriteResult}
 import reactivemongo.play.json._
 import reactivemongo.play.json.collection.JSONCollection
 
@@ -17,6 +17,7 @@ import scala.concurrent.{ExecutionContext, Future}
   * @author Louis Vialar
   */
 class ApplicationsModel @Inject()(val reactiveMongoApi: ReactiveMongoApi, implicit val ec: ExecutionContext) {
+
   private def collection: Future[JSONCollection] = reactiveMongoApi.database.map(_.collection[JSONCollection]("applications"))
 
   /**
@@ -103,5 +104,15 @@ class ApplicationsModel @Inject()(val reactiveMongoApi: ReactiveMongoApi, implic
     */
   def setApplication(application: Application): Future[UpdateWriteResult] =
     collection.flatMap(_.update(Json.obj("userId" -> application.userId, "year" -> application.year), application, upsert = true))
+
+  /**
+    * Removes an application by its userId and year
+    * @param userId the userId of the application to remove
+    * @param year the year of the application to remove
+    * @return
+    */
+  def removeApplication(userId: String, year: String): Future[WriteResult] =
+    collection.flatMap(_.remove(Json.obj("userId" -> userId, "year" -> year)))
+
 }
 

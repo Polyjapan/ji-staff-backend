@@ -43,11 +43,11 @@ PUT     /applications/:year/refused controllers.ApplicationsController.setRefuse
 POST     /applications/:year/comments controllers.ApplicationsController.addComment(year: String)
 
 +nocsrf
+PUT     /applications/:year/parentalAuthorization/accepted  controllers.ApplicationsController.adminAcceptParentalAllowance(year: String)
++nocsrf
 PUT     /applications/:year/picture     controllers.ApplicationsController.updatePicture(year: String)
 +nocsrf
 PUT     /applications/:year/parentalAuthorization   controllers.ApplicationsController.updateParentalAuthorization(year: String)
-+nocsrf
-PUT     /applications/:year/parentalAuthorization/accepted   controllers.ApplicationsController.adminAcceptParentalAllowance(year: String)
 
 # send and get your application for an edition
 +nocsrf
