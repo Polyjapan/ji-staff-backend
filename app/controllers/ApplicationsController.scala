@@ -96,7 +96,31 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
   def updatePicture(year: String): Action[TemporaryFile] =
     uploadAndCall(year, UploadsService.images, (app, path) => app.updatePicture(path))
 
-  private def uploadAndCall(year: String, allowedTypes: List[UploadsService.MimeType], applyNext: (Application, String) => Application, allowUpdate: Application => Boolean = _ => true): Action[TemporaryFile] = Action.async(parse.temporaryFile) { implicit request =>
+  def adminUpdatePicture(year: String, userId: String): Action[TemporaryFile] = Action.async(parse.temporaryFile) { implicit request =>
+    auth.isAdmin match {
+      case (false, _) => Future(Unauthorized(Json.obj("messages" -> List("Vous n'êtes pas admin"))))
+      case (true, token) =>
+        for {
+          // Get application and edition from database
+          application <- model.getApplication(year, userId)
+          edition <- editionsModel.getEdition(year)
+
+          res <- {
+            if (edition.isEmpty) Future(NotFound(Json.obj("messages" -> List("Cette édition n'existe pas"))))
+            else if (application.isEmpty) Future(NotFound(Json.obj("messages" -> List("Vous n'avez pas envoyé de candidature pour cette édition"))))
+            else uploads.upload(request.body, UploadsService.images) match {
+              case (false, _) => Future(BadRequest(Json.obj("messages" -> List("Le format de fichier est incorrect"))))
+              case (true, path) =>
+                model.setApplication(application.get.updatePicture(path)).map(result => Ok(Json.toJson(Json.obj("n" -> result.n))))
+            }
+          }
+        } yield res
+    }
+  }
+
+  private def uploadAndCall(year: String, allowedTypes: List[UploadsService.MimeType],
+                            applyNext: (Application, String) => Application,
+                            allowUpdate: Application => Boolean = _ => true): Action[TemporaryFile] = Action.async(parse.temporaryFile) { implicit request =>
     auth.isStaff(year) match {
       case (false, _) => Future(Unauthorized(Json.obj("messages" -> List("Vous n'êtes pas staff sur cette édition"))))
       case (true, token) =>

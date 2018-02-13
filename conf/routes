@@ -47,6 +47,8 @@ PUT     /applications/:year/parentalAuthorization/accepted  controllers.Applicat
 +nocsrf
 PUT     /applications/:year/picture     controllers.ApplicationsController.updatePicture(year: String)
 +nocsrf
+PUT     /applications/:year/picture/:userId     controllers.ApplicationsController.adminUpdatePicture(year: String, userId: String)
++nocsrf
 PUT     /applications/:year/parentalAuthorization   controllers.ApplicationsController.updateParentalAuthorization(year: String)
 
 # send and get your application for an edition
