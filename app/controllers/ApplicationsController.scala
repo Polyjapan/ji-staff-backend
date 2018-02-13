@@ -6,7 +6,7 @@ import akka.actor.ActorSystem
 import data.{Application, Comment, Edition}
 import models.{ApplicationsModel, EditionsModel}
 import play.api.libs.Files.TemporaryFile
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{JsObject, JsString, Json}
 import play.api.mvc.{Action, _}
 import services.{Auth0ManagementService, AuthParserService, UploadsService}
 import tools.FutureMappers
@@ -86,6 +86,23 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
       case ((_, _), None) => Future(BadRequest)
       case ((true, token), Some(json: JsObject)) => doUpdateApplication(year, token.getSubject, token.getClaim("email").asString(), page, json)
       case _ => Future(BadRequest)
+    }
+  }
+
+  def updateEmail(year: String, userId: String): Action[AnyContent] = Action.async { implicit request =>
+    (auth.isAdmin, request.body.asJson) match {
+      case ((false, _), _) => Future(Unauthorized(Json.obj("messages" -> List("Vous n'êtes pas admin"))))
+      case ((true, _), Some(js: JsString)) =>
+        for {
+          // Get application and edition from database
+          application <- model.getApplication(year, userId)
+
+          res <- {
+            if (application.isEmpty) Future(NotFound(Json.obj("messages" -> List("Candidature introuvable"))))
+            else model.setApplication(application.get.rebuild(mail = js.value)).map(result => Ok(Json.toJson(Json.obj("n" -> result.n))))
+          }
+        } yield res
+      case ((true, _), _) => Future(BadRequest(Json.obj("messages" -> List("Requête invalide"))))
     }
   }
 
@@ -429,5 +446,4 @@ class ApplicationsController @Inject()(cc: ControllerComponents, actorSystem: Ac
         case _ => Future(BadRequest)
       }
   }
-
 }

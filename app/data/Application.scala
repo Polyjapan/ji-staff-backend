@@ -26,7 +26,7 @@ case class Application(userId: String, mail: String, year: String,
   /**
     * Helper method to create a new instance of this object changing only some fields
     */
-  private def rebuild(userId: String = this.userId, mail: String = this.mail, year: String = this.year,
+  def rebuild(userId: String = this.userId, mail: String = this.mail, year: String = this.year,
                       isValidated: Boolean = this.isValidated, isAccepted: Boolean = this.isAccepted,
                       isRefused: Option[Boolean] = this.isRefused,
                       validationDate: Option[Long] = this.validationDate,
