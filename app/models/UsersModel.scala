@@ -22,7 +22,7 @@ class UsersModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
     db.run(users.filter(_.userId === id).result.headOption)
 
   def updateUser(userId: Int, content: User): Future[Boolean] = {
-    val user = content.copy(userId = Some(userId))
+    val user = content.copy(userId = userId)
     db.run(users.insertOrUpdate(user).map(_ > 0))
   }
 

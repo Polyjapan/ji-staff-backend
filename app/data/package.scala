@@ -7,7 +7,7 @@ import play.api.libs.json.{Format, JsError, JsNumber, JsResult, JsString, JsSucc
  */
 package object data {
 
-  case class User(userId: Option[Int], email: String, firstName: String, lastName: String, birthDate: Date, phone: String, address: String)
+  case class User(userId: Int, email: String, firstName: String, lastName: String, birthDate: Date, phone: String, address: String)
 
   case class Event(eventId: Option[Int], eventBegin: Date, name: String, mainForm: Option[Int], isActive: Boolean)
 
