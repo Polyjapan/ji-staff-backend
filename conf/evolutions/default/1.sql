@@ -75,7 +75,7 @@ create table `fields`
 create table `fields_additional`
 (
     `field_id` INTEGER      NOT NULL,
-    `key`      VARCHAR(200) NOT NULL,
+    `key`      VARCHAR(30) NOT NULL,
     `value`    VARCHAR(200) NOT NULL,
 
     PRIMARY KEY (`field_id`, `key`),

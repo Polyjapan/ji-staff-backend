@@ -29,10 +29,13 @@ class AppsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
 
   refreshTokens
 
-  def checkAuthorized(token: Option[String]): Boolean = token.exists(apps) // checks that the token exists in apps
+  def checkAuthorized(token: Option[String]): Boolean = token
+    .map(_.replaceAll("Bearer", "").trim)
+    .exists(apps) // checks that the token exists in apps
 }
 
 object AppsModel {
+
   implicit class AppsAuthPostfix[T](action: Action[T])(implicit model: AppsModel) {
     def requiresApp: Action[T] = new Action[T] {
       override def parser: BodyParser[T] = action.parser
@@ -47,4 +50,5 @@ object AppsModel {
       override def executionContext: ExecutionContext = action.executionContext
     }
   }
+
 }
