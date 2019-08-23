@@ -3,14 +3,25 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-# An example controller showing a sample home page
-GET     /                           controllers.HomeController.index
-# An example controller showing how to use dependency injection
-GET     /count                      controllers.CountController.count
-# An example controller showing how to write asynchronous code
-GET     /message                    controllers.AsyncController.message
+GET         /front/user_profile/:user                     controllers.front.UserProfileController.getProfile(user: Int)
++nocsrf
+PUT         /front/user_profile/:user                     controllers.front.UserProfileController.updateProfile(user: Int)
 
-# Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
+GET         /front/edition                                controllers.front.EditionController.getEdition
 
-      
+
+GET         /front/forms                                  controllers.front.FormsController.getForms
+GET         /front/forms/main_form                        controllers.front.FormsController.getMainForm
+GET         /front/forms/:id                              controllers.front.FormsController.getForm(id: Int)
+GET         /front/forms/:id/pages                        controllers.front.FormsController.getPages(id: Int)
+GET         /front/forms/:id/pages/:page                  controllers.front.FormsController.getPage(id: Int, page: Int)
+
+GET         /front/applications/:id/replies/:user         controllers.front.ApplicationsController.getReplies(id: Int, user: Int)
++nocsrf
+POST        /front/applications/:id/replies/:user         controllers.front.ApplicationsController.postReplies(id: Int, user: Int)
+
+GET         /front/applications/:id/state/:user           controllers.front.ApplicationsController.getState(id: Int, user: Int)
++nocsrf
+PUT         /front/applications/:id/state/:user           controllers.front.ApplicationsController.setState(id: Int, user: Int)
+
+GET         /front/applications/:id/comments/:user        controllers.front.ApplicationsController.getPublicComments(id: Int, user: Int)

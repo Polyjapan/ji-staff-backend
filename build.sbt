@@ -10,7 +10,7 @@ resolvers += "Akka Snapshot Repository" at "https://repo.akka.io/snapshots/"
       
 scalaVersion := "2.12.2"
 
-libraryDependencies ++= Seq( jdbc , ehcache , ws , specs2 % Test , guice,
+libraryDependencies ++= Seq( evolutions, ehcache , ws , specs2 % Test , guice,
   "net.codingwell" %% "scala-guice" % "4.1.0",
   "ch.japanimpact" %% "jiauthframework" % "0.1-SNAPSHOT",
   "com.typesafe.play" %% "play-slick" % "4.0.0",
