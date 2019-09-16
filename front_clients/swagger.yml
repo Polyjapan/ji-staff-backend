@@ -399,7 +399,7 @@ paths:
 securityDefinitions:
   api_key:
     type: "apiKey"
-    name: "Bearer"
+    name: "Authorization"
     in: "header"
 definitions:
   Form:

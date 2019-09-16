@@ -6,6 +6,7 @@ import play.api.mvc.{Action, BodyParser, Request, Result}
 import slick.jdbc.MySQLProfile
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Success
 
 /**
  * @author Louis Vialar
@@ -20,8 +21,10 @@ class AppsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
 
   private def refreshTokens = {
     if (System.currentTimeMillis() > nextRefresh)
-      db.run(models.apps.map(_.appKey).result).andThen {
-        case seq: Seq[String] =>
+      db.run(models.apps.map(_.appKey).result)
+        .andThen {
+        case Success(seq: Seq[String]) =>
+          println("Refreshed authorized keys, " + seq)
           apps = seq.toSet
           nextRefresh = System.currentTimeMillis() + 5 * 60000L
       }
@@ -29,9 +32,16 @@ class AppsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
 
   refreshTokens
 
-  def checkAuthorized(token: Option[String]): Boolean = token
-    .map(_.replaceAll("Bearer", "").trim)
-    .exists(apps) // checks that the token exists in apps
+  def checkAuthorized(token: Option[String]): Boolean = {
+    // start a refresh if needed
+    refreshTokens
+
+    token
+      .map(_.replaceAll("Bearer:", "").trim)
+      .map(t => { println("Trying to login with '" + t + "'") ; t })
+      .exists(apps)
+    // checks that the token exists in apps
+  }
 }
 
 object AppsModel {
@@ -43,7 +53,9 @@ object AppsModel {
       override def apply(request: Request[T]): Future[Result] = {
         import play.api.mvc.Results._
 
-        if (model.checkAuthorized(request.headers.get("Authorization"))) action.apply(request)
+        println("Headers " + request.headers + "; auth " + model.apps)
+        if (model.checkAuthorized(request.headers.get("Authorization")
+          .orElse(request.headers.get("authorization")))) action.apply(request)
         else Future(Unauthorized)(executionContext)
       }
 

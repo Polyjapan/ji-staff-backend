@@ -36,7 +36,7 @@ package object models {
 
     def address = column[String]("address")
 
-    def * = (userId.?, email, firstName, lastName, birthDate, phone, address).shaped <> (User.tupled, User.unapply)
+    def * = (userId, email, firstName, lastName, birthDate, phone, address).shaped <> (User.tupled, User.unapply)
   }
 
   val users = TableQuery[Users]
