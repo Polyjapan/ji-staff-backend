@@ -1,6 +1,6 @@
 package models
 
-import java.sql.Timestamp
+import java.sql.{Date, Timestamp}
 
 import javax.inject.{Inject, Singleton}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
@@ -25,4 +25,17 @@ class EditionsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProv
 
   def getCurrentEdition: Future[Option[Event]] =
     db.run(activeEvents.result.headOption)
+
+  def getEditions: Future[Seq[Event]] =
+    db.run(events.result)
+
+  def getEdition(id: Int): Future[Option[Event]] =
+    db.run(events.filter(_.eventId === id).result.headOption)
+
+  def updateNameAndDate(id: Int, name: String, date: Date): Future[Int] =
+    db.run(events.filter(_.eventId === id).map(e => (e.name, e.eventBegin)).update((name, date)))
+
+  def createEvent(name: String, date: Date): Future[Int] =
+    db.run(events returning (events.map(_.eventId)) += Event(None, date, name, None, isActive = false))
+
 }

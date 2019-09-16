@@ -25,3 +25,8 @@ GET         /front/applications/:id/state/:user           controllers.front.Appl
 PUT         /front/applications/:id/state/:user           controllers.front.ApplicationsController.setState(id: Int, user: Int)
 
 GET         /front/applications/:id/comments/:user        controllers.front.ApplicationsController.getPublicComments(id: Int, user: Int)
+
+GET         /back/login/:ticket                           controllers.backoffice.LoginController.login(ticket: String)
+
+GET         /back/editions                                controllers.backoffice.EditionController.getEditions
+GET         /back/editions/:id                            controllers.backoffice.EditionController.getEdition(id: Int)

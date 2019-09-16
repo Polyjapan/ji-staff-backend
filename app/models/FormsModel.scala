@@ -1,7 +1,5 @@
 package models
 
-import java.sql.Timestamp
-
 import data.Forms.{Field, Form}
 import data._
 import javax.inject.Inject
@@ -55,4 +53,43 @@ class FormsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
       } else Future(None)
     })
   }
+
+  def cloneEvent(source: Int, target: Int): Future[Option[Int]] =
+  // List forms
+    db.run(
+      forms.filter(_.eventId === source).result.flatMap(
+        formsList => {
+          val ids = formsList.map(_.formId.get)
+
+          ((forms returning (forms.map(_.formId))) ++= formsList.map(f => f.copy(formId = None, eventId = target)))
+            .map(res => ids.zip(res).toMap)
+            .map(res => (ids, res))
+        })
+        .flatMap { case (ids, formMap) =>
+          pages.filter(_.formId.inSet(ids)).result.flatMap(pagesList => {
+            val ids = pagesList.map(_.pageId.get)
+
+            ((pages returning (pages.map(_.formPageId))) ++= pagesList.map(p => p.copy(pageId = None, formId = formMap(p.formId))))
+              .map(res => ids.zip(res).toMap)
+              .map(res => (ids, res))
+          })
+        }
+        .flatMap { case (ids, pageMap) =>
+          fields.filter(_.pageId.inSet(ids)).result.flatMap(fieldsList => {
+            val ids = fieldsList.map(_.fieldId.get)
+
+            ((fields returning (fields.map(_.fieldId))) ++= fieldsList.map(f => f.copy(fieldId = None, pageId = pageMap(f.pageId))))
+              .map(res => ids.zip(res).toMap)
+              .map(res => (ids, res))
+          })
+        }
+        .flatMap { case (ids, fieldsMap) =>
+          val base = fieldsAdditional.map(fa => (fa.fieldId, fa.key, fa.value))
+
+          base.filter(_._1.inSet(ids)).result.flatMap(faList => {
+            base ++= faList.map(tr => (fieldsMap(tr._1), tr._2, tr._3))
+          })
+        }
+    )
+
 }
