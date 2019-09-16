@@ -54,10 +54,10 @@ class FormsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
     })
   }
 
-  def cloneEvent(source: Int, target: Int): Future[Option[Int]] =
+  def cloneEvent(source: Int, target: Int): Future[_] =
   // List forms
     db.run(
-      forms.filter(_.eventId === source).result.flatMap(
+      forms.filter(_.eventId === source).result.flatMap[(Seq[Int], Map[Int, Int]), NoStream, Effect.All](
         formsList => {
           val ids = formsList.map(_.formId.get)
 
@@ -65,7 +65,7 @@ class FormsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
             .map(res => ids.zip(res).toMap)
             .map(res => (ids, res))
         })
-        .flatMap { case (ids, formMap) =>
+        .flatMap[(Seq[Int], Map[Int, Int]), NoStream, Effect.All] { case (ids, formMap) =>
           pages.filter(_.formId.inSet(ids)).result.flatMap(pagesList => {
             val ids = pagesList.map(_.pageId.get)
 
@@ -74,7 +74,7 @@ class FormsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
               .map(res => (ids, res))
           })
         }
-        .flatMap { case (ids, pageMap) =>
+        .flatMap[(Seq[Int], Map[Int, Int]), NoStream, Effect.All] { case (ids, pageMap) =>
           fields.filter(_.pageId.inSet(ids)).result.flatMap(fieldsList => {
             val ids = fieldsList.map(_.fieldId.get)
 
@@ -83,7 +83,7 @@ class FormsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
               .map(res => (ids, res))
           })
         }
-        .flatMap { case (ids, fieldsMap) =>
+        .flatMap[Option[Int], NoStream, Effect.All] { case (ids, fieldsMap) =>
           val base = fieldsAdditional.map(fa => (fa.fieldId, fa.key, fa.value))
 
           base.filter(_._1.inSet(ids)).result.flatMap(faList => {

@@ -1,7 +1,7 @@
 package controllers.backoffice
 
 import javax.inject.{Inject, Singleton}
-import models.EditionsModel
+import models.{EditionsModel, FormsModel}
 import play.api.libs.json.Json
 import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
 
@@ -13,7 +13,7 @@ import play.api.Configuration
  * @author Louis Vialar
  */
 @Singleton
-class EditionController @Inject()(cc: ControllerComponents, model: EditionsModel)(implicit ec: ExecutionContext, conf: Configuration) extends AbstractController(cc) {
+class EditionController @Inject()(cc: ControllerComponents, model: EditionsModel, forms: FormsModel)(implicit ec: ExecutionContext, conf: Configuration) extends AbstractController(cc) {
 
   case class CreateEdition(name: String, date: java.sql.Date, copyOf: Option[Int])
 
@@ -31,11 +31,18 @@ class EditionController @Inject()(cc: ControllerComponents, model: EditionsModel
     Action.async(model.getEditions.map(res => Ok(Json.toJson(res)))).requiresAuthentication
 
   def createEdition: Action[CreateEdition] = Action.async(parse.json[CreateEdition])(rq => {
-    ???
+    // 1st we create the edition, whatever happens
+    model.createEvent(rq.body.name, rq.body.date).flatMap(evId => {
+      if (rq.body.copyOf.isDefined) {
+        forms.cloneEvent(rq.body.copyOf.get, evId).map(_ => evId)
+      } else {
+        Future.successful(evId)
+      }
+    }).map(evId => Ok(Json.toJson(evId)))
   }).requiresAuthentication
 
   def updateEdition(id: Int): Action[CreateEdition] = Action.async(parse.json[CreateEdition])(rq => {
-
+    ???
   }).requiresAuthentication
 
 }

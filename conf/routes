@@ -29,4 +29,6 @@ GET         /front/applications/:id/comments/:user        controllers.front.Appl
 GET         /back/login/:ticket                           controllers.backoffice.LoginController.login(ticket: String)
 
 GET         /back/editions                                controllers.backoffice.EditionController.getEditions
++nocsrf
+POST        /back/editions                                controllers.backoffice.EditionController.createEdition
 GET         /back/editions/:id                            controllers.backoffice.EditionController.getEdition(id: Int)
