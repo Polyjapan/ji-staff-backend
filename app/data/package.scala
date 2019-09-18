@@ -11,7 +11,15 @@ package object data {
 
   case class Event(eventId: Option[Int], eventBegin: Date, name: String, mainForm: Option[Int], isActive: Boolean)
 
-  implicit val tsFormat: Writes[Timestamp] = (o: Timestamp) => JsNumber(o.getTime)
+  implicit val tsFormat: Format[Timestamp] = new Format[Timestamp] {
+    override def writes(o: Timestamp): JsValue = JsNumber(o.getTime)
+
+    override def reads(json: JsValue): JsResult[Timestamp] = json match {
+      case JsNumber(num) => JsSuccess(new Timestamp(num.toLongExact))
+      case _ => JsError("invalid type");
+    }
+  }
+
   implicit val dateFormat: Format[Date] = new Format[Date] {
     override def writes(o: Date): JsValue = {
       JsString(o.toString)
@@ -56,7 +64,7 @@ package object data {
     }
 
     implicit val typeFormat: Format[FieldType.Value] = EnumUtils.format(FieldType)
-    implicit val formFormat: Writes[Form] = Json.writes[Form]
+    implicit val formFormat: Format[Form] = Json.format[Form]
     implicit val fieldFormat: Format[Field] = Json.format[Field]
     implicit val formPageFormat: Format[FormPage] = Json.format[FormPage]
   }

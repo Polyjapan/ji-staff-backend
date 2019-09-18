@@ -31,4 +31,15 @@ GET         /back/login/:ticket                           controllers.backoffice
 GET         /back/editions                                controllers.backoffice.EditionController.getEditions
 +nocsrf
 POST        /back/editions                                controllers.backoffice.EditionController.createEdition
++nocsrf
+PUT         /back/editions/:id                            controllers.backoffice.EditionController.updateEdition(id: Int)
++nocsrf
+PUT         /back/editions/:id/active                     controllers.backoffice.EditionController.updateActiveStatus(id: Int)
 GET         /back/editions/:id                            controllers.backoffice.EditionController.getEdition(id: Int)
+
+GET         /back/editions/:id/forms                      controllers.backoffice.FormsController.getForms(id: Int)
+
++nocsrf
+POST        /back/forms                                   controllers.backoffice.FormsController.createForm
++nocsrf
+PUT         /back/forms/:id                               controllers.backoffice.FormsController.updateForm(id: Int)

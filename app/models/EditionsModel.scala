@@ -8,11 +8,13 @@ import slick.jdbc.MySQLProfile
 
 import scala.concurrent.{ExecutionContext, Future}
 import data._
+import play.api.mvc.Result
 
 /**
  * @author Louis Vialar
  */
 class EditionsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext) extends HasDatabaseConfigProvider[MySQLProfile] {
+
 
   import profile.api._
 
@@ -37,5 +39,8 @@ class EditionsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProv
 
   def createEvent(name: String, date: Date): Future[Int] =
     db.run(events returning (events.map(_.eventId)) += Event(None, date, name, None, isActive = false))
+
+  def updateActive(id: Int, active: Boolean): Future[Int] =
+    db.run(events.filter(_.eventId === id).map(_.isActive).update(active))
 
 }

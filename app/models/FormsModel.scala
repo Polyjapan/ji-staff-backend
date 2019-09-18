@@ -4,6 +4,7 @@ import data.Forms.{Field, Form}
 import data._
 import javax.inject.Inject
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import play.api.mvc.Result
 import slick.jdbc.MySQLProfile
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -12,6 +13,7 @@ import scala.concurrent.{ExecutionContext, Future}
  * @author Louis Vialar
  */
 class FormsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, editions: EditionsModel)(implicit ec: ExecutionContext) extends HasDatabaseConfigProvider[MySQLProfile] {
+
 
   import profile.api._
 
@@ -34,6 +36,9 @@ class FormsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
       .join(forms).on(_ === _.eventId)
       .map(_._2)
       .result)
+
+  def getForms(event: Int): Future[Seq[Form]] =
+    db.run(forms.filter(_.eventId === event).result)
 
   def getPages(form: Int): Future[Seq[Forms.FormPage]] =
     db.run(pages.filter(_.formId === form).result).map(_.sorted)
@@ -91,5 +96,11 @@ class FormsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
           })
         }
     )
+
+  def createForm(form: Form): Future[Int] =
+    db.run(forms returning(forms.map(_.formId)) += form)
+
+  def updateForm(form: Form): Future[Int] =
+    db.run(forms.filter(f => f.formId === form.formId.get && f.eventId === form.eventId).update(form))
 
 }

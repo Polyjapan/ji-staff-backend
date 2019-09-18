@@ -20,16 +20,19 @@ class FormsController @Inject()(cc: ControllerComponents, forms: FormsModel)(imp
 
   def getForms: Action[AnyContent] = Action async forms.getForms.map(r => Ok(Json.toJson(r)))
 
+  // This is actually an ISOR, but not a really big deal as it only exposes empty forms
   def getForm(form: Int): Action[AnyContent] = Action async forms.getForm(form).map {
     case Some(e) => Ok(Json.toJson(e))
     case None => NotFound
   }
 
+  // ISOR again
   def getPages(form: Int): Action[AnyContent] = Action async forms.getPages(form).map {
     case seq if seq.nonEmpty => Ok(Json.toJson(seq))
     case _ => NotFound
   }
 
+  // Same ISOR here
   def getPage(form: Int, page: Int): Action[AnyContent] = Action async forms.getPage(form, page).map {
     case Some((page, fields)) =>
       Ok(Json.obj(

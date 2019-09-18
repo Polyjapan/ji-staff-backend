@@ -42,7 +42,11 @@ class EditionController @Inject()(cc: ControllerComponents, model: EditionsModel
   }).requiresAuthentication
 
   def updateEdition(id: Int): Action[CreateEdition] = Action.async(parse.json[CreateEdition])(rq => {
-    ???
+    model.updateNameAndDate(id, rq.body.name, rq.body.date).map(updated => if (updated > 0) Ok else NotFound)
+  }).requiresAuthentication
+
+  def updateActiveStatus(id: Int): Action[Boolean] = Action.async(parse.text(7).map(value => value == "true"))(rq => {
+    model.updateActive(id, rq.body).map(updated => if (updated > 0) Ok else NotFound)
   }).requiresAuthentication
 
 }
