@@ -4,7 +4,6 @@ import data.Forms.{Field, Form}
 import data._
 import javax.inject.Inject
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
-import play.api.mvc.Result
 import slick.jdbc.MySQLProfile
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -13,8 +12,6 @@ import scala.concurrent.{ExecutionContext, Future}
  * @author Louis Vialar
  */
 class FormsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, editions: EditionsModel)(implicit ec: ExecutionContext) extends HasDatabaseConfigProvider[MySQLProfile] {
-
-
   import profile.api._
 
   def getMainForm: Future[Option[Form]] =
@@ -102,5 +99,24 @@ class FormsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
 
   def updateForm(form: Form): Future[Int] =
     db.run(forms.filter(f => f.formId === form.formId.get && f.eventId === form.eventId).update(form))
+
+  def createPage(page: Forms.FormPage): Future[Int] =
+    db.run(pages.returning(pages.map(_.formPageId)) += page)
+
+  def updatePage(page: Forms.FormPage): Future[Int] =
+    db.run(pages.filter(p => p.formPageId === page.pageId.get && p.formId === page.formId).update(page))
+
+  def createField(field: Forms.Field): Future[Int] =
+    db.run(fields.returning(fields.map(_.fieldId)) += field)
+
+  def updateField(field: Forms.Field): Future[Int] =
+    db.run(fields.filter(f => f.fieldId === field.fieldId.get && f.pageId === field.pageId).update(field))
+
+  def setAdditional(field: Int, key: String, value: String): Future[Int] =
+    db.run(fieldsAdditional.map(fa => (fa.fieldId, fa.key, fa.value))
+      .insertOrUpdate((field, key, value)))
+
+  def deleteAdditional(field: Int, key: String): Future[Int] =
+    db.run(fieldsAdditional.filter(fa => fa.fieldId === field && fa.key === key).delete)
 
 }

@@ -49,4 +49,8 @@ class EditionController @Inject()(cc: ControllerComponents, model: EditionsModel
     model.updateActive(id, rq.body).map(updated => if (updated > 0) Ok else NotFound)
   }).requiresAuthentication
 
+  def updateMainForm(id: Int): Action[Int] = Action.async(parse.json[Int])(rq => {
+    model.updateMainForm(id, rq.body).map(updated => if (updated > 0) Ok else NotFound)
+  }).requiresAuthentication
+
 }

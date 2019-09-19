@@ -6,6 +6,7 @@ import javax.inject.Inject
 import play.api.Configuration
 import play.api.libs.json.Json
 import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
+import pdi.jwt.JwtSession
 
 import scala.concurrent.{ExecutionContext, Future}
 

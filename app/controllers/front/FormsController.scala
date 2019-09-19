@@ -28,8 +28,7 @@ class FormsController @Inject()(cc: ControllerComponents, forms: FormsModel)(imp
 
   // ISOR again
   def getPages(form: Int): Action[AnyContent] = Action async forms.getPages(form).map {
-    case seq if seq.nonEmpty => Ok(Json.toJson(seq))
-    case _ => NotFound
+    case seq => Ok(Json.toJson(seq))
   }
 
   // Same ISOR here

@@ -43,4 +43,7 @@ class EditionsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProv
   def updateActive(id: Int, active: Boolean): Future[Int] =
     db.run(events.filter(_.eventId === id).map(_.isActive).update(active))
 
+  def updateMainForm(id: Int, mainForm: Int): Future[Int] =
+    db.run(events.filter(_.eventId === id).map(_.mainForm).update(Some(mainForm)))
+
 }

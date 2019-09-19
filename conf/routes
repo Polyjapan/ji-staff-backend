@@ -3,43 +3,62 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-GET         /front/user_profile/:user                     controllers.front.UserProfileController.getProfile(user: Int)
+GET           /front/user_profile/:user                               controllers.front.UserProfileController.getProfile(user: Int)
 +nocsrf
-PUT         /front/user_profile/:user                     controllers.front.UserProfileController.updateProfile(user: Int)
+PUT           /front/user_profile/:user                               controllers.front.UserProfileController.updateProfile(user: Int)
 
-GET         /front/edition                                controllers.front.EditionController.getEdition
+GET           /front/edition                                          controllers.front.EditionController.getEdition
 
 
-GET         /front/forms                                  controllers.front.FormsController.getForms
-GET         /front/forms/main_form                        controllers.front.FormsController.getMainForm
-GET         /front/forms/:id                              controllers.front.FormsController.getForm(id: Int)
-GET         /front/forms/:id/pages                        controllers.front.FormsController.getPages(id: Int)
-GET         /front/forms/:id/pages/:page                  controllers.front.FormsController.getPage(id: Int, page: Int)
+GET           /front/forms                                            controllers.front.FormsController.getForms
+GET           /front/forms/main_form                                  controllers.front.FormsController.getMainForm
+GET           /front/forms/:id                                        controllers.front.FormsController.getForm(id: Int)
+GET           /front/forms/:id/pages                                  controllers.front.FormsController.getPages(id: Int)
+GET           /front/forms/:id/pages/:page                            controllers.front.FormsController.getPage(id: Int, page: Int)
 
-GET         /front/applications/:id/replies/:user         controllers.front.ApplicationsController.getReplies(id: Int, user: Int)
+GET           /front/applications/:id/replies/:user                   controllers.front.ApplicationsController.getReplies(id: Int, user: Int)
 +nocsrf
-POST        /front/applications/:id/replies/:user         controllers.front.ApplicationsController.postReplies(id: Int, user: Int)
+POST          /front/applications/:id/replies/:user                   controllers.front.ApplicationsController.postReplies(id: Int, user: Int)
 
-GET         /front/applications/:id/state/:user           controllers.front.ApplicationsController.getState(id: Int, user: Int)
+GET           /front/applications/:id/state/:user                     controllers.front.ApplicationsController.getState(id: Int, user: Int)
 +nocsrf
-PUT         /front/applications/:id/state/:user           controllers.front.ApplicationsController.setState(id: Int, user: Int)
+PUT           /front/applications/:id/state/:user                     controllers.front.ApplicationsController.setState(id: Int, user: Int)
 
-GET         /front/applications/:id/comments/:user        controllers.front.ApplicationsController.getPublicComments(id: Int, user: Int)
+GET           /front/applications/:id/comments/:user                  controllers.front.ApplicationsController.getPublicComments(id: Int, user: Int)
 
-GET         /back/login/:ticket                           controllers.backoffice.LoginController.login(ticket: String)
+GET           /back/login/:ticket                                     controllers.backoffice.LoginController.login(ticket: String)
 
-GET         /back/editions                                controllers.backoffice.EditionController.getEditions
+GET           /back/editions                                          controllers.backoffice.EditionController.getEditions
 +nocsrf
-POST        /back/editions                                controllers.backoffice.EditionController.createEdition
+POST          /back/editions                                          controllers.backoffice.EditionController.createEdition
 +nocsrf
-PUT         /back/editions/:id                            controllers.backoffice.EditionController.updateEdition(id: Int)
+PUT           /back/editions/:id                                      controllers.backoffice.EditionController.updateEdition(id: Int)
 +nocsrf
-PUT         /back/editions/:id/active                     controllers.backoffice.EditionController.updateActiveStatus(id: Int)
-GET         /back/editions/:id                            controllers.backoffice.EditionController.getEdition(id: Int)
+PUT           /back/editions/:id/active                               controllers.backoffice.EditionController.updateActiveStatus(id: Int)
++nocsrf
+PUT           /back/editions/:id/mainForm                             controllers.backoffice.EditionController.updateMainForm(id: Int)
+GET           /back/editions/:id                                      controllers.backoffice.EditionController.getEdition(id: Int)
 
-GET         /back/editions/:id/forms                      controllers.backoffice.FormsController.getForms(id: Int)
+GET           /back/editions/:id/forms                                controllers.backoffice.FormsController.getForms(id: Int)
 
 +nocsrf
-POST        /back/forms                                   controllers.backoffice.FormsController.createForm
+POST          /back/forms                                             controllers.backoffice.FormsController.createForm
 +nocsrf
-PUT         /back/forms/:id                               controllers.backoffice.FormsController.updateForm(id: Int)
+PUT           /back/forms/:id                                         controllers.backoffice.FormsController.updateForm(id: Int)
+
++nocsrf
+POST          /back/forms/:form/pages                                 controllers.backoffice.FormsController.createPage(form: Int)
++nocsrf
+PUT           /back/forms/:form/pages/:id                             controllers.backoffice.FormsController.updatePage(form: Int, id: Int)
+
++nocsrf
+POST          /back/forms/:form/pages/:page/fields/                   controllers.backoffice.FormsController.createField(form: Int, page: Int)
++nocsrf
+PUT           /back/forms/:form/pages/:page/fields/:field             controllers.backoffice.FormsController.updateField(form: Int, page: Int, field: Int)
+
++nocsrf
+PUT           /back/forms/:form/pages/:page/fields/:field/:key        controllers.backoffice.FormsController.setAdditional(form: Int, page: Int, field: Int, key: String)
++nocsrf
+DELETE        /back/forms/:form/pages/:page/fields/:field/:key        controllers.backoffice.FormsController.removeAdditional(form: Int, page: Int, field: Int, key: String)
+
+
