@@ -112,11 +112,13 @@ class FormsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
   def updateField(field: Forms.Field): Future[Int] =
     db.run(fields.filter(f => f.fieldId === field.fieldId.get && f.pageId === field.pageId).update(field))
 
-  def setAdditional(field: Int, key: String, value: String): Future[Int] =
+  def setAdditional(field: Int, key: String, value: String): Future[Int] = {
     db.run(fieldsAdditional.map(fa => (fa.fieldId, fa.key, fa.value))
       .insertOrUpdate((field, key, value)))
+  }
 
-  def deleteAdditional(field: Int, key: String): Future[Int] =
+  def deleteAdditional(field: Int, key: String): Future[Int] = {
     db.run(fieldsAdditional.filter(fa => fa.fieldId === field && fa.key === key).delete)
+  }
 
 }

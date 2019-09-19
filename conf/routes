@@ -52,7 +52,7 @@ POST          /back/forms/:form/pages                                 controller
 PUT           /back/forms/:form/pages/:id                             controllers.backoffice.FormsController.updatePage(form: Int, id: Int)
 
 +nocsrf
-POST          /back/forms/:form/pages/:page/fields/                   controllers.backoffice.FormsController.createField(form: Int, page: Int)
+POST          /back/forms/:form/pages/:page/fields                    controllers.backoffice.FormsController.createField(form: Int, page: Int)
 +nocsrf
 PUT           /back/forms/:form/pages/:page/fields/:field             controllers.backoffice.FormsController.updateField(form: Int, page: Int, field: Int)
 

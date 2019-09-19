@@ -88,6 +88,8 @@ package object models {
 
     def value = column[String]("value")
 
+    def pkey = primaryKey("primaryKey", (fieldId, key))
+
     def * = (key, value).shaped
   }
 
