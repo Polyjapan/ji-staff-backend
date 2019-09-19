@@ -61,4 +61,4 @@ PUT           /back/forms/:form/pages/:page/fields/:field/:key        controller
 +nocsrf
 DELETE        /back/forms/:form/pages/:page/fields/:field/:key        controllers.backoffice.FormsController.removeAdditional(form: Int, page: Int, field: Int, key: String)
 
-
+GET           /back/forms/:id/pages/:page                             controllers.backoffice.FormsController.getPageById(id: Int, page: Int)

@@ -32,14 +32,8 @@ class FormsController @Inject()(cc: ControllerComponents, forms: FormsModel)(imp
   }
 
   // Same ISOR here
-  def getPage(form: Int, page: Int): Action[AnyContent] = Action async forms.getPage(form, page).map {
-    case Some((page, fields)) =>
-      Ok(Json.obj(
-        "page" -> page,
-        "fields" -> fields.sortBy(_._1).map {
-          case (field, map) => Json.obj("field" -> field, "additional" -> map)
-        }
-      ))
+  def getPage(form: Int, page: Int): Action[AnyContent] = Action async forms.getPage(form, page).map(forms.encodePage).map {
+    case Some(json) => Ok(json)
     case _ => NotFound
   }
 

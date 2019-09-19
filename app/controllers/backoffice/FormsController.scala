@@ -51,4 +51,8 @@ class FormsController @Inject()(cc: ControllerComponents, forms: FormsModel)(imp
     forms.deleteAdditional(field, key).map(res => Ok)
   ).requiresAuthentication
 
+  def getPageById(form: Int, page: Int): Action[AnyContent] = Action async forms.getPageById(form, page).map(forms.encodePage).map {
+    case Some(json) => Ok(json)
+    case _ => NotFound
+  }
 }

@@ -4,6 +4,7 @@ import data.Forms.{Field, Form}
 import data._
 import javax.inject.Inject
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import play.api.libs.json.Json
 import slick.jdbc.MySQLProfile
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -54,6 +55,25 @@ class FormsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
           .map(list => Some(pg, list))
       } else Future(None)
     })
+  }
+
+  def getPageById(form: Int, pageId: Int): Future[Option[(Forms.FormPage, List[(Field, Map[String, String])])]] = {
+    db.run(pages.filter(pg => pg.formId === form && pg.formPageId === pageId)
+    .join(fields).on(_.formPageId === _.pageId)
+        .joinLeft(fieldsAdditional).on(_._2.fieldId === _.fieldId)
+        .result)
+        .map(list => list.groupBy(_._1._1).mapValues(_.groupBy(_._1._2).mapValues(_.flatMap(_._2).toMap).toList).headOption)
+  }
+
+  def encodePage(pg: Option[(Forms.FormPage, List[(Field, Map[String, String])])]) = {
+    pg.map {
+      case (page, fields) => Json.obj(
+        "page" -> page,
+        "fields" -> fields.sortBy(_._1).map {
+          case (field, map) => Json.obj("field" -> field, "additional" -> map)
+        }
+      )
+    }
   }
 
   def cloneEvent(source: Int, target: Int): Future[_] =
