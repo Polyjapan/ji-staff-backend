@@ -13,6 +13,7 @@ import scala.concurrent.{ExecutionContext, Future}
  * @author Louis Vialar
  */
 class FormsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, editions: EditionsModel)(implicit ec: ExecutionContext) extends HasDatabaseConfigProvider[MySQLProfile] {
+
   import profile.api._
 
   def getMainForm: Future[Option[Form]] =
@@ -46,23 +47,26 @@ class FormsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
       if (pages.length >= page && page > 0) {
         val pg = pages(page - 1)
 
-        db.run(
-          fields.filter(_.pageId === pg.pageId)
-            .joinLeft(fieldsAdditional).on(_.fieldId === _.fieldId)
-            .result
-        )
-          .map(list => list.groupBy(_._1).mapValues(_.flatMap(_._2).toMap).toList)
-          .map(list => Some(pg, list))
+        getPageContent(pg).map(list => Some(pg, list))
       } else Future(None)
     })
   }
 
+  private def getPageContent(formPage: Forms.FormPage): Future[List[(Field, Map[String, String])]] = {
+    db.run(
+      fields.filter(_.pageId === formPage.pageId)
+        .joinLeft(fieldsAdditional).on(_.fieldId === _.fieldId)
+        .result
+    )
+      .map(list => list.groupBy(_._1).mapValues(_.flatMap(_._2).toMap).toList)
+  }
+
   def getPageById(form: Int, pageId: Int): Future[Option[(Forms.FormPage, List[(Field, Map[String, String])])]] = {
-    db.run(pages.filter(pg => pg.formId === form && pg.formPageId === pageId)
-    .join(fields).on(_.formPageId === _.pageId)
-        .joinLeft(fieldsAdditional).on(_._2.fieldId === _.fieldId)
-        .result)
-        .map(list => list.groupBy(_._1._1).mapValues(_.groupBy(_._1._2).mapValues(_.flatMap(_._2).toMap).toList).headOption)
+    db.run(pages.filter(pg => pg.formId === form && pg.formPageId === pageId).result.headOption)
+      .flatMap {
+        case Some(pg) => getPageContent(pg).map(content => Some((pg, content)))
+        case None => Future.successful(None)
+      }
   }
 
   def encodePage(pg: Option[(Forms.FormPage, List[(Field, Map[String, String])])]) = {
@@ -115,7 +119,7 @@ class FormsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
     )
 
   def createForm(form: Form): Future[Int] =
-    db.run(forms returning(forms.map(_.formId)) += form)
+    db.run(forms returning (forms.map(_.formId)) += form)
 
   def updateForm(form: Form): Future[Int] =
     db.run(forms.filter(f => f.formId === form.formId.get && f.eventId === form.eventId).update(form))
