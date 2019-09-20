@@ -118,7 +118,7 @@ package object models {
 
     def closeDate = column[Option[Timestamp]]("close_date")
 
-    def * = (formId.?, eventId, internalName, name, description, shortDescription, minAge, maxAge, staffOnly, hidden, closeDate)
+    def * = (formId.?, eventId, internalName, name, description, shortDescription, maxAge, minAge, staffOnly, hidden, closeDate)
       .shaped <> (Forms.Form.tupled, Forms.Form.unapply)
   }
 
@@ -139,7 +139,7 @@ package object models {
 
     def ordering = column[Option[Int]]("ordering")
 
-    def * = (formPageId.?, formId, name, description, minAge, maxAge, ordering)
+    def * = (formPageId.?, formId, name, description, maxAge, minAge, ordering)
       .shaped <> (Forms.FormPage.tupled, Forms.FormPage.unapply)
   }
 
