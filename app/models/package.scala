@@ -68,15 +68,15 @@ package object models {
 
     def name = column[String]("name")
 
-    def label = column[String]("label")
+    def placeholder = column[String]("placeholder")
 
-    def helpText = column[String]("help_text")
+    def helpText = column[Option[String]]("help_text")
 
     def required = column[Boolean]("required")
 
     def `type` = column[Forms.FieldType.Value]("type")
 
-    def * = (fieldId.?, pageId, name, label, helpText, required, `type`, ordering).shaped <> (Forms.Field.tupled, Forms.Field.unapply)
+    def * = (fieldId.?, pageId, name, placeholder, helpText, required, `type`, ordering).shaped <> (Forms.Field.tupled, Forms.Field.unapply)
   }
 
   val fields = TableQuery[Fields]

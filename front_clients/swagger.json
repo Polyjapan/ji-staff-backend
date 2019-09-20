@@ -1,729 +1,824 @@
 {
-  "swagger" : "2.0",
-  "info" : {
-    "description" : "This is the documentation for the front-office API of the new staffs infrastructure.",
-    "version" : "1.0.0",
-    "title" : "Japan Impact Staffs"
+  "swagger": "2.0",
+  "info": {
+    "description": "This is the documentation for the front-office API of the new staffs infrastructure.",
+    "version": "1.0.0",
+    "title": "Japan Impact Staffs"
   },
-  "host" : "staff.japan-impact.ch",
-  "basePath" : "/api/v2/front",
-  "tags" : [ {
-    "name" : "forms",
-    "description" : "Operations about forms"
-  }, {
-    "name" : "applications",
-    "description" : "Operations about applications"
-  }, {
-    "name" : "events",
-    "description" : "Operations about events"
-  }, {
-    "name" : "user",
-    "description" : "Operations about user"
-  } ],
-  "schemes" : [ "https" ],
-  "paths" : {
-    "/user_profile/{userId}" : {
-      "get" : {
-        "tags" : [ "user" ],
-        "summary" : "Returns a user profile",
-        "description" : "",
-        "operationId" : "getUser",
-        "consumes" : [ ],
-        "produces" : [ "application/json" ],
-        "parameters" : [ {
-          "name" : "userId",
-          "in" : "path",
-          "description" : "ID of user to return",
-          "required" : true,
-          "type" : "integer",
-          "format" : "int32"
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "successful operation",
-            "schema" : {
-              "$ref" : "#/definitions/User"
+  "host": "staff.japan-impact.ch",
+  "basePath": "/api/v2/front",
+  "tags": [
+    {
+      "name": "forms",
+      "description": "Operations about forms"
+    },
+    {
+      "name": "applications",
+      "description": "Operations about applications"
+    },
+    {
+      "name": "events",
+      "description": "Operations about events"
+    },
+    {
+      "name": "user",
+      "description": "Operations about user"
+    }
+  ],
+  "schemes": [
+    "https"
+  ],
+  "paths": {
+    "/user_profile/{userId}": {
+      "put": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Creates or updates a user profile",
+        "description": "",
+        "operationId": "updateUser",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "ID of user to update",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "The user to update or create",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/User"
             }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
           },
-          "400" : {
-            "description" : "Invalid ID supplied"
+          "400": {
+            "description": "Invalid input (fields missing or incorrect)"
           },
-          "404" : {
-            "description" : "User not found"
+          "500": {
+            "description": "the insertion failed"
           }
         },
-        "security" : [ {
-          "api_key" : [ ]
-        } ]
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
       },
-      "put" : {
-        "tags" : [ "user" ],
-        "summary" : "Creates or updates a user profile",
-        "description" : "",
-        "operationId" : "updateUser",
-        "consumes" : [ "application/json" ],
-        "produces" : [ "application/json" ],
-        "parameters" : [ {
-          "name" : "userId",
-          "in" : "path",
-          "description" : "ID of user to update",
-          "required" : true,
-          "type" : "integer",
-          "format" : "int32"
-        }, {
-          "in" : "body",
-          "name" : "body",
-          "description" : "The user to update or create",
-          "required" : true,
-          "schema" : {
-            "$ref" : "#/definitions/User"
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Returns a user profile",
+        "description": "",
+        "operationId": "getUser",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "ID of user to return",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
           }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "successful operation"
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
           },
-          "400" : {
-            "description" : "Invalid input (fields missing or incorrect)"
+          "400": {
+            "description": "Invalid ID supplied"
           },
-          "500" : {
-            "description" : "the insertion failed"
+          "404": {
+            "description": "User not found"
           }
         },
-        "security" : [ {
-          "api_key" : [ ]
-        } ]
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
       }
     },
-    "/edition" : {
-      "get" : {
-        "tags" : [ "events" ],
-        "summary" : "Returns the current active event",
-        "description" : "Returns a single event",
-        "operationId" : "getCurrentEdition",
-        "produces" : [ "application/json" ],
-        "parameters" : [ ],
-        "responses" : {
-          "200" : {
-            "description" : "successful operation",
-            "schema" : {
-              "$ref" : "#/definitions/Event"
+    "/edition": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Returns the current active event",
+        "description": "Returns a single event",
+        "operationId": "getCurrentEdition",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "$ref": "#/definitions/Event"
             }
           },
-          "404" : {
-            "description" : "no event is currently active"
+          "404": {
+            "description": "no event is currently active"
           }
         }
       }
     },
-    "/forms" : {
-      "get" : {
-        "tags" : [ "forms" ],
-        "summary" : "Returns all the forms of the currently active events",
-        "description" : "Returns an array of forms, of which some may be closed",
-        "operationId" : "getCurrentForms",
-        "produces" : [ "application/json" ],
-        "parameters" : [ ],
-        "responses" : {
-          "200" : {
-            "description" : "successful operation",
-            "schema" : {
-              "type" : "array",
-              "items" : {
-                "$ref" : "#/definitions/Form"
+    "/forms": {
+      "get": {
+        "tags": [
+          "forms"
+        ],
+        "summary": "Returns all the forms of the currently active events",
+        "description": "Returns an array of forms, of which some may be closed",
+        "operationId": "getCurrentForms",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Form"
               }
             }
           }
         }
       }
     },
-    "/forms/main_form" : {
-      "get" : {
-        "tags" : [ "forms" ],
-        "summary" : "Returns the main form of the current edition",
-        "description" : "",
-        "operationId" : "getCurrentMainForm",
-        "produces" : [ "application/json" ],
-        "parameters" : [ ],
-        "responses" : {
-          "200" : {
-            "description" : "successful operation",
-            "schema" : {
-              "$ref" : "#/definitions/Form"
+    "/forms/main_form": {
+      "get": {
+        "tags": [
+          "forms"
+        ],
+        "summary": "Returns the main form of the current edition",
+        "description": "",
+        "operationId": "getCurrentMainForm",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "$ref": "#/definitions/Form"
             }
           },
-          "404" : {
-            "description" : "no event is currently active or it has no main form"
+          "404": {
+            "description": "no event is currently active or it has no main form"
           }
         }
       }
     },
-    "/forms/{id}" : {
-      "get" : {
-        "tags" : [ "forms" ],
-        "summary" : "Returns the requested form, regardless of whether the edition is active or not",
-        "description" : "",
-        "operationId" : "getFormById",
-        "produces" : [ "application/json" ],
-        "parameters" : [ {
-          "name" : "id",
-          "in" : "path",
-          "description" : "ID of form to return",
-          "required" : true,
-          "type" : "integer",
-          "format" : "int32"
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "successful operation",
-            "schema" : {
-              "$ref" : "#/definitions/Form"
+    "/forms/{id}": {
+      "get": {
+        "tags": [
+          "forms"
+        ],
+        "summary": "Returns the requested form, regardless of whether the edition is active or not",
+        "description": "",
+        "operationId": "getFormById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of form to return",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "$ref": "#/definitions/Form"
             }
           },
-          "404" : {
-            "description" : "no form exists with this id"
+          "404": {
+            "description": "no form exists with this id"
           }
         }
       }
     },
-    "/forms/{id}/pages" : {
-      "get" : {
-        "tags" : [ "forms" ],
-        "summary" : "Returns the list of pages of a given form",
-        "description" : "",
-        "operationId" : "getFormPagesById",
-        "produces" : [ "application/json" ],
-        "parameters" : [ {
-          "name" : "id",
-          "in" : "path",
-          "description" : "ID of form to look for",
-          "required" : true,
-          "type" : "integer",
-          "format" : "int32"
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "successful operation",
-            "schema" : {
-              "type" : "array",
-              "items" : {
-                "$ref" : "#/definitions/FormPage"
+    "/forms/{id}/pages": {
+      "get": {
+        "tags": [
+          "forms"
+        ],
+        "summary": "Returns the list of pages of a given form",
+        "description": "",
+        "operationId": "getFormPagesById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of form to look for",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/FormPage"
               }
             }
           },
-          "404" : {
-            "description" : "no form exists with this id"
+          "404": {
+            "description": "no form exists with this id"
           }
         }
       }
     },
-    "/forms/{id}/pages/{pageNum}" : {
-      "get" : {
-        "tags" : [ "forms" ],
-        "summary" : "Returns a specific page in the form",
-        "description" : "",
-        "operationId" : "getFormPageByIdAndPosition",
-        "produces" : [ "application/json" ],
-        "parameters" : [ {
-          "name" : "id",
-          "in" : "path",
-          "description" : "ID of form to look for",
-          "required" : true,
-          "type" : "integer",
-          "format" : "int32"
-        }, {
-          "name" : "pageNum",
-          "in" : "path",
-          "description" : "the position of the page, starting at 1 and ending at the total number of pages",
-          "required" : true,
-          "type" : "integer",
-          "format" : "int32"
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "successful operation",
-            "schema" : {
-              "type" : "object",
-              "properties" : {
-                "page" : {
-                  "$ref" : "#/definitions/FormPage"
+    "/forms/{id}/pages/{pageNum}": {
+      "get": {
+        "tags": [
+          "forms"
+        ],
+        "summary": "Returns a specific page in the form",
+        "description": "",
+        "operationId": "getFormPageByIdAndPosition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of form to look for",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageNum",
+            "in": "path",
+            "description": "the position of the page, starting at 1 and ending at the total number of pages",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "page": {
+                  "$ref": "#/definitions/FormPage"
                 },
-                "fields" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/definitions/inline_response_200_fields"
+                "fields": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "field": {
+                        "$ref": "#/definitions/FormField"
+                      },
+                      "additional": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "string"
+                        }
+                      }
+                    }
                   }
                 }
               }
             }
           },
-          "404" : {
-            "description" : "no form exists with this id, or this page number exceeds the maximal"
+          "404": {
+            "description": "no form exists with this id, or this page number exceeds the maximal"
           }
         }
       }
     },
-    "/applications/{formId}/state/{userId}" : {
-      "get" : {
-        "tags" : [ "applications" ],
-        "summary" : "Returns the state of an application",
-        "description" : "",
-        "operationId" : "getApplicationState",
-        "consumes" : [ ],
-        "produces" : [ "application/json" ],
-        "parameters" : [ {
-          "name" : "formId",
-          "in" : "path",
-          "description" : "ID of the form the user is applying on",
-          "required" : true,
-          "type" : "integer",
-          "format" : "int32"
-        }, {
-          "name" : "userId",
-          "in" : "path",
-          "description" : "ID of the user who is applying",
-          "required" : true,
-          "type" : "integer",
-          "format" : "int32"
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "successful operation",
-            "schema" : {
-              "$ref" : "#/definitions/ApplicationState"
+    "/applications/{formId}/state/{userId}": {
+      "put": {
+        "tags": [
+          "applications"
+        ],
+        "summary": "Updates the state of an application",
+        "description": "If the application doesn't exist and the given state is `draft`, it will be created.",
+        "operationId": "updateApplicationState",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "formId",
+            "in": "path",
+            "description": "ID of the form the user is applying on",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "ID of the user who is applying",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "The new state of the application",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ApplicationState"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          },
+          "403": {
+            "description": "The state transition is illegal (i.e. draft to accepted without being admin, for example)"
+          },
+          "404": {
+            "description": "The user doesn't exist"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "applications"
+        ],
+        "summary": "Returns the state of an application",
+        "description": "",
+        "operationId": "getApplicationState",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "formId",
+            "in": "path",
+            "description": "ID of the form the user is applying on",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "ID of the user who is applying",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "$ref": "#/definitions/ApplicationState"
             }
           },
-          "404" : {
-            "description" : "There is no application for this user on this form"
+          "404": {
+            "description": "There is no application for this user on this form"
           }
         },
-        "security" : [ {
-          "api_key" : [ ]
-        } ]
-      },
-      "put" : {
-        "tags" : [ "applications" ],
-        "summary" : "Updates the state of an application",
-        "description" : "If the application doesn't exist and the given state is `draft`, it will be created.",
-        "operationId" : "updateApplicationState",
-        "consumes" : [ "application/json" ],
-        "produces" : [ "application/json" ],
-        "parameters" : [ {
-          "name" : "formId",
-          "in" : "path",
-          "description" : "ID of the form the user is applying on",
-          "required" : true,
-          "type" : "integer",
-          "format" : "int32"
-        }, {
-          "name" : "userId",
-          "in" : "path",
-          "description" : "ID of the user who is applying",
-          "required" : true,
-          "type" : "integer",
-          "format" : "int32"
-        }, {
-          "in" : "body",
-          "name" : "body",
-          "description" : "The new state of the application",
-          "required" : true,
-          "schema" : {
-            "$ref" : "#/definitions/ApplicationState"
+        "security": [
+          {
+            "api_key": []
           }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "successful operation"
-          },
-          "403" : {
-            "description" : "The state transition is illegal (i.e. draft to accepted without being admin, for example)"
-          },
-          "404" : {
-            "description" : "The user doesn't exist"
-          }
-        },
-        "security" : [ {
-          "api_key" : [ ]
-        } ]
+        ]
       }
     },
-    "/applications/{formId}/replies/{userId}" : {
-      "get" : {
-        "tags" : [ "applications" ],
-        "summary" : "Returns the current content of an application",
-        "description" : "",
-        "operationId" : "getApplicationReplies",
-        "consumes" : [ ],
-        "produces" : [ "application/json" ],
-        "parameters" : [ {
-          "name" : "formId",
-          "in" : "path",
-          "description" : "ID of the form the user is applying on",
-          "required" : true,
-          "type" : "integer",
-          "format" : "int32"
-        }, {
-          "name" : "userId",
-          "in" : "path",
-          "description" : "ID of the user who is applying",
-          "required" : true,
-          "type" : "integer",
-          "format" : "int32"
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "successful operation",
-            "schema" : {
-              "type" : "array",
-              "items" : {
-                "$ref" : "#/definitions/ApplicationReply"
+    "/applications/{formId}/replies/{userId}": {
+      "post": {
+        "tags": [
+          "applications"
+        ],
+        "summary": "Sends some replies to add to the application.",
+        "description": "Not all replies have to be sent at once, you can send them one by one.<br>If a reply for a given field has already been sent, it will be updated.<br>If no application exist for this form and user, it will be created.<br>Replies are expected to have been checked before being sent.",
+        "operationId": "updateApplicationReplies",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "formId",
+            "in": "path",
+            "description": "ID of the form the user is applying on",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "ID of the user who is applying",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "The fields to add or update in the application",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ApplicationReply"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          },
+          "400": {
+            "description": "One or multiple fields ids in the request are non existent or don't belong to the requested form"
+          },
+          "405": {
+            "description": "The application cannot be updated (not a draft)"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "applications"
+        ],
+        "summary": "Returns the current content of an application",
+        "description": "",
+        "operationId": "getApplicationReplies",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "formId",
+            "in": "path",
+            "description": "ID of the form the user is applying on",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "ID of the user who is applying",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ApplicationReply"
               }
             }
           }
         },
-        "security" : [ {
-          "api_key" : [ ]
-        } ]
-      },
-      "post" : {
-        "tags" : [ "applications" ],
-        "summary" : "Sends some replies to add to the application.",
-        "description" : "Not all replies have to be sent at once, you can send them one by one.<br>If a reply for a given field has already been sent, it will be updated.<br>If no application exist for this form and user, it will be created.<br>Replies are expected to have been checked before being sent.",
-        "operationId" : "updateApplicationReplies",
-        "consumes" : [ "application/json" ],
-        "produces" : [ "application/json" ],
-        "parameters" : [ {
-          "name" : "formId",
-          "in" : "path",
-          "description" : "ID of the form the user is applying on",
-          "required" : true,
-          "type" : "integer",
-          "format" : "int32"
-        }, {
-          "name" : "userId",
-          "in" : "path",
-          "description" : "ID of the user who is applying",
-          "required" : true,
-          "type" : "integer",
-          "format" : "int32"
-        }, {
-          "in" : "body",
-          "name" : "body",
-          "description" : "The fields to add or update in the application",
-          "required" : true,
-          "schema" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/definitions/ApplicationReply"
-            }
+        "security": [
+          {
+            "api_key": []
           }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "successful operation"
-          },
-          "400" : {
-            "description" : "One or multiple fields ids in the request are non existent or don't belong to the requested form"
-          },
-          "405" : {
-            "description" : "The application cannot be updated (not a draft)"
-          }
-        },
-        "security" : [ {
-          "api_key" : [ ]
-        } ]
+        ]
       }
     },
-    "/applications/{formId}/comments/{userId}" : {
-      "get" : {
-        "tags" : [ "applications" ],
-        "summary" : "Returns all the public comments made on this application",
-        "description" : "These comments are usefull for the user and should be displayed to it. They allow the admins to provide a reason when an application is refused, of when changes are requested for example.",
-        "operationId" : "getApplicationComments",
-        "consumes" : [ ],
-        "produces" : [ "application/json" ],
-        "parameters" : [ {
-          "name" : "formId",
-          "in" : "path",
-          "description" : "ID of the form the user is applying on",
-          "required" : true,
-          "type" : "integer",
-          "format" : "int32"
-        }, {
-          "name" : "userId",
-          "in" : "path",
-          "description" : "ID of the user who is applying",
-          "required" : true,
-          "type" : "integer",
-          "format" : "int32"
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "successful operation",
-            "schema" : {
-              "type" : "array",
-              "items" : {
-                "type" : "object",
-                "properties" : {
-                  "time" : {
-                    "type" : "integer",
-                    "format" : "int64"
+    "/applications/{formId}/comments/{userId}": {
+      "get": {
+        "tags": [
+          "applications"
+        ],
+        "summary": "Returns all the public comments made on this application",
+        "description": "These comments are usefull for the user and should be displayed to it. They allow the admins to provide a reason when an application is refused, of when changes are requested for example.",
+        "operationId": "getApplicationComments",
+        "consumes": [],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "formId",
+            "in": "path",
+            "description": "ID of the form the user is applying on",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "ID of the user who is applying",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "time": {
+                    "type": "integer",
+                    "format": "int64"
                   },
-                  "comment" : {
-                    "type" : "string"
+                  "comment": {
+                    "type": "string"
                   }
                 }
               }
             }
           }
         },
-        "security" : [ {
-          "api_key" : [ ]
-        } ]
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
       }
     }
   },
-  "securityDefinitions" : {
-    "api_key" : {
-      "type" : "apiKey",
-      "name" : "Authorization",
-      "in" : "header"
+  "securityDefinitions": {
+    "api_key": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
     }
   },
-  "definitions" : {
-    "Form" : {
-      "type" : "object",
-      "properties" : {
-        "formId" : {
-          "type" : "integer",
-          "format" : "int32"
+  "definitions": {
+    "Form": {
+      "type": "object",
+      "properties": {
+        "formId": {
+          "type": "integer",
+          "format": "int32"
         },
-        "eventId" : {
-          "type" : "integer",
-          "format" : "int32"
+        "eventId": {
+          "type": "integer",
+          "format": "int32"
         },
-        "internalName" : {
-          "type" : "string",
-          "description" : "an internal name for this form, for use in URLs for example"
+        "internalName": {
+          "type": "string",
+          "description": "an internal name for this form, for use in URLs for example"
         },
-        "name" : {
-          "type" : "string",
-          "description" : "the public displayable name for this form"
+        "name": {
+          "type": "string",
+          "description": "the public displayable name for this form"
         },
-        "shortDescription" : {
-          "type" : "string",
-          "description" : "a short description of this form, to display in a list of forms for example"
+        "shortDescription": {
+          "type": "string",
+          "description": "a short description of this form, to display in a list of forms for example"
         },
-        "description" : {
-          "type" : "string",
-          "description" : "a longer description of this form, to display in a pre-reply page for example"
+        "description": {
+          "type": "string",
+          "description": "a longer description of this form, to display in a pre-reply page for example"
         },
-        "maxAge" : {
-          "type" : "integer",
-          "format" : "int32",
-          "description" : "the maximal age to see this form, the age being computed at the event's eventBegin date, can be set to -1 to remove limit"
+        "maxAge": {
+          "type": "integer",
+          "format": "int32",
+          "description": "the maximal age to see this form, the age being computed at the event's eventBegin date, can be set to -1 to remove limit"
         },
-        "minAge" : {
-          "type" : "integer",
-          "format" : "int32",
-          "description" : "the minimal age to see this form, the age being computed at the event's eventBegin date, can be set to -1 to remove limit"
+        "minAge": {
+          "type": "integer",
+          "format": "int32",
+          "description": "the minimal age to see this form, the age being computed at the event's eventBegin date, can be set to -1 to remove limit"
         },
-        "requiresStaff" : {
-          "type" : "boolean",
-          "description" : "if true, this form can only be seen by people who have been accepted as staff"
+        "requiresStaff": {
+          "type": "boolean",
+          "description": "if true, this form can only be seen by people who have been accepted as staff"
         },
-        "hidden" : {
-          "type" : "boolean",
-          "description" : "if true, this form cannot be seen by users. users who already replied MAY me able to still see it, but MAY NOT update their answers"
+        "hidden": {
+          "type": "boolean",
+          "description": "if true, this form cannot be seen by users. users who already replied MAY me able to still see it, but MAY NOT update their answers"
         },
-        "closeDate" : {
-          "type" : "integer",
-          "format" : "int64",
-          "description" : "the Timestamp in milliseconds at which this form MUST stop accepting new answers (can be null if unlimited)"
+        "closeDate": {
+          "type": "integer",
+          "format": "int64",
+          "description": "the Timestamp in milliseconds at which this form MUST stop accepting new answers (can be null if unlimited)"
         }
       }
     },
-    "FormField" : {
-      "type" : "object",
-      "properties" : {
-        "fieldId" : {
-          "type" : "integer",
-          "format" : "int32"
+    "FormField": {
+      "type": "object",
+      "properties": {
+        "fieldId": {
+          "type": "integer",
+          "format": "int32"
         },
-        "pageId" : {
-          "type" : "integer",
-          "format" : "int32"
+        "pageId": {
+          "type": "integer",
+          "format": "int32"
         },
-        "name" : {
-          "type" : "string",
-          "description" : "a name, that could be used for HTML generation or to display to the user"
+        "name": {
+          "type": "string",
+          "description": "a name, that could be used for HTML generation or to display to the user"
         },
-        "label" : {
-          "type" : "string",
-          "description" : "a label, that could be used either as a label or as a placeholder on fields supporting it"
+        "placeholder": {
+          "type": "string",
+          "description": "(optional) a label, that could be used either as a label or as a placeholder on fields supporting it"
         },
-        "helpText" : {
-          "type" : "string",
-          "description" : "the text that could be displayed under the field"
+        "helpText": {
+          "type": "string",
+          "description": "the text that could be displayed under the field"
         },
-        "type" : {
-          "type" : "string",
-          "enum" : [ "text", "long_text", "email", "date", "checkbox", "select", "file", "image", "url" ]
+        "type": {
+          "type": "string",
+          "enum": [
+            "text",
+            "long_text",
+            "email",
+            "date",
+            "checkbox",
+            "select",
+            "file",
+            "image",
+            "url"
+          ]
         },
-        "required" : {
-          "type" : "boolean",
-          "description" : "if true, the user has to provide a reply to be able to send the form"
+        "required": {
+          "type": "boolean",
+          "description": "if true, the user has to provide a reply to be able to send the form"
         },
-        "ordering" : {
-          "type" : "integer",
-          "format" : "int32",
-          "description" : "the order of this field in the page (smallest is first, null is always smaller). Fields should already be sorted in API responses."
+        "ordering": {
+          "type": "integer",
+          "format": "int32",
+          "description": "the order of this field in the page (smallest is first, null is always smaller). Fields should already be sorted in API responses."
         }
       }
     },
-    "FormPage" : {
-      "type" : "object",
-      "properties" : {
-        "pageId" : {
-          "type" : "integer",
-          "format" : "int32"
+    "FormPage": {
+      "type": "object",
+      "properties": {
+        "pageId": {
+          "type": "integer",
+          "format": "int32"
         },
-        "formId" : {
-          "type" : "integer",
-          "format" : "int32"
+        "formId": {
+          "type": "integer",
+          "format": "int32"
         },
-        "name" : {
-          "type" : "string",
-          "description" : "the public displayable name for this page"
+        "name": {
+          "type": "string",
+          "description": "the public displayable name for this page"
         },
-        "description" : {
-          "type" : "string",
-          "description" : "the description of this page, to display in the top of the page for example"
+        "description": {
+          "type": "string",
+          "description": "the description of this page, to display in the top of the page for example"
         },
-        "maxAge" : {
-          "type" : "integer",
-          "format" : "int32",
-          "description" : "the maximal age to see this page, the age being computed at the event's eventBegin date, can be set to -1 to remove limit"
+        "maxAge": {
+          "type": "integer",
+          "format": "int32",
+          "description": "the maximal age to see this page, the age being computed at the event's eventBegin date, can be set to -1 to remove limit"
         },
-        "minAge" : {
-          "type" : "integer",
-          "format" : "int32",
-          "description" : "the minimal age to see this page, the age being computed at the event's eventBegin date, can be set to -1 to remove limit"
+        "minAge": {
+          "type": "integer",
+          "format": "int32",
+          "description": "the minimal age to see this page, the age being computed at the event's eventBegin date, can be set to -1 to remove limit"
         },
-        "ordering" : {
-          "type" : "integer",
-          "format" : "int32",
-          "description" : "the order of this page, used to sort the pages in order (smallest is first, null is always smaller). If multiple pages have same ordering, sort using pageId."
+        "ordering": {
+          "type": "integer",
+          "format": "int32",
+          "description": "the order of this page, used to sort the pages in order (smallest is first, null is always smaller). If multiple pages have same ordering, sort using pageId."
         }
       }
     },
-    "Event" : {
-      "type" : "object",
-      "properties" : {
-        "eventId" : {
-          "type" : "integer",
-          "format" : "int32"
+    "Event": {
+      "type": "object",
+      "properties": {
+        "eventId": {
+          "type": "integer",
+          "format": "int32"
         },
-        "isActive" : {
-          "type" : "boolean",
-          "description" : "whether this event is still visible"
+        "isActive": {
+          "type": "boolean",
+          "description": "whether this event is still visible"
         },
-        "eventBegin" : {
-          "type" : "string",
-          "format" : "date",
-          "description" : "the date at which the event actually begins, to compute the user ages"
+        "eventBegin": {
+          "type": "string",
+          "format": "date",
+          "description": "the date at which the event actually begins, to compute the user ages"
         },
-        "name" : {
-          "type" : "string",
-          "description" : "the publicly displayable name of the event"
+        "name": {
+          "type": "string",
+          "description": "the publicly displayable name of the event"
         },
-        "mainForm" : {
-          "type" : "integer",
-          "format" : "int32",
-          "description" : "the id of the main application form for this event (can be null if no form)"
+        "mainForm": {
+          "type": "integer",
+          "format": "int32",
+          "description": "the id of the main application form for this event (can be null if no form)"
         }
       }
     },
-    "ApplicationReply" : {
-      "type" : "object",
-      "properties" : {
-        "fieldId" : {
-          "type" : "integer",
-          "format" : "int32"
+    "ApplicationReply": {
+      "type": "object",
+      "properties": {
+        "fieldId": {
+          "type": "integer",
+          "format": "int32"
         },
-        "fieldValue" : {
-          "type" : "string"
+        "fieldValue": {
+          "type": "string"
         }
       }
     },
-    "User" : {
-      "type" : "object",
-      "properties" : {
-        "userId" : {
-          "type" : "integer",
-          "format" : "int32"
+    "User": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "integer",
+          "format": "int32"
         },
-        "firstName" : {
-          "type" : "string"
+        "firstName": {
+          "type": "string"
         },
-        "lastName" : {
-          "type" : "string"
+        "lastName": {
+          "type": "string"
         },
-        "email" : {
-          "type" : "string"
+        "email": {
+          "type": "string"
         },
-        "phone" : {
-          "type" : "string"
+        "phone": {
+          "type": "string"
         },
-        "address" : {
-          "type" : "string"
+        "address": {
+          "type": "string"
         },
-        "birthDate" : {
-          "type" : "string",
-          "format" : "date"
+        "birthDate": {
+          "type": "string",
+          "format": "date"
         }
       }
     },
-    "ApplicationState" : {
-      "type" : "string",
-      "enum" : [ "draft", "sent", "accepted", "refused", "requested_changes" ]
-    },
-    "inline_response_200_fields" : {
-      "properties" : {
-        "field" : {
-          "$ref" : "#/definitions/FormField"
-        },
-        "additional" : {
-          "type" : "object",
-          "additionalProperties" : {
-            "type" : "string"
-          }
-        }
-      }
-    },
-    "inline_response_200" : {
-      "properties" : {
-        "page" : {
-          "$ref" : "#/definitions/FormPage"
-        },
-        "fields" : {
-          "type" : "array",
-          "items" : {
-            "$ref" : "#/definitions/inline_response_200_fields"
-          }
-        }
-      }
-    },
-    "inline_response_200_1" : {
-      "properties" : {
-        "time" : {
-          "type" : "integer",
-          "format" : "int64"
-        },
-        "comment" : {
-          "type" : "string"
-        }
-      }
+    "ApplicationState": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "sent",
+        "accepted",
+        "refused",
+        "requested_changes"
+      ]
     }
   }
 }

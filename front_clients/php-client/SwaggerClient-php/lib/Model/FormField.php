@@ -60,7 +60,7 @@ class FormField implements ModelInterface, ArrayAccess
         'field_id' => 'int',
         'page_id' => 'int',
         'name' => 'string',
-        'label' => 'string',
+        'placeholder' => 'string',
         'help_text' => 'string',
         'type' => 'string',
         'required' => 'bool',
@@ -76,7 +76,7 @@ class FormField implements ModelInterface, ArrayAccess
         'field_id' => 'int32',
         'page_id' => 'int32',
         'name' => null,
-        'label' => null,
+        'placeholder' => null,
         'help_text' => null,
         'type' => null,
         'required' => null,
@@ -113,7 +113,7 @@ class FormField implements ModelInterface, ArrayAccess
         'field_id' => 'fieldId',
         'page_id' => 'pageId',
         'name' => 'name',
-        'label' => 'label',
+        'placeholder' => 'placeholder',
         'help_text' => 'helpText',
         'type' => 'type',
         'required' => 'required',
@@ -129,7 +129,7 @@ class FormField implements ModelInterface, ArrayAccess
         'field_id' => 'setFieldId',
         'page_id' => 'setPageId',
         'name' => 'setName',
-        'label' => 'setLabel',
+        'placeholder' => 'setPlaceholder',
         'help_text' => 'setHelpText',
         'type' => 'setType',
         'required' => 'setRequired',
@@ -145,7 +145,7 @@ class FormField implements ModelInterface, ArrayAccess
         'field_id' => 'getFieldId',
         'page_id' => 'getPageId',
         'name' => 'getName',
-        'label' => 'getLabel',
+        'placeholder' => 'getPlaceholder',
         'help_text' => 'getHelpText',
         'type' => 'getType',
         'required' => 'getRequired',
@@ -244,7 +244,7 @@ class FormField implements ModelInterface, ArrayAccess
         $this->container['field_id'] = isset($data['field_id']) ? $data['field_id'] : null;
         $this->container['page_id'] = isset($data['page_id']) ? $data['page_id'] : null;
         $this->container['name'] = isset($data['name']) ? $data['name'] : null;
-        $this->container['label'] = isset($data['label']) ? $data['label'] : null;
+        $this->container['placeholder'] = isset($data['placeholder']) ? $data['placeholder'] : null;
         $this->container['help_text'] = isset($data['help_text']) ? $data['help_text'] : null;
         $this->container['type'] = isset($data['type']) ? $data['type'] : null;
         $this->container['required'] = isset($data['required']) ? $data['required'] : null;
@@ -356,25 +356,25 @@ class FormField implements ModelInterface, ArrayAccess
     }
 
     /**
-     * Gets label
+     * Gets placeholder
      *
      * @return string
      */
-    public function getLabel()
+    public function getPlaceholder()
     {
-        return $this->container['label'];
+        return $this->container['placeholder'];
     }
 
     /**
-     * Sets label
+     * Sets placeholder
      *
-     * @param string $label a label, that could be used either as a label or as a placeholder on fields supporting it
+     * @param string $placeholder (optional) a label, that could be used either as a label or as a placeholder on fields supporting it
      *
      * @return $this
      */
-    public function setLabel($label)
+    public function setPlaceholder($placeholder)
     {
-        $this->container['label'] = $label;
+        $this->container['placeholder'] = $placeholder;
 
         return $this;
     }

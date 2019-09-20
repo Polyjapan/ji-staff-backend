@@ -98,9 +98,9 @@ class FormFieldTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test attribute "label"
+     * Test attribute "placeholder"
      */
-    public function testPropertyLabel()
+    public function testPropertyPlaceholder()
     {
     }
 

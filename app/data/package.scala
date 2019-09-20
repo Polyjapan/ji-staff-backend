@@ -37,7 +37,7 @@ package object data {
       val Text, LongText, Email, Date, Checkbox, Select, File, Image, Url = Value
     }
 
-    case class Field(fieldId: Option[Int], pageId: Int, name: String, label: String, helpText: String, required: Boolean, `type`: FieldType.Value, ordering: Option[Int]) extends Ordered[Field] {
+    case class Field(fieldId: Option[Int], pageId: Int, name: String, placeholder: String, helpText: Option[String], required: Boolean, `type`: FieldType.Value, ordering: Option[Int]) extends Ordered[Field] {
       override def compare(that: Field): Int = {
         val ord = ordering.getOrElse(0)
         val thatOrd = that.ordering.getOrElse(0)
