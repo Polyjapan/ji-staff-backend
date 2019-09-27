@@ -53,7 +53,6 @@ object AppsModel {
       override def apply(request: Request[T]): Future[Result] = {
         import play.api.mvc.Results._
 
-        println("Headers " + request.headers + "; auth " + model.apps)
         if (model.checkAuthorized(request.headers.get("Authorization")
           .orElse(request.headers.get("authorization")))) action.apply(request)
         else Future(Unauthorized)(executionContext)

@@ -195,7 +195,7 @@ package object models {
   val applicationsComments = TableQuery[ApplicationsComments]
 
 
-  private[models] class Staffs(tag: Tag) extends Table[(Int, Int)](tag, "staffs") {
+  private[models] class Staffs(tag: Tag) extends Table[(Int, Int, Int)](tag, "staffs") {
     def eventId = column[Int]("event_id")
 
     def staffNumber = column[Int]("staff_number")
@@ -203,7 +203,7 @@ package object models {
     def userId = column[Int]("user_id")
 
 
-    def * = (staffNumber, userId).shaped
+    def * = (eventId, staffNumber, userId).shaped
   }
 
   val staffs = TableQuery[Staffs]

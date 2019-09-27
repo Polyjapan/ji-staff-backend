@@ -63,6 +63,10 @@ package object data {
       }
     }
 
+    case class FormReply(fieldId: Int, fieldValue: String)
+
+    implicit val formReplyFormat: Format[FormReply] = Json.format[FormReply]
+
     implicit val typeFormat: Format[FieldType.Value] = EnumUtils.format(FieldType)
     implicit val formFormat: Format[Form] = Json.format[Form]
     implicit val fieldFormat: Format[Field] = Json.format[Field]
