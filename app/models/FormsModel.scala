@@ -14,6 +14,7 @@ import scala.concurrent.{ExecutionContext, Future}
  */
 class FormsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, editions: EditionsModel)(implicit ec: ExecutionContext) extends HasDatabaseConfigProvider[MySQLProfile] {
 
+
   import profile.api._
 
   def getMainForm: Future[Option[Form]] =
@@ -135,6 +136,15 @@ class FormsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
 
   def updateField(field: Forms.Field): Future[Int] =
     db.run(fields.filter(f => f.fieldId === field.fieldId.get && f.pageId === field.pageId).update(field))
+
+  def deleteField(form: Int, page: Int, field: Int): Future[Int] =
+    db.run(fields.filter(f => f.fieldId === field && f.pageId === page).delete)
+
+  def deletePage(form: Int, id: Int): Future[Int] =
+    db.run(pages.filter(pg => pg.formId === form && pg.formPageId === id).delete)
+
+  def deleteForm(form: Int): Future[Int] =
+    db.run(forms.filter(f => f.formId === form).delete)
 
   def setAdditional(field: Int, key: String, value: String): Future[Int] = {
     db.run(fieldsAdditional.map(fa => (fa.fieldId, fa.key, fa.value))

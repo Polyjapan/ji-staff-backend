@@ -45,16 +45,22 @@ GET           /back/editions/:id/forms                                controller
 POST          /back/forms                                             controllers.backoffice.FormsController.createForm
 +nocsrf
 PUT           /back/forms/:id                                         controllers.backoffice.FormsController.updateForm(id: Int)
++nocsrf
+DELETE        /back/forms/:id                                         controllers.backoffice.FormsController.deleteForm(id: Int)
 
 +nocsrf
 POST          /back/forms/:form/pages                                 controllers.backoffice.FormsController.createPage(form: Int)
 +nocsrf
 PUT           /back/forms/:form/pages/:id                             controllers.backoffice.FormsController.updatePage(form: Int, id: Int)
++nocsrf
+DELETE        /back/forms/:form/pages/:id                             controllers.backoffice.FormsController.deletePage(form: Int, id: Int)
 
 +nocsrf
 POST          /back/forms/:form/pages/:page/fields                    controllers.backoffice.FormsController.createField(form: Int, page: Int)
 +nocsrf
 PUT           /back/forms/:form/pages/:page/fields/:field             controllers.backoffice.FormsController.updateField(form: Int, page: Int, field: Int)
++nocsrf
+DELETE        /back/forms/:form/pages/:page/fields/:field             controllers.backoffice.FormsController.deleteField(form: Int, page: Int, field: Int)
 
 +nocsrf
 PUT           /back/forms/:form/pages/:page/fields/:field/:key        controllers.backoffice.FormsController.setAdditional(form: Int, page: Int, field: Int, key: String)

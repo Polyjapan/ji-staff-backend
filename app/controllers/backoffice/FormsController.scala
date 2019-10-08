@@ -43,6 +43,10 @@ class FormsController @Inject()(cc: ControllerComponents, forms: FormsModel)(imp
     forms.updateField(rq.body.copy(fieldId = Some(field), pageId = page)).map(res => if (res > 0) Ok else NotFound)
   ).requiresAuthentication
 
+  def deleteField(form: Int, page: Int, field: Int): Action[AnyContent] = Action.async(rq =>
+    forms.deleteField(form, page, field).map(res => if (res > 0) Ok else NotFound)
+  ).requiresAuthentication
+
   def setAdditional(form: Int, page: Int, field: Int, key: String): Action[String] = Action.async(parse.text(100))(rq =>
     forms.setAdditional(field, key, rq.body).map(res => Ok)
   ).requiresAuthentication
@@ -55,4 +59,13 @@ class FormsController @Inject()(cc: ControllerComponents, forms: FormsModel)(imp
     case Some(json) => Ok(json)
     case _ => NotFound
   }
+
+  def deletePage(form: Int, id: Int): Action[AnyContent] = Action.async(
+    forms.deletePage(form, id).map(res => if (res > 0) Ok else NotFound)
+  ).requiresAuthentication
+
+  def deleteForm(form: Int): Action[AnyContent] = Action.async(
+    forms.deleteForm(form).map(res => if (res > 0) Ok else NotFound)
+  ).requiresAuthentication
+
 }
