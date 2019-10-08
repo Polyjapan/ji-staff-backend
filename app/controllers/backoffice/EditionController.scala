@@ -6,7 +6,7 @@ import play.api.libs.json.Json
 import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
 
 import scala.concurrent.{ExecutionContext, Future}
-import data.AuthenticationPostfix._
+import utils.AuthenticationPostfix._
 import play.api.Configuration
 
 /**

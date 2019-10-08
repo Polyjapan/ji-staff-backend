@@ -1,10 +1,12 @@
 
 import java.sql.{Date, Timestamp}
 
+import data.Applications.ApplicationComment
 import slick.jdbc.MySQLProfile.api._
 import data.{Forms, _}
 import slick.ast.BaseTypedType
 import slick.jdbc.{JdbcType, MySQLProfile}
+import utils.EnumUtils
 
 /**
  * @author Louis Vialar
@@ -176,7 +178,7 @@ package object models {
 
   val applicationsContents = TableQuery[ApplicationsContents]
 
-  private[models] class ApplicationsComments(tag: Tag) extends Table[(Option[Int], Int, Int, String, Timestamp, Boolean)](tag, "applications_comments") {
+  private[models] class ApplicationsComments(tag: Tag) extends Table[ApplicationComment](tag, "applications_comments") {
     def commentId = column[Int]("application_comment_id", O.PrimaryKey, O.AutoInc)
 
     def applicationId = column[Int]("application_id")
@@ -189,7 +191,7 @@ package object models {
 
     def userVisible = column[Boolean]("user_visible")
 
-    def * = (commentId.?, applicationId, userId, value, timestamp, userVisible).shaped
+    def * = (commentId.?, applicationId, userId, value, timestamp, userVisible).shaped <> (ApplicationComment.tupled, ApplicationComment.unapply)
   }
 
   val applicationsComments = TableQuery[ApplicationsComments]

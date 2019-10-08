@@ -62,3 +62,12 @@ PUT           /back/forms/:form/pages/:page/fields/:field/:key        controller
 DELETE        /back/forms/:form/pages/:page/fields/:field/:key        controllers.backoffice.FormsController.removeAdditional(form: Int, page: Int, field: Int, key: String)
 
 GET           /back/forms/:id/pages/:page                             controllers.backoffice.FormsController.getPageById(id: Int, page: Int)
+
+GET           /back/forms/:id/applications                            controllers.backoffice.ApplicationsController.listApplications(id: Int, state: Option[String])
+GET           /back/applications/content/:id                          controllers.backoffice.ApplicationsController.getApplication(id:Int)
+GET           /back/applications/comments/:id                         controllers.backoffice.ApplicationsController.getComments(id:Int)
++nocsrf
+POST          /back/applications/comments/:id                         controllers.backoffice.ApplicationsController.addComment(id:Int)
+
++nocsrf
+PUT           /back/applications/state/:id                            controllers.backoffice.ApplicationsController.setState(id:Int)

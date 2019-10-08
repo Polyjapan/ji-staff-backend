@@ -17,7 +17,7 @@ class StaffsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
 
   def addStaff(event: Int, user: Int): Future[Int] = {
     db.run(
-      staffs.filter(staff => staff.eventId === event && staff.userId === user).result.headOption.flatMap {
+      staffs.filter(staff => staff.eventId === event && staff.userId === user).result.headOption.flatMap[Int, NoStream, Effect.All] {
         case None =>
           staffs.filter(_.eventId === event).map(_.staffNumber).max.result
             .map((num: Option[Int]) => (event, num.getOrElse(0) + 1, user))

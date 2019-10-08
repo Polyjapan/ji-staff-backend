@@ -1,5 +1,6 @@
-package data
+package utils
 
+import data.UserSession
 import play.api.Configuration
 import play.api.mvc._
 import pdi.jwt.JwtSession._
@@ -7,20 +8,20 @@ import pdi.jwt.JwtSession._
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
-  * Utility class to remove some boilerplate regarding authentication on the endpoints
+ * Utility class to remove some boilerplate regarding authentication on the endpoints
  *
-  * @author Louis Vialar
-  */
+ * @author Louis Vialar
+ */
 object AuthenticationPostfix {
 
   /**
-    * Defines a handler of authentication.
-    * It takes a potential user and returns a boolean: true if the user is authorized, false if not. It can also
-    * provide a result that will be returned in case the user is not authorized.
-    */
+   * Defines a handler of authentication.
+   * It takes a potential user and returns a boolean: true if the user is authorized, false if not. It can also
+   * provide a result that will be returned in case the user is not authorized.
+   */
   abstract class AuthorizationHandler extends Function[Option[UserSession], Boolean] {
     def andAlso(other: AuthorizationHandler): AuthorizationHandler = (user: Option[UserSession]) => {
-      val self = this(user)
+      val self = this (user)
       if (self) other(user) // This handler authorized the user, check that the next authorizes it too
       else self // This handler refused the user, return its result
     }
@@ -39,7 +40,7 @@ object AuthenticationPostfix {
 
       import play.api.mvc.Results._
 
-      if (result) action(request)  // call the parent action, knowing we are authenticated
+      if (result) action(request) // call the parent action, knowing we are authenticated
       else Future.successful(Unauthorized) // return an error
     }
 
@@ -52,7 +53,7 @@ object AuthenticationPostfix {
     def requiresAuthentication(implicit conf: Configuration): Action[T] = AuthenticationAction(action, AuthorizationHandler.ensuringAuthentication)
 
     def requiresGroup(group: String)(implicit conf: Configuration): Action[T] = AuthenticationAction(action, AuthorizationHandler.ensuringGroup(group))
- }
+  }
 
   implicit class UserRequestHeader(request: RequestHeader)(implicit conf: Configuration) {
     private def session = Some(request.jwtSession).filter(_.claim.isValid)

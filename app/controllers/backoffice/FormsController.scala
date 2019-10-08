@@ -1,6 +1,6 @@
 package controllers.backoffice
 
-import data.AuthenticationPostfix._
+import utils.AuthenticationPostfix._
 import data.Forms
 import data.Forms.{Form, FormPage}
 import javax.inject.{Inject, Singleton}

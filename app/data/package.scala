@@ -1,6 +1,7 @@
 import java.sql.{Date, Timestamp}
 
-import play.api.libs.json.{Format, JsError, JsNumber, JsResult, JsString, JsSuccess, JsValue, Json, Writes}
+import play.api.libs.json._
+import utils.EnumUtils
 
 /**
  * @author Louis Vialar
@@ -84,6 +85,9 @@ package object data {
 
     implicit val applicationStateFormat: Format[ApplicationState.Value] = EnumUtils.format(ApplicationState)
 
+    case class ApplicationComment(commentId: Option[Int], applicationId: Int, userId: Int, value: String, timestamp: Timestamp, userVisible: Boolean)
+
+    implicit val applicationCommentFormat: Format[ApplicationComment] = Json.format[ApplicationComment]
 
   }
 

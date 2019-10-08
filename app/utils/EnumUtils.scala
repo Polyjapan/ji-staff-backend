@@ -1,18 +1,18 @@
-import data.Forms.FieldType
-import data.Forms.FieldType.values
-import play.api.libs.json.{Format, JsError, JsResult, JsString, JsSuccess, JsValue}
+package utils
+
+import play.api.libs.json._
 import slick.relational.RelationalProfile
 
 /**
  * @author Louis Vialar
  */
 object EnumUtils {
-  private def snakeNames[T <: Enumeration](T: T): Map[String, T.Value] =
+  def snakeNames[T <: Enumeration](T: T): Map[String, T.Value] =
     T.values
       .map(v => (toSnakeName(v), v))
       .toMap
 
-  private def toSnakeName(v: Any): String =
+  def toSnakeName(v: Any): String =
     v.toString.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase
 
 
