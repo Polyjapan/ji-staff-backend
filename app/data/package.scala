@@ -8,7 +8,7 @@ import utils.EnumUtils
  */
 package object data {
 
-  case class User(userId: Int, email: String, firstName: String, lastName: String, birthDate: Date, phone: String, address: String)
+  case class User(userId: Int, birthDate: Date)
 
   case class Event(eventId: Option[Int], eventBegin: Date, name: String, mainForm: Option[Int], isActive: Boolean)
 

@@ -26,19 +26,9 @@ package object models {
   private[models] class Users(tag: Tag) extends Table[User](tag, "users") {
     def userId = column[Int]("user_id", O.PrimaryKey)
 
-    def email = column[String]("email")
-
-    def firstName = column[String]("first_name")
-
-    def lastName = column[String]("last_name")
-
     def birthDate = column[Date]("birth_date")
 
-    def phone = column[String]("phone")
-
-    def address = column[String]("address")
-
-    def * = (userId, email, firstName, lastName, birthDate, phone, address).shaped <> (User.tupled, User.unapply)
+    def * = (userId, birthDate).shaped <> (User.tupled, User.unapply)
   }
 
   val users = TableQuery[Users]
