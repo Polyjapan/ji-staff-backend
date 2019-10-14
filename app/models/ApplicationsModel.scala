@@ -150,19 +150,16 @@ class ApplicationsModel @Inject()(protected val dbConfigProvider: DatabaseConfig
         .join(pages).on(_._1.formId === _.formId)
         .join(fields).on(_._2.formPageId === _.pageId)
         .joinLeft(applicationsContents).on((l, r) => l._2.fieldId === r.fieldId && r.applicationId === application)
-        .joinLeft(fieldsAdditional).on((l, r) => l._2.map(_.fieldId).getOrElse(-1) === r.fieldId && l._2.map(_.value).getOrElse("") === r.key)
         .map {
-          case (((((app, user), page), field), content), additional) => ((user, app.state), (page, (field, additional.map(_.value), content.map(_.value))))
+          case ((((app, user), page), field), content) => ((user, app.state), (page, (field, content.map(_.value))))
         }
         .result
     ).map(_
-      .groupBy(_._1)
+      .groupBy(_._1) // group by (user, state) pair
       .mapValues(_
         .map(_._2)
-        .groupBy(_._1)
-        .mapValues(_
-          .map { case (_, (field, additional, value)) => (field, additional.orElse(value)) }
-        )
+        .groupBy(_._1) // group by page
+        .mapValues(_.map(_._2)) // keep field-value pairs
       )
     )
   }

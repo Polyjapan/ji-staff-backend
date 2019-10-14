@@ -43,7 +43,7 @@ class FormsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
   def getPages(form: Int): Future[Seq[Forms.FormPage]] =
     db.run(pages.filter(_.formId === form).result).map(_.sorted)
 
-  def getPage(form: Int, page: Int): Future[Option[(Forms.FormPage, List[(Field, Map[String, String])])]] = {
+  def getPage(form: Int, page: Int): Future[Option[(Forms.FormPage, List[(Field, List[String])])]] = {
     getPages(form).flatMap(pages => {
       if (pages.length >= page && page > 0) {
         val pg = pages(page - 1)
@@ -53,16 +53,16 @@ class FormsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
     })
   }
 
-  private def getPageContent(formPage: Forms.FormPage): Future[List[(Field, Map[String, String])]] = {
+  private def getPageContent(formPage: Forms.FormPage): Future[List[(Field, List[String])]] = {
     db.run(
       fields.filter(_.pageId === formPage.pageId)
         .joinLeft(fieldsAdditional).on(_.fieldId === _.fieldId)
         .result
     )
-      .map(list => list.groupBy(_._1).mapValues(_.flatMap(_._2).toMap).toList)
+      .map(list => list.groupBy(_._1).mapValues(_.flatMap(_._2).toList.sortBy(_._1).map(_._2)).toList)
   }
 
-  def getPageById(form: Int, pageId: Int): Future[Option[(Forms.FormPage, List[(Field, Map[String, String])])]] = {
+  def getPageById(form: Int, pageId: Int): Future[Option[(Forms.FormPage, List[(Field, List[String])])]] = {
     db.run(pages.filter(pg => pg.formId === form && pg.formPageId === pageId).result.headOption)
       .flatMap {
         case Some(pg) => getPageContent(pg).map(content => Some((pg, content)))
@@ -70,12 +70,12 @@ class FormsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
       }
   }
 
-  def encodePage(pg: Option[(Forms.FormPage, List[(Field, Map[String, String])])]) = {
+  def encodePage(pg: Option[(Forms.FormPage, List[(Field, List[String])])]) = {
     pg.map {
       case (page, fields) => Json.obj(
         "page" -> page,
         "fields" -> fields.sortBy(_._1).map {
-          case (field, map) => Json.obj("field" -> field, "additional" -> map)
+          case (field, list) => Json.obj("field" -> field, "additional" -> list)
         }
       )
     }
@@ -111,7 +111,7 @@ class FormsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
           })
         }
         .flatMap[Option[Int], NoStream, Effect.All] { case (ids, fieldsMap) =>
-          val base = fieldsAdditional.map(fa => (fa.fieldId, fa.key, fa.value))
+          val base = fieldsAdditional.map(fa => (fa.fieldId, fa.ordering, fa.value))
 
           base.filter(_._1.inSet(ids)).result.flatMap(faList => {
             base ++= faList.map(tr => (fieldsMap(tr._1), tr._2, tr._3))
@@ -146,13 +146,13 @@ class FormsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
   def deleteForm(form: Int): Future[Int] =
     db.run(forms.filter(f => f.formId === form).delete)
 
-  def setAdditional(field: Int, key: String, value: String): Future[Int] = {
-    db.run(fieldsAdditional.map(fa => (fa.fieldId, fa.key, fa.value))
-      .insertOrUpdate((field, key, value)))
+  def setAdditional(field: Int, value: String, ordering: Int): Future[Int] = {
+    db.run(fieldsAdditional.map(fa => (fa.fieldId, fa.ordering, fa.value))
+      .insertOrUpdate((field, ordering, value)))
   }
 
-  def deleteAdditional(field: Int, key: String): Future[Int] = {
-    db.run(fieldsAdditional.filter(fa => fa.fieldId === field && fa.key === key).delete)
+  def deleteAdditional(field: Int, value: String): Future[Int] = {
+    db.run(fieldsAdditional.filter(fa => fa.fieldId === field && fa.value === value).delete)
   }
 
 }

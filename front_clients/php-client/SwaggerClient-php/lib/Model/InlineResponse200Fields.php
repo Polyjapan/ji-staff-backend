@@ -58,7 +58,7 @@ class InlineResponse200Fields implements ModelInterface, ArrayAccess
       */
     protected static $swaggerTypes = [
         'field' => '\Swagger\Client\Model\FormField',
-        'additional' => 'map[string,string]'
+        'additional' => 'string[]'
     ];
 
     /**
@@ -237,7 +237,7 @@ class InlineResponse200Fields implements ModelInterface, ArrayAccess
     /**
      * Gets additional
      *
-     * @return map[string,string]
+     * @return string[]
      */
     public function getAdditional()
     {
@@ -247,7 +247,7 @@ class InlineResponse200Fields implements ModelInterface, ArrayAccess
     /**
      * Sets additional
      *
-     * @param map[string,string] $additional additional
+     * @param string[] $additional additional
      *
      * @return $this
      */

@@ -368,7 +368,7 @@ class FormField implements ModelInterface, ArrayAccess
     /**
      * Sets placeholder
      *
-     * @param string $placeholder (optional) a label, that could be used either as a label or as a placeholder on fields supporting it
+     * @param string $placeholder a label, that could be used either as a label or as a placeholder on fields supporting it
      *
      * @return $this
      */
@@ -392,7 +392,7 @@ class FormField implements ModelInterface, ArrayAccess
     /**
      * Sets help_text
      *
-     * @param string $help_text the text that could be displayed under the field
+     * @param string $help_text (optional) the text that could be displayed under the field
      *
      * @return $this
      */

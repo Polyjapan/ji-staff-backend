@@ -4,7 +4,7 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **field** | [**\Swagger\Client\Model\FormField**](FormField.md) |  | [optional] 
-**additional** | **map[string,string]** |  | [optional] 
+**additional** | **string[]** |  | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

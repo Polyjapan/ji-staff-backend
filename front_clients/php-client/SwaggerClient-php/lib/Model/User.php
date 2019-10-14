@@ -58,11 +58,6 @@ class User implements ModelInterface, ArrayAccess
       */
     protected static $swaggerTypes = [
         'user_id' => 'int',
-        'first_name' => 'string',
-        'last_name' => 'string',
-        'email' => 'string',
-        'phone' => 'string',
-        'address' => 'string',
         'birth_date' => '\DateTime'
     ];
 
@@ -73,11 +68,6 @@ class User implements ModelInterface, ArrayAccess
       */
     protected static $swaggerFormats = [
         'user_id' => 'int32',
-        'first_name' => null,
-        'last_name' => null,
-        'email' => null,
-        'phone' => null,
-        'address' => null,
         'birth_date' => 'date'
     ];
 
@@ -109,11 +99,6 @@ class User implements ModelInterface, ArrayAccess
      */
     protected static $attributeMap = [
         'user_id' => 'userId',
-        'first_name' => 'firstName',
-        'last_name' => 'lastName',
-        'email' => 'email',
-        'phone' => 'phone',
-        'address' => 'address',
         'birth_date' => 'birthDate'
     ];
 
@@ -124,11 +109,6 @@ class User implements ModelInterface, ArrayAccess
      */
     protected static $setters = [
         'user_id' => 'setUserId',
-        'first_name' => 'setFirstName',
-        'last_name' => 'setLastName',
-        'email' => 'setEmail',
-        'phone' => 'setPhone',
-        'address' => 'setAddress',
         'birth_date' => 'setBirthDate'
     ];
 
@@ -139,11 +119,6 @@ class User implements ModelInterface, ArrayAccess
      */
     protected static $getters = [
         'user_id' => 'getUserId',
-        'first_name' => 'getFirstName',
-        'last_name' => 'getLastName',
-        'email' => 'getEmail',
-        'phone' => 'getPhone',
-        'address' => 'getAddress',
         'birth_date' => 'getBirthDate'
     ];
 
@@ -208,11 +183,6 @@ class User implements ModelInterface, ArrayAccess
     public function __construct(array $data = null)
     {
         $this->container['user_id'] = isset($data['user_id']) ? $data['user_id'] : null;
-        $this->container['first_name'] = isset($data['first_name']) ? $data['first_name'] : null;
-        $this->container['last_name'] = isset($data['last_name']) ? $data['last_name'] : null;
-        $this->container['email'] = isset($data['email']) ? $data['email'] : null;
-        $this->container['phone'] = isset($data['phone']) ? $data['phone'] : null;
-        $this->container['address'] = isset($data['address']) ? $data['address'] : null;
         $this->container['birth_date'] = isset($data['birth_date']) ? $data['birth_date'] : null;
     }
 
@@ -260,126 +230,6 @@ class User implements ModelInterface, ArrayAccess
     public function setUserId($user_id)
     {
         $this->container['user_id'] = $user_id;
-
-        return $this;
-    }
-
-    /**
-     * Gets first_name
-     *
-     * @return string
-     */
-    public function getFirstName()
-    {
-        return $this->container['first_name'];
-    }
-
-    /**
-     * Sets first_name
-     *
-     * @param string $first_name first_name
-     *
-     * @return $this
-     */
-    public function setFirstName($first_name)
-    {
-        $this->container['first_name'] = $first_name;
-
-        return $this;
-    }
-
-    /**
-     * Gets last_name
-     *
-     * @return string
-     */
-    public function getLastName()
-    {
-        return $this->container['last_name'];
-    }
-
-    /**
-     * Sets last_name
-     *
-     * @param string $last_name last_name
-     *
-     * @return $this
-     */
-    public function setLastName($last_name)
-    {
-        $this->container['last_name'] = $last_name;
-
-        return $this;
-    }
-
-    /**
-     * Gets email
-     *
-     * @return string
-     */
-    public function getEmail()
-    {
-        return $this->container['email'];
-    }
-
-    /**
-     * Sets email
-     *
-     * @param string $email email
-     *
-     * @return $this
-     */
-    public function setEmail($email)
-    {
-        $this->container['email'] = $email;
-
-        return $this;
-    }
-
-    /**
-     * Gets phone
-     *
-     * @return string
-     */
-    public function getPhone()
-    {
-        return $this->container['phone'];
-    }
-
-    /**
-     * Sets phone
-     *
-     * @param string $phone phone
-     *
-     * @return $this
-     */
-    public function setPhone($phone)
-    {
-        $this->container['phone'] = $phone;
-
-        return $this;
-    }
-
-    /**
-     * Gets address
-     *
-     * @return string
-     */
-    public function getAddress()
-    {
-        return $this->container['address'];
-    }
-
-    /**
-     * Sets address
-     *
-     * @param string $address address
-     *
-     * @return $this
-     */
-    public function setAddress($address)
-    {
-        $this->container['address'] = $address;
 
         return $this;
     }

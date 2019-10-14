@@ -73,16 +73,16 @@ package object models {
 
   val fields = TableQuery[Fields]
 
-  private[models] class FieldsAdditional(tag: Tag) extends Table[(String, String)](tag, "fields_additional") {
+  private[models] class FieldsAdditional(tag: Tag) extends Table[(Int, String)](tag, "fields_additional") {
     def fieldId = column[Int]("field_id")
 
-    def key = column[String]("key")
+    def ordering = column[Int]("ordering")
 
     def value = column[String]("value")
 
-    def pkey = primaryKey("primaryKey", (fieldId, key))
+    def pkey = primaryKey("primaryKey", (fieldId, value))
 
-    def * = (key, value).shaped
+    def * = (ordering, value).shaped
   }
 
   val fieldsAdditional = TableQuery[FieldsAdditional]

@@ -47,12 +47,12 @@ class FormsController @Inject()(cc: ControllerComponents, forms: FormsModel)(imp
     forms.deleteField(form, page, field).map(res => if (res > 0) Ok else NotFound)
   ).requiresAuthentication
 
-  def setAdditional(form: Int, page: Int, field: Int, key: String): Action[String] = Action.async(parse.text(100))(rq =>
-    forms.setAdditional(field, key, rq.body).map(res => Ok)
+  def setAdditional(form: Int, page: Int, field: Int): Action[(String, Int)] = Action.async(parse.json[(String, Int)])(rq =>
+    forms.setAdditional(field, if (rq.body._1.length > 100) rq.body._1.substring(0, 100) else rq.body._1, rq.body._2).map(res => Ok)
   ).requiresAuthentication
 
-  def removeAdditional(form: Int, page: Int, field: Int, key: String): Action[AnyContent] = Action.async(rq =>
-    forms.deleteAdditional(field, key).map(res => Ok)
+  def removeAdditional(form: Int, page: Int, field: Int): Action[String] = Action.async(parse.text(100))(rq =>
+    forms.deleteAdditional(field, rq.body).map(res => Ok)
   ).requiresAuthentication
 
   def getPageById(form: Int, page: Int): Action[AnyContent] = Action async forms.getPageById(form, page).map(forms.encodePage).map {

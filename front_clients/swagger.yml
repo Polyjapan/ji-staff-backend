@@ -6,41 +6,41 @@ info:
 host: "staff.japan-impact.ch"
 basePath: "/api/v2/front"
 tags:
-- name: "forms"
-  description: "Operations about forms"
-- name: "applications"
-  description: "Operations about applications"
-- name: "events"
-  description: "Operations about events"
-- name: "user"
-  description: "Operations about user"
+  - name: "forms"
+    description: "Operations about forms"
+  - name: "applications"
+    description: "Operations about applications"
+  - name: "events"
+    description: "Operations about events"
+  - name: "user"
+    description: "Operations about user"
 schemes:
-- "https"
+  - "https"
 paths:
   /user_profile/{userId}:
     put:
       tags:
-      - "user"
+        - "user"
       summary: "Creates or updates a user profile"
       description: ""
       operationId: "updateUser"
       consumes:
-      - "application/json"
+        - "application/json"
       produces:
-      - "application/json"
+        - "application/json"
       parameters:
-      - name: "userId"
-        in: "path"
-        description: "ID of user to update"
-        required: true
-        type: "integer"
-        format: "int32"
-      - in: "body"
-        name: "body"
-        description: "The user to update or create"
-        required: true
-        schema:
-          $ref: "#/definitions/User"
+        - name: "userId"
+          in: "path"
+          description: "ID of user to update"
+          required: true
+          type: "integer"
+          format: "int32"
+        - in: "body"
+          name: "body"
+          description: "The user to update or create"
+          required: true
+          schema:
+            $ref: "#/definitions/User"
       responses:
         400:
           description: "Invalid input (fields missing or incorrect)"
@@ -49,23 +49,23 @@ paths:
         200:
           description: "successful operation"
       security:
-      - api_key: []
+        - api_key: []
     get:
       tags:
-      - "user"
+        - "user"
       summary: "Returns a user profile"
       description: ""
       operationId: "getUser"
       consumes: []
       produces:
-      - "application/json"
+        - "application/json"
       parameters:
-      - name: "userId"
-        in: "path"
-        description: "ID of user to return"
-        required: true
-        type: "integer"
-        format: "int32"
+        - name: "userId"
+          in: "path"
+          description: "ID of user to return"
+          required: true
+          type: "integer"
+          format: "int32"
       responses:
         400:
           description: "Invalid ID supplied"
@@ -76,16 +76,16 @@ paths:
           schema:
             $ref: "#/definitions/User"
       security:
-      - api_key: []
+        - api_key: []
   /edition:
     get:
       tags:
-      - "events"
+        - "events"
       summary: "Returns the current active event"
       description: "Returns a single event"
       operationId: "getCurrentEdition"
       produces:
-      - "application/json"
+        - "application/json"
       responses:
         200:
           description: "successful operation"
@@ -96,12 +96,12 @@ paths:
   /forms:
     get:
       tags:
-      - "forms"
+        - "forms"
       summary: "Returns all the forms of the currently active events"
       description: "Returns an array of forms, of which some may be closed"
       operationId: "getCurrentForms"
       produces:
-      - "application/json"
+        - "application/json"
       responses:
         200:
           description: "successful operation"
@@ -112,12 +112,12 @@ paths:
   /forms/main_form:
     get:
       tags:
-      - "forms"
+        - "forms"
       summary: "Returns the main form of the current edition"
       description: ""
       operationId: "getCurrentMainForm"
       produces:
-      - "application/json"
+        - "application/json"
       responses:
         200:
           description: "successful operation"
@@ -128,19 +128,19 @@ paths:
   /forms/{id}:
     get:
       tags:
-      - "forms"
+        - "forms"
       summary: "Returns the requested form, regardless of whether the edition is active or not"
       description: ""
       operationId: "getFormById"
       parameters:
-      - name: "id"
-        in: "path"
-        description: "ID of form to return"
-        required: true
-        type: "integer"
-        format: "int32"
+        - name: "id"
+          in: "path"
+          description: "ID of form to return"
+          required: true
+          type: "integer"
+          format: "int32"
       produces:
-      - "application/json"
+        - "application/json"
       responses:
         200:
           description: "successful operation"
@@ -151,19 +151,19 @@ paths:
   /forms/{id}/pages:
     get:
       tags:
-      - "forms"
+        - "forms"
       summary: "Returns the list of pages of a given form"
       description: ""
       operationId: "getFormPagesById"
       parameters:
-      - name: "id"
-        in: "path"
-        description: "ID of form to look for"
-        required: true
-        type: "integer"
-        format: "int32"
+        - name: "id"
+          in: "path"
+          description: "ID of form to look for"
+          required: true
+          type: "integer"
+          format: "int32"
       produces:
-      - "application/json"
+        - "application/json"
       responses:
         200:
           description: "successful operation"
@@ -176,32 +176,32 @@ paths:
   /forms/{id}/pages/{pageNum}:
     get:
       tags:
-      - "forms"
+        - "forms"
       summary: "Returns a specific page in the form"
       description: ""
       operationId: "getFormPageByIdAndPosition"
       parameters:
-      - name: "id"
-        in: "path"
-        description: "ID of form to look for"
-        required: true
-        type: "integer"
-        format: "int32"
-      - name: "pageNum"
-        in: "path"
-        description: "the position of the page, starting at 1 and ending at the total number of pages"
-        required: true
-        type: "integer"
-        format: "int32"
+        - name: "id"
+          in: "path"
+          description: "ID of form to look for"
+          required: true
+          type: "integer"
+          format: "int32"
+        - name: "pageNum"
+          in: "path"
+          description: "the position of the page, starting at 1 and ending at the total number of pages"
+          required: true
+          type: "integer"
+          format: "int32"
       produces:
-      - "application/json"
+        - "application/json"
       responses:
         200:
           description: "successful operation"
           schema:
             type: "object"
             properties:
-              page:            
+              page:
                 $ref: "#/definitions/FormPage"
               fields:
                 type: "array"
@@ -211,41 +211,41 @@ paths:
                     field:
                       $ref: "#/definitions/FormField"
                     additional:
-                      type: object
-                      additionalProperties:
+                      type: "array"
+                      items:
                         type: string
         404:
           description: "no form exists with this id, or this page number exceeds the maximal"
   /applications/{formId}/state/{userId}:
     put:
       tags:
-      - "applications"
+        - "applications"
       summary: "Updates the state of an application"
       description: "If the application doesn't exist and the given state is `draft`, it will be created."
       operationId: "updateApplicationState"
       consumes:
-      - "application/json"
+        - "application/json"
       produces:
-      - "application/json"
+        - "application/json"
       parameters:
-      - name: "formId"
-        in: "path"
-        description: "ID of the form the user is applying on"
-        required: true
-        type: "integer"
-        format: "int32"
-      - name: "userId"
-        in: "path"
-        description: "ID of the user who is applying"
-        required: true
-        type: "integer"
-        format: "int32"
-      - in: "body"
-        name: "body"
-        description: "The new state of the application"
-        required: true
-        schema:
-          $ref: "#/definitions/ApplicationState"
+        - name: "formId"
+          in: "path"
+          description: "ID of the form the user is applying on"
+          required: true
+          type: "integer"
+          format: "int32"
+        - name: "userId"
+          in: "path"
+          description: "ID of the user who is applying"
+          required: true
+          type: "integer"
+          format: "int32"
+        - in: "body"
+          name: "body"
+          description: "The new state of the application"
+          required: true
+          schema:
+            $ref: "#/definitions/ApplicationState"
       responses:
         404:
           description: "The user doesn't exist"
@@ -254,29 +254,29 @@ paths:
         200:
           description: "successful operation"
       security:
-      - api_key: []
+        - api_key: []
     get:
       tags:
-      - "applications"
+        - "applications"
       summary: "Returns the state of an application"
       description: ""
       operationId: "getApplicationState"
       consumes: []
       produces:
-      - "application/json"
+        - "application/json"
       parameters:
-      - name: "formId"
-        in: "path"
-        description: "ID of the form the user is applying on"
-        required: true
-        type: "integer"
-        format: "int32"
-      - name: "userId"
-        in: "path"
-        description: "ID of the user who is applying"
-        required: true
-        type: "integer"
-        format: "int32"
+        - name: "formId"
+          in: "path"
+          description: "ID of the form the user is applying on"
+          required: true
+          type: "integer"
+          format: "int32"
+        - name: "userId"
+          in: "path"
+          description: "ID of the user who is applying"
+          required: true
+          type: "integer"
+          format: "int32"
       responses:
         404:
           description: "There is no application for this user on this form"
@@ -285,39 +285,39 @@ paths:
           schema:
             $ref: "#/definitions/ApplicationState"
       security:
-      - api_key: []
+        - api_key: []
   /applications/{formId}/replies/{userId}:
     post:
       tags:
-      - "applications"
+        - "applications"
       summary: "Sends some replies to add to the application."
       description: "Not all replies have to be sent at once, you can send them one by one.<br>If a reply for a given field has already been sent, it will be updated.<br>If no application exist for this form and user, it will be created.<br>Replies are expected to have been checked before being sent."
       operationId: "updateApplicationReplies"
       consumes:
-      - "application/json"
+        - "application/json"
       produces:
-      - "application/json"
+        - "application/json"
       parameters:
-      - name: "formId"
-        in: "path"
-        description: "ID of the form the user is applying on"
-        required: true
-        type: "integer"
-        format: "int32"
-      - name: "userId"
-        in: "path"
-        description: "ID of the user who is applying"
-        required: true
-        type: "integer"
-        format: "int32"
-      - in: "body"
-        name: "body"
-        description: "The fields to add or update in the application"
-        required: true
-        schema:
-          type: "array"
-          items:
-            $ref: "#/definitions/ApplicationReply"
+        - name: "formId"
+          in: "path"
+          description: "ID of the form the user is applying on"
+          required: true
+          type: "integer"
+          format: "int32"
+        - name: "userId"
+          in: "path"
+          description: "ID of the user who is applying"
+          required: true
+          type: "integer"
+          format: "int32"
+        - in: "body"
+          name: "body"
+          description: "The fields to add or update in the application"
+          required: true
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/ApplicationReply"
       responses:
         400:
           description: "One or multiple fields ids in the request are non existent or don't belong to the requested form"
@@ -326,29 +326,29 @@ paths:
         200:
           description: "successful operation"
       security:
-      - api_key: []
+        - api_key: []
     get:
       tags:
-      - "applications"
+        - "applications"
       summary: "Returns the current content of an application"
       description: ""
       operationId: "getApplicationReplies"
       consumes: []
       produces:
-      - "application/json"
+        - "application/json"
       parameters:
-      - name: "formId"
-        in: "path"
-        description: "ID of the form the user is applying on"
-        required: true
-        type: "integer"
-        format: "int32"
-      - name: "userId"
-        in: "path"
-        description: "ID of the user who is applying"
-        required: true
-        type: "integer"
-        format: "int32"
+        - name: "formId"
+          in: "path"
+          description: "ID of the form the user is applying on"
+          required: true
+          type: "integer"
+          format: "int32"
+        - name: "userId"
+          in: "path"
+          description: "ID of the user who is applying"
+          required: true
+          type: "integer"
+          format: "int32"
       responses:
         200:
           description: "successful operation"
@@ -357,30 +357,30 @@ paths:
             items:
               $ref: "#/definitions/ApplicationReply"
       security:
-      - api_key: []
+        - api_key: []
   /applications/{formId}/comments/{userId}:
     get:
       tags:
-      - "applications"
+        - "applications"
       summary: "Returns all the public comments made on this application"
       description: "These comments are usefull for the user and should be displayed to it. They allow the admins to provide a reason when an application is refused, of when changes are requested for example."
       operationId: "getApplicationComments"
       consumes: []
       produces:
-      - "application/json"
+        - "application/json"
       parameters:
-      - name: "formId"
-        in: "path"
-        description: "ID of the form the user is applying on"
-        required: true
-        type: "integer"
-        format: "int32"
-      - name: "userId"
-        in: "path"
-        description: "ID of the user who is applying"
-        required: true
-        type: "integer"
-        format: "int32"
+        - name: "formId"
+          in: "path"
+          description: "ID of the form the user is applying on"
+          required: true
+          type: "integer"
+          format: "int32"
+        - name: "userId"
+          in: "path"
+          description: "ID of the user who is applying"
+          required: true
+          type: "integer"
+          format: "int32"
       responses:
         200:
           description: "successful operation"
@@ -395,7 +395,7 @@ paths:
                 comment:
                   type: "string"
       security:
-      - api_key: []
+        - api_key: []
 securityDefinitions:
   api_key:
     type: "apiKey"
@@ -434,13 +434,13 @@ definitions:
       requiresStaff:
         type: "boolean"
         description: "if true, this form can only be seen by people who have been accepted as staff"
-      hidden: 
+      hidden:
         type: "boolean"
         description: "if true, this form cannot be seen by users. users who already replied MAY me able to still see it, but MAY NOT update their answers"
       closeDate:
         type: "integer"
         format: "int64"
-        description: "the Timestamp in milliseconds at which this form MUST stop accepting new answers (can be null if unlimited)"   
+        description: "the Timestamp in milliseconds at which this form MUST stop accepting new answers (can be null if unlimited)"
   FormField:
     type: "object"
     properties:
@@ -471,7 +471,7 @@ definitions:
           - file
           - image
           - url
-      required: 
+      required:
         type: "boolean"
         description: "if true, the user has to provide a reply to be able to send the form"
       ordering:
@@ -539,16 +539,6 @@ definitions:
       userId:
         type: "integer"
         format: "int32"
-      firstName:
-        type: "string"
-      lastName:
-        type: "string"
-      email:
-        type: "string"
-      phone:
-        type: "string"
-      address:
-        type: "string"
       birthDate:
         type: "string"
         format: "date"

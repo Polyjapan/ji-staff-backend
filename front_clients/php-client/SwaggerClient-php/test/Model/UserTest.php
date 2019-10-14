@@ -84,41 +84,6 @@ class UserTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test attribute "first_name"
-     */
-    public function testPropertyFirstName()
-    {
-    }
-
-    /**
-     * Test attribute "last_name"
-     */
-    public function testPropertyLastName()
-    {
-    }
-
-    /**
-     * Test attribute "email"
-     */
-    public function testPropertyEmail()
-    {
-    }
-
-    /**
-     * Test attribute "phone"
-     */
-    public function testPropertyPhone()
-    {
-    }
-
-    /**
-     * Test attribute "address"
-     */
-    public function testPropertyAddress()
-    {
-    }
-
-    /**
      * Test attribute "birth_date"
      */
     public function testPropertyBirthDate()
