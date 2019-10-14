@@ -6,11 +6,12 @@ import ch.japanimpact.auth.api.{AuthApi, UserProfile}
 import data.Applications._
 import data._
 import javax.inject.{Inject, Singleton}
-import models.ApplicationsModel
+import models.{ApplicationsModel, StaffsModel}
 import models.ApplicationsModel.UpdateStateResult._
 import play.api.Configuration
 import play.api.libs.json.{Json, OFormat}
 import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
+import services.MailingService
 import utils.AuthenticationPostfix._
 import utils.EnumUtils
 
@@ -20,7 +21,7 @@ import scala.concurrent.{ExecutionContext, Future}
  * @author Louis Vialar
  */
 @Singleton
-class ApplicationsController @Inject()(cc: ControllerComponents)(implicit conf: Configuration, ec: ExecutionContext, applications: ApplicationsModel, api: AuthApi) extends AbstractController(cc) {
+class ApplicationsController @Inject()(cc: ControllerComponents, mail: MailingService, staffs: StaffsModel)(implicit conf: Configuration, ec: ExecutionContext, applications: ApplicationsModel, api: AuthApi) extends AbstractController(cc) {
 
   case class FilledPageField(field: data.Forms.Field, value: Option[String])
 
@@ -51,7 +52,7 @@ class ApplicationsController @Inject()(cc: ControllerComponents)(implicit conf: 
   def listApplications(form: Int, state: Option[String]): Action[AnyContent] = Action.async({
     applications.getApplications(form, state.map(v => EnumUtils.snakeNames(ApplicationState)(v)))
       .flatMap(applications => {
-        api.getUserProfiles(applications.map(_._3.userId).toSet).map(map => (applications, map.left.get))
+        api.getUserProfiles(applications.map(_._3.userId).toSet).map(map => (applications, map.left.getOrElse(Map())))
       })
 
       .map {
@@ -67,7 +68,7 @@ class ApplicationsController @Inject()(cc: ControllerComponents)(implicit conf: 
     applications.getApplication(application)
       .map(res => res.headOption)
       .flatMap {
-        case Some(((user, state), content))=>
+        case Some(((user, state), content)) =>
           api.getUserProfile(user.userId).map(profile => {
             ApplicationResult(UserData(profile.left.get, user.birthDate), state, content.map {
               case (page, fields) => FilledPage(page, fields.map(FilledPageField.tupled))
@@ -78,19 +79,45 @@ class ApplicationsController @Inject()(cc: ControllerComponents)(implicit conf: 
       }
   }).requiresAuthentication
 
-  def setState(applicationId: Int): Action[ApplicationState.Value] = Action.async(parse.json[ApplicationState.Value])({ v =>
-    applications.updateStateByID(applicationId, v.body, privileged = true).map {
-      case Success => Ok
-      case NoSuchUser => NotFound
-      case IllegalStateTransition => Forbidden
+  private def sendStateMail(applicationId: Int, targetState: ApplicationState.Value) = {
+    applications.getApplicationMeta(applicationId).map {
+      case (User(id, _), form, event) =>
+        val mainForm = event.mainForm.contains(form.formId.get)
+        targetState match {
+          case ApplicationState.Accepted if mainForm =>
+            staffs.getStaffId(event.eventId.get, id).flatMap(staffNum => mail.applicationAccept(id, event.name, staffNum.get))
+
+          case ApplicationState.Accepted =>
+            mail.formAccept(id, form.name)
+
+          case ApplicationState.Refused if mainForm =>
+            mail.applicationRefuse(id, event.name)
+
+          case ApplicationState.Refused =>
+            mail.formRefuse(id, form.name)
+
+          case ApplicationState.RequestedChanges =>
+            mail.formRequestChanges(id, form.name)
+        }
     }
+  }
+
+  def setState(applicationId: Int): Action[ApplicationState.Value] = Action.async(parse.json[ApplicationState.Value])({ v =>
+    applications.updateStateByID(applicationId, v.body, privileged = true)
+      .map {
+        case Success =>
+          sendStateMail(applicationId, v.body)
+          Ok
+        case NoSuchUser => NotFound
+        case IllegalStateTransition => Forbidden
+      }
   }).requiresAuthentication
 
   def getComments(application: Int): Action[AnyContent] = Action.async({
     applications
       .getAllComments(application)
       .flatMap { seq =>
-          api.getUserProfiles(seq.map(_._2.userId).toSet).map(map => (seq, map.left.get))
+        api.getUserProfiles(seq.map(_._2.userId).toSet).map(map => (seq, map.left.get))
       }
       .map {
         case (seq, profiles) =>
@@ -102,6 +129,15 @@ class ApplicationsController @Inject()(cc: ControllerComponents)(implicit conf: 
   def addComment(application: Int): Action[ApplicationComment] = Action.async(parse.json[ApplicationComment])({ v =>
     val comment = v.body.copy(userId = v.user.userId, applicationId = application)
 
-    applications.addComment(comment).map(res => if (res > 0) Ok else NotFound)
+
+    applications.addComment(comment).flatMap(res => {
+      if (res > 0) {
+        if (comment.userVisible) {
+          applications.getApplicationMeta(application).flatMap {
+            case (user, form, _) => mail.formComment(user.userId, form.name, v.user.firstName, comment.value)
+          }.map(_ => Ok)
+        } else Future.successful(Ok)
+      } else Future.successful(NotFound)
+    })
   }).requiresAuthentication
 }

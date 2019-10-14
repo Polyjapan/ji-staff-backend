@@ -1,0 +1,8 @@
+@(user: ch.japanimpact.auth.api.UserProfile, formName: String)
+
+@template("Changements demandés sur le formulaire " + formName, user) {
+
+    <p>Votre réponse au formulaire @formName n'a pas été acceptée en l'état. Merci de bien vouloir la modifier et la
+        re-soumettre une fois les modifications suggérées appliquées.</p>
+    
+}

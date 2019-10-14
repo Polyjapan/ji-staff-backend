@@ -1,0 +1,8 @@
+@(user: ch.japanimpact.auth.api.UserProfile, author: String, formName: String, comment: String)
+
+@template("Nouveau commentaire sur le formulaire " + formName, user) {
+
+    <p>Un commentaire a été ajouté par <b>@author</b> sur votre réponse au formulaire <b>@formName</b>.</p>
+    <hr>
+    <p>Contenu du commentaire :<br><i>@comment</i></p>
+}

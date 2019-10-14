@@ -1,0 +1,16 @@
+@(title: String, user: ch.japanimpact.auth.api.UserProfile)(body: Html)
+
+<html>
+    <body>
+        <h2>Staffs Japan Impact - @title</h2>
+        <p>Bonjour <b>@user.details.firstName</b>,</p>
+
+        @body
+
+        <br>
+        Cordialement,<br>
+        L'équipe Japan Impact
+        <br>
+        <i>Cet email a été généré automatiquement. Merci de ne pas y répondre.</i>
+    </body>
+</html>

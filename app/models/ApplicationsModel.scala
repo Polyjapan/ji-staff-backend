@@ -142,6 +142,14 @@ class ApplicationsModel @Inject()(protected val dbConfigProvider: DatabaseConfig
         .result)
   }
 
+  def getApplicationMeta(application: Int): Future[(data.User, data.Forms.Form, data.Event)] =
+    db.run(applications.filter(_.applicationId === application)
+        .join(users).on(_.userId === _.userId)
+      .join(forms).on(_._1.formId === _.formId)
+        .join(events).on(_._2.eventId === _.eventId)
+        .map { case (((_, user), form), event) => (user, form, event) }
+      .result.head)
+
   def getApplication(application: Int): Future[Map[(data.User, Applications.ApplicationState.Value), Map[Forms.FormPage, Seq[(Forms.Field, Option[String])]]]] = {
     db.run(
       applications

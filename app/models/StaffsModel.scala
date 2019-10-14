@@ -35,5 +35,8 @@ class StaffsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
     db.run(staffs.filter(_.eventId === event).join(users).on(_.userId === _.userId).result)
       .map(list => list.map { case ((_, staffNum, _), user) => Staff(staffNum, user) })
   }
+
+  def getStaffId(event: Int, user: Int): Future[Option[Int]] =
+    db.run(staffs.filter(line => line.eventId === event && line.userId === user).map(_.staffNumber).result.headOption)
 }
 
