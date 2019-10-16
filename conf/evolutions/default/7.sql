@@ -1,8 +1,8 @@
-# !--- Ups
+# --- !Ups
 
 alter table applications_comments drop foreign key applications_comments_ibfk_2;
 
-# !--- Downs
+# --- !Downs
 
 alter table applications_comments
 	add constraint applications_comments_ibfk_2

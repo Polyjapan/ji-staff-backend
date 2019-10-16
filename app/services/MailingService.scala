@@ -42,4 +42,16 @@ class MailingService @Inject()(protected val mailer: MailerClient)(implicit ec: 
   def formComment(userId: Int, formName: String, author: String, comment: String): Future[String] =
     sendMail(userId, "Nouveau commentaire sur le formulaire " + formName, profile => views.html.emails.newComment(profile, author, formName, comment))
 
+  def formSent(userId: Int, formName: String, eventName: String): Future[String] = {
+    authApi.getUserProfile(userId).map {
+      case Left(userProfile) =>
+        mailer.send(Email(
+          "Nouvelle réponse au formulaire " + formName,
+          "Staffs Japan Impact <noreply@japan-impact.ch>",
+          Seq("staff@japan-impact.ch"),
+          bodyHtml = Some(views.html.emails.applicationSent(userProfile, formName, eventName).body)
+        ))
+    }
+  }
+
 }

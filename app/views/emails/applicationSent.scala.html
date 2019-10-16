@@ -1,0 +1,19 @@
+@(user: ch.japanimpact.auth.api.UserProfile, formName: String, eventName: String)
+
+<html>
+    <body>
+        <h2>Staffs Japan Impact - Candidature reçue</h2>
+        <p>Bonjour, Respo-Staff-sama. <br>
+            Je vous informe que vous avez reçu une nouvelle réponse au formulaire <b>@formName</b>
+            de l'événement <b>@eventName</b>.
+            N'oubliez pas de la traiter !</p>
+
+        <p>Informations sur l'utilisateur: @user.details.firstName @user.details.lastName, email @user.email
+
+            <br>
+
+            <br>
+            Blip-Blop,<br>
+            Un robot</p>
+    </body>
+</html>

@@ -7,17 +7,18 @@ import javax.inject.{Inject, Singleton}
 import models.ApplicationsModel.UpdateStateResult._
 import models.ApplicationsModel._
 import models.AppsModel._
-import models.{ApplicationsModel, AppsModel}
+import models.{ApplicationsModel, AppsModel, EditionsModel, FormsModel}
 import play.api.libs.json.{Format, Json}
 import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
+import services.MailingService
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * @author Louis Vialar
  */
 @Singleton
-class ApplicationsController @Inject()(cc: ControllerComponents)(implicit apps: AppsModel, ec: ExecutionContext, applications: ApplicationsModel) extends AbstractController(cc) {
+class ApplicationsController @Inject()(cc: ControllerComponents)(implicit apps: AppsModel, ec: ExecutionContext, applications: ApplicationsModel, mailing: MailingService, forms: FormsModel, events: EditionsModel) extends AbstractController(cc) {
   def getState(form: Int, user: Int): Action[AnyContent] = Action.async {
     applications.getState(user, form).map {
       case Some(s) => Ok(Json.toJson(s))
@@ -27,7 +28,16 @@ class ApplicationsController @Inject()(cc: ControllerComponents)(implicit apps: 
 
   def setState(form: Int, user: Int): Action[ApplicationState.Value] = Action.async(parse.json[ApplicationState.Value]) { v =>
     applications.updateState(user, form, v.body).map {
-      case Success => Ok
+      case Success =>
+        if (v.body == ApplicationState.Sent) {
+          forms.getForm(form).flatMap(form => {
+            events.getEdition(form.get.eventId).flatMap(event => {
+              mailing.formSent(user, form.get.name, event.get.name)
+            })
+          })
+        }
+
+        Ok
       case NoSuchUser => NotFound
       case IllegalStateTransition => Forbidden
     }

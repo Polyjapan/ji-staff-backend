@@ -77,3 +77,8 @@ POST          /back/applications/comments/:id                                   
 
 +nocsrf
 PUT           /back/applications/state/:id                                        controllers.backoffice.ApplicationsController.setState(id:Int)
+
+GET           /back/staffs/:event                                                 controllers.backoffice.StaffsController.getStaffs(event: Int)
+GET           /back/users/:user                                                   controllers.backoffice.UsersController.getHistory(user: Int)
+
+

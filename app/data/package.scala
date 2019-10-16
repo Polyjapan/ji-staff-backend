@@ -1,5 +1,7 @@
 import java.sql.{Date, Timestamp}
 
+import ch.japanimpact.auth.api.UserProfile
+import data.Applications.{ApplicationComment, ApplicationState}
 import play.api.libs.json._
 import utils.EnumUtils
 
@@ -89,6 +91,42 @@ package object data {
 
     implicit val applicationCommentFormat: Format[ApplicationComment] = Json.format[ApplicationComment]
 
+  }
+
+  object ReturnTypes {
+
+    case class FilledPageField(field: data.Forms.Field, value: Option[String])
+
+    case class FilledPage(page: Forms.FormPage, fields: Seq[FilledPageField])
+
+    case class UserData(profile: UserProfile, birthDate: Date)
+
+    case class ReducedUserData(firstName: String, lastName: String, email: String)
+
+    object ReducedUserData {
+      def apply(profile: UserProfile): ReducedUserData = ReducedUserData(profile.details.firstName, profile.details.lastName, profile.email)
+    }
+
+    case class ApplicationResult(user: UserData, state: ApplicationState.Value, content: Iterable[FilledPage])
+
+    case class ApplicationListing(user: ReducedUserData, state: ApplicationState.Value, applicationId: Int)
+
+    case class CommentWithAuthor(author: ReducedUserData, comment: ApplicationComment)
+
+    case class StaffingHistory(staffNumber: Int, application: Int, event: Event)
+
+    case class ApplicationHistory(application: Int, state: ApplicationState.Value, form: Forms.Form, event: Event)
+
+    implicit val userDataFormat: OFormat[UserData] = Json.format[UserData]
+    implicit val reducedUserDataFormat: OFormat[ReducedUserData] = Json.format[ReducedUserData]
+    implicit val listingFormat: OFormat[ApplicationListing] = Json.format[ApplicationListing]
+    implicit val fieldFormat: OFormat[FilledPageField] = Json.format[FilledPageField]
+    implicit val pageFormat: OFormat[FilledPage] = Json.format[FilledPage]
+    implicit val resultFormat: OFormat[ApplicationResult] = Json.format[ApplicationResult]
+    implicit val commentFormat: OFormat[CommentWithAuthor] = Json.format[CommentWithAuthor]
+
+    implicit def staffHistoryFormat: Writes[StaffingHistory] = Json.writes[StaffingHistory]
+    implicit def applicationHistoryFormat: Writes[ApplicationHistory] = Json.writes[ApplicationHistory]
   }
 
 }

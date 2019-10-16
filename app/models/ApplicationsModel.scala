@@ -2,9 +2,10 @@ package models
 
 import java.sql.Timestamp
 
-import data.Applications.ApplicationComment
+import data.Applications.{ApplicationComment, ApplicationState}
 import data.Applications.ApplicationState._
-import data.{Applications, Forms, User}
+import data.ReturnTypes.ApplicationHistory
+import data.{Applications, Forms, User, Event}
 import javax.inject.Inject
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.MySQLProfile
@@ -173,6 +174,14 @@ class ApplicationsModel @Inject()(protected val dbConfigProvider: DatabaseConfig
   }
 
   def addComment(comment: ApplicationComment) = db.run(applicationsComments += comment)
+
+  def getApplicationsForUser(user: Int):Future[Seq[ApplicationHistory]] =
+    db.run(applications.filter(_.userId === user)
+      .join(forms).on(_.formId === _.formId)
+      .join(events).on(_._2.eventId === _.eventId)
+        .map { case ((app, form), ev) => (app.applicationId, app.state, form, ev) }
+        .result
+    ).map(_.map(ApplicationHistory.tupled))
 }
 
 object ApplicationsModel {

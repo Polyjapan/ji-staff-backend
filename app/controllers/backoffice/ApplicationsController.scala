@@ -4,6 +4,7 @@ import java.sql.Date
 
 import ch.japanimpact.auth.api.{AuthApi, UserProfile}
 import data.Applications._
+import data.ReturnTypes._
 import data._
 import javax.inject.{Inject, Singleton}
 import models.{ApplicationsModel, StaffsModel}
@@ -21,33 +22,10 @@ import scala.concurrent.{ExecutionContext, Future}
  * @author Louis Vialar
  */
 @Singleton
-class ApplicationsController @Inject()(cc: ControllerComponents, mail: MailingService, staffs: StaffsModel)(implicit conf: Configuration, ec: ExecutionContext, applications: ApplicationsModel, api: AuthApi) extends AbstractController(cc) {
+class ApplicationsController @Inject()(cc: ControllerComponents, mail: MailingService, staffs: StaffsModel)
+                                      (implicit conf: Configuration, ec: ExecutionContext,
+                                       applications: ApplicationsModel, api: AuthApi) extends AbstractController(cc) {
 
-  case class FilledPageField(field: data.Forms.Field, value: Option[String])
-
-  case class FilledPage(page: Forms.FormPage, fields: Seq[FilledPageField])
-
-  case class UserData(profile: UserProfile, birthDate: Date)
-
-  case class ReducedUserData(firstName: String, lastName: String, email: String)
-
-  object ReducedUserData {
-    def apply(profile: UserProfile): ReducedUserData = ReducedUserData(profile.details.firstName, profile.details.lastName, profile.email)
-  }
-
-  case class ApplicationResult(user: UserData, state: ApplicationState.Value, content: Iterable[FilledPage])
-
-  case class ApplicationListing(user: ReducedUserData, state: ApplicationState.Value, applicationId: Int)
-
-  case class CommentWithAuthor(author: ReducedUserData, comment: ApplicationComment)
-
-  implicit val userDataFormat: OFormat[UserData] = Json.format[UserData]
-  implicit val reducedUserDataFormat: OFormat[ReducedUserData] = Json.format[ReducedUserData]
-  implicit val listingFormat: OFormat[ApplicationListing] = Json.format[ApplicationListing]
-  implicit val fieldFormat: OFormat[FilledPageField] = Json.format[FilledPageField]
-  implicit val pageFormat: OFormat[FilledPage] = Json.format[FilledPage]
-  implicit val resultFormat: OFormat[ApplicationResult] = Json.format[ApplicationResult]
-  implicit val commentFormat: OFormat[CommentWithAuthor] = Json.format[CommentWithAuthor]
 
   def listApplications(form: Int, state: Option[String]): Action[AnyContent] = Action.async({
     applications.getApplications(form, state.map(v => EnumUtils.snakeNames(ApplicationState)(v)))
