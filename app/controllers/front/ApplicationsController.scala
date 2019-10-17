@@ -11,6 +11,7 @@ import models.{ApplicationsModel, AppsModel, EditionsModel, FormsModel}
 import play.api.libs.json.{Format, Json}
 import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
 import services.MailingService
+import utils.EnumUtils
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -26,7 +27,11 @@ class ApplicationsController @Inject()(cc: ControllerComponents)(implicit apps: 
     }
   }.requiresApp
 
-  def setState(form: Int, user: Int): Action[ApplicationState.Value] = Action.async(parse.json[ApplicationState.Value]) { v =>
+  private val stateParser = parse.tolerantText(30)
+    .map(str => if (str.startsWith("\"") || str.startsWith("'")) str else "\"" + str + "\"")
+    .map(str => Json.parse(str).as[ApplicationState.Value])
+
+  def setState(form: Int, user: Int): Action[ApplicationState.Value] = Action.async(stateParser) { v =>
     applications.updateState(user, form, v.body).map {
       case Success =>
         if (v.body == ApplicationState.Sent) {
