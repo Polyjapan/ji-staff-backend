@@ -4,5 +4,5 @@ scala:
 
 script:
   - wget https://github.com/Polyjapan/ji-auth-framework/releases/latest/download/jiauthframework.jar
-  - mvn install:install-file -Dfile=jiauthframework.jar -DgroupId=ch.japanimpact -DartifactId=jiauthframework -Dversion=2.12-0.2-SNAPSHOT -Dpackaging=jar
+  - mvn install:install-file -Dfile=jiauthframework.jar -DgroupId=ch.japanimpact -DartifactId=jiauthframework_2.12 -Dversion=0.2-SNAPSHOT -Dpackaging=jar
   - sbt dist
