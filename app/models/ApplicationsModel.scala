@@ -2,10 +2,10 @@ package models
 
 import java.sql.Timestamp
 
-import data.Applications.{ApplicationComment, ApplicationState}
+import data.Applications.ApplicationComment
 import data.Applications.ApplicationState._
 import data.ReturnTypes.ApplicationHistory
-import data.{Applications, Forms, User, Event}
+import data.{Applications, Forms, User}
 import javax.inject.Inject
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.MySQLProfile
@@ -23,14 +23,16 @@ class ApplicationsModel @Inject()(protected val dbConfigProvider: DatabaseConfig
   import profile.api._
 
 
-  def updateStateByID(applicationId: Int, body: Applications.ApplicationState.Value, privileged: Boolean = false) = doUpdateState(app => app.applicationId === applicationId, body, privileged)
+  def updateStateByID(applicationId: Int, body: Applications.ApplicationState.Value, privileged: Boolean = false) =
+    doUpdateState(app => app.applicationId === applicationId, body, privileged)
 
-  def updateState(user: Int, form: Int, body: Applications.ApplicationState.Value, privileged: Boolean = false) = doUpdateState(app => app.formId === form && app.userId === user, body, privileged, () => {
-    db.run((applications += (None, user, form, body)).asTry).map {
-      case Success(_) => UpdateStateResult.Success
-      case _ => UpdateStateResult.NoSuchUser // constraint failed
-    }
-  })
+  def updateState(user: Int, form: Int, body: Applications.ApplicationState.Value, privileged: Boolean = false) =
+    doUpdateState(app => app.formId === form && app.userId === user, body, privileged, () => {
+      db.run((applications += (None, user, form, body)).asTry).map {
+        case Success(_) => UpdateStateResult.Success
+        case _ => UpdateStateResult.NoSuchUser // constraint failed
+      }
+    })
 
   private def doUpdateState(filter: Applications => Rep[Boolean], state: Applications.ApplicationState.Value, privileged: Boolean = false, tryCreate: () => Future[UpdateStateResult.Value] = () => Future.successful(UpdateStateResult.IllegalStateTransition)): Future[UpdateStateResult.Value] = {
     def doUpdate(id: Int) = db.run(applications.filter(_.applicationId === id).map(_.state).update(state))
@@ -145,10 +147,10 @@ class ApplicationsModel @Inject()(protected val dbConfigProvider: DatabaseConfig
 
   def getApplicationMeta(application: Int): Future[(data.User, data.Forms.Form, data.Event)] =
     db.run(applications.filter(_.applicationId === application)
-        .join(users).on(_.userId === _.userId)
+      .join(users).on(_.userId === _.userId)
       .join(forms).on(_._1.formId === _.formId)
-        .join(events).on(_._2.eventId === _.eventId)
-        .map { case (((_, user), form), event) => (user, form, event) }
+      .join(events).on(_._2.eventId === _.eventId)
+      .map { case (((_, user), form), event) => (user, form, event) }
       .result.head)
 
   def getApplication(application: Int): Future[Map[(data.User, Applications.ApplicationState.Value), Map[Forms.FormPage, Seq[(Forms.Field, Option[String])]]]] = {
@@ -175,12 +177,12 @@ class ApplicationsModel @Inject()(protected val dbConfigProvider: DatabaseConfig
 
   def addComment(comment: ApplicationComment) = db.run(applicationsComments += comment)
 
-  def getApplicationsForUser(user: Int):Future[Seq[ApplicationHistory]] =
+  def getApplicationsForUser(user: Int): Future[Seq[ApplicationHistory]] =
     db.run(applications.filter(_.userId === user)
       .join(forms).on(_.formId === _.formId)
       .join(events).on(_._2.eventId === _.eventId)
-        .map { case ((app, form), ev) => (app.applicationId, app.state, form, ev) }
-        .result
+      .map { case ((app, form), ev) => (app.applicationId, app.state, form, ev) }
+      .result
     ).map(_.map(ApplicationHistory.tupled))
 }
 
