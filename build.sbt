@@ -8,6 +8,8 @@ resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
 
 resolvers += "Akka Snapshot Repository" at "https://repo.akka.io/snapshots/"
 
+resolvers += Resolver.mavenLocal
+
 scalaVersion := "2.12.2"
 
 libraryDependencies ++= Seq(evolutions, ehcache, ws, specs2 % Test, guice,
