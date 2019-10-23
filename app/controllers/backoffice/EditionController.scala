@@ -27,6 +27,10 @@ class EditionController @Inject()(cc: ControllerComponents, model: EditionsModel
     case _ => NotFound
   }).requiresAuthentication
 
+  def getStats(id: Int): Action[AnyContent] = Action.async(model.getEditionStats(id).map { res =>
+    Ok(Json.toJson(res))
+  }).requiresAuthentication
+
   def getEditions: Action[AnyContent] =
     Action.async(model.getEditions.map(res => Ok(Json.toJson(res)))).requiresAuthentication
 

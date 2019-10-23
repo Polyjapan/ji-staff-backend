@@ -37,6 +37,7 @@ PUT           /back/editions/:id                                                
 PUT           /back/editions/:id/active                                           controllers.backoffice.EditionController.updateActiveStatus(id: Int)
 +nocsrf
 PUT           /back/editions/:id/mainForm                                         controllers.backoffice.EditionController.updateMainForm(id: Int)
+GET           /back/stats/:id                                                     controllers.backoffice.EditionController.getStats(id: Int)
 GET           /back/editions/:id                                                  controllers.backoffice.EditionController.getEdition(id: Int)
 
 GET           /back/editions/:id/forms                                            controllers.backoffice.FormsController.getForms(id: Int)

@@ -124,7 +124,6 @@ package object data {
     implicit val pageFormat: OFormat[FilledPage] = Json.format[FilledPage]
     implicit val resultFormat: OFormat[ApplicationResult] = Json.format[ApplicationResult]
     implicit val commentFormat: OFormat[CommentWithAuthor] = Json.format[CommentWithAuthor]
-
     implicit def staffHistoryFormat: Writes[StaffingHistory] = Json.writes[StaffingHistory]
     implicit def applicationHistoryFormat: Writes[ApplicationHistory] = Json.writes[ApplicationHistory]
   }

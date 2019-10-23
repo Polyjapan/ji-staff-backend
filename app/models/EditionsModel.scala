@@ -1,14 +1,14 @@
 package models
 
-import java.sql.{Date, Timestamp}
+import java.sql.Date
 
-import javax.inject.{Inject, Singleton}
+import data.Applications.ApplicationState
+import javax.inject.Inject
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.MySQLProfile
 
 import scala.concurrent.{ExecutionContext, Future}
 import data._
-import play.api.mvc.Result
 
 /**
  * @author Louis Vialar
@@ -33,6 +33,16 @@ class EditionsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProv
 
   def getEdition(id: Int): Future[Option[Event]] =
     db.run(events.filter(_.eventId === id).result.headOption)
+
+  def getEditionStats(id: Int): Future[Map[ApplicationState.Value, Int]] =
+    db.run(events
+      .filter(_.eventId === id)
+        .filter(_.mainForm.nonEmpty)
+        .join(applications).on(_.mainForm === _.formId)
+        .map(_._2)
+        .groupBy(_.state)
+        .map { case (k, v) => (k, v.length)}
+      .result).map(pairs => pairs.toMap)
 
   def updateNameAndDate(id: Int, name: String, date: Date): Future[Int] =
     db.run(events.filter(_.eventId === id).map(e => (e.name, e.eventBegin)).update((name, date)))
