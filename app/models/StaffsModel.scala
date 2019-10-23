@@ -27,6 +27,10 @@ class StaffsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
     )
   }
 
+  def deleteStaff(event: Int, user: Int): Future[Int] = {
+    db.run(staffs.filter(staff => staff.eventId === event && staff.userId === user).delete)
+  }
+
   case class Staff(staffNumber: Int, application: Int, user: User)
 
   def listStaffs(event: Int): Future[Seq[Staff]] = {

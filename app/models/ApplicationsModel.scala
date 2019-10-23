@@ -37,7 +37,6 @@ class ApplicationsModel @Inject()(protected val dbConfigProvider: DatabaseConfig
   private def doUpdateState(filter: Applications => Rep[Boolean], state: Applications.ApplicationState.Value, privileged: Boolean = false, tryCreate: () => Future[UpdateStateResult.Value] = () => Future.successful(UpdateStateResult.IllegalStateTransition)): Future[UpdateStateResult.Value] = {
     def doUpdate(id: Int) = db.run(applications.filter(_.applicationId === id).map(_.state).update(state))
 
-
     // Get existing
     db.run(applications.filter(filter).result.headOption).flatMap {
       case None if state == Applications.ApplicationState.Draft || privileged => tryCreate()
@@ -52,15 +51,16 @@ class ApplicationsModel @Inject()(protected val dbConfigProvider: DatabaseConfig
 
         if (!allowed) Future.successful(UpdateStateResult.IllegalStateTransition)
         else {
-          if (state == Accepted) {
+          if (state == Accepted || currentState == Accepted) {
             db.run(applications.filter(_.applicationId === id).join(events).on(_.formId === _.mainForm).map(pair => (pair._1.userId, pair._2.eventId)).result.headOption).flatMap {
               case Some((userId, eventId)) =>
-                staffsModel.addStaff(eventId, userId).flatMap(i => doUpdate(id))
-              // this is the main form
+                if (state == Accepted)
+                  staffsModel.addStaff(eventId, userId).flatMap(i => doUpdate(id))
+                else // was accepted before _> no longer staff
+                  staffsModel.deleteStaff(eventId, userId).flatMap(_ => doUpdate(id))
               case None =>
                 // This is not the main form
                 doUpdate(id)
-
             }
           } else {
             doUpdate(id)
