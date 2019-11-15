@@ -1,7 +1,7 @@
 package models
 
 import data.ReturnTypes.StaffingHistory
-import data.User
+import data.{Forms, User}
 import javax.inject.Inject
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.MySQLProfile
@@ -43,6 +43,46 @@ class StaffsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
 
       .result)
       .map(list => list.map(Staff.tupled))
+  }
+
+  def listStaffsDetails(eventId: Int): Future[(Seq[Forms.Field], Map[(Int, Int), Seq[(Int, String)]])] = {
+    db.run {
+      events.filter(event => event.eventId === eventId)
+        .join(forms).on(_.mainForm === _.formId).map(_._2)
+        .join(pages).on(_.formId === _.formId).map(_._2)
+        .join(fields).on(_.formPageId === _.pageId)
+        .sortBy { case ((page, field)) => page.ordering * 1000 + field.ordering }
+        .result
+        .map(seq => {
+          val formId = seq.headOption.map(_._1.formId)
+          val rest = seq.map(_._2)
+
+          (formId.get, rest)
+        })
+        .flatMap[(Seq[data.Forms.Field], Map[(Int, Int),Seq[(Int, String)]]),slick.dbio.NoStream,Effect.Read] {
+          case (formId, fields) =>
+            val fieldIds = fields.map(f => f.fieldId.get).toSet
+
+            staffs.filter(_.eventId === eventId)
+              .join(applications).on((staff, app) => app.formId === formId && app.userId === staff.userId)
+              .join(applicationsContents).on((l, r) => r.applicationId === l._2.applicationId)
+              .map { case ((staff, _), content) => ((staff.staffNumber, staff.userId), content.fieldId, content.value) }
+              .result
+              .map(seq => {
+                seq.groupBy(_._1).mapValues(answers => {
+                  val ans = answers
+                    .map {
+                      case (_, fieldId, value) => (fieldId, value)
+                    }.filter(pair => fieldIds(pair._1))
+
+                  val missingIds = ans.map(_._1).toSet -- fieldIds
+
+                  ans ++ missingIds.map(id => (id, ""))
+                })
+              })
+            .map(map => (fields, map))
+        }
+    }
   }
 
   def getStaffId(event: Int, user: Int): Future[Option[Int]] =

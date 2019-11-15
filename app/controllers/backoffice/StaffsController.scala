@@ -1,6 +1,8 @@
 package controllers.backoffice
 
-import ch.japanimpact.auth.api.{AuthApi, UserProfile}
+import java.io.ByteArrayOutputStream
+
+import ch.japanimpact.auth.api.{AuthApi, UserAddress, UserProfile}
 import javax.inject.Inject
 import models.StaffsModel
 import play.api.Configuration
@@ -34,4 +36,52 @@ class StaffsController @Inject()(cc: ControllerComponents, auth: AuthApi, staffs
       }
     })
   }).requiresAuthentication
+
+  def exportStaffs(event: Int): Action[AnyContent] = Action.async({
+    staffs.listStaffsDetails(event).flatMap {
+      case (fields, map) =>
+        val userIds = map.map(_._1._2).toSet
+        val fieldsOrdering = fields.map(_.fieldId.get).zipWithIndex.toMap
+
+        auth.getUserProfiles(userIds).map {
+          case Left(profiles) =>
+
+            val header =
+              List("#", "Prénom", "Nom", "Téléphone", "Email", "Adresse", "Adresse 2", "NPA", "Ville", "Pays") ++ fields.map(_.name)
+
+            val lines: Seq[Seq[String]] = header :: map.toList.sortBy(_._1._1).map {
+              case ((staffId, userId), content) =>
+                val profile = profiles(userId)
+                val orderedContent = content.toList.sortBy(pair => fieldsOrdering(pair._1))
+
+                val address = profile.address.getOrElse(UserAddress("Unknown", None, "Unknown", "Unknown", "Unknown"))
+
+                List(
+                  staffId.toString,
+                  profile.details.firstName,
+                  profile.details.lastName,
+                  profile.details.phoneNumber.getOrElse(""),
+                  profile.email,
+                  address.address,
+                  address.addressComplement.getOrElse(""),
+                  address.postCode,
+                  address.city,
+                  address.country,
+                ) ::: orderedContent.map(_._2)
+            }
+
+            import com.github.tototoshi.csv._
+            val os = new ByteArrayOutputStream()
+            val csv = CSVWriter.open(os, "UTF-8")
+            csv.writeAll(lines)
+            csv.close()
+
+            Ok(os.toString("UTF-8")).as("text/csv; charset=utf-8")
+
+          case Right(_) => InternalServerError
+        }
+    }
+  }).requiresAuthentication
+
+
 }
