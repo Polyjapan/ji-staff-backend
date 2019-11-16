@@ -1,5 +1,7 @@
 package models
 
+import java.sql.Date
+
 import data.ReturnTypes.StaffingHistory
 import data.{Forms, User}
 import javax.inject.Inject
@@ -45,7 +47,7 @@ class StaffsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
       .map(list => list.map(Staff.tupled))
   }
 
-  def listStaffsDetails(eventId: Int): Future[(Seq[Forms.Field], Map[(Int, Int), Seq[(Int, String)]])] = {
+  def listStaffsDetails(eventId: Int): Future[(Seq[Forms.Field], Map[(Int, Int, Date), Seq[(Int, String)]])] = {
     db.run {
       events.filter(event => event.eventId === eventId)
         .join(forms).on(_.mainForm === _.formId).map(_._2)
@@ -59,14 +61,15 @@ class StaffsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
 
           (formId.get, rest)
         })
-        .flatMap[(Seq[data.Forms.Field], Map[(Int, Int),Seq[(Int, String)]]),slick.dbio.NoStream,Effect.Read] {
+        .flatMap[(Seq[data.Forms.Field], Map[(Int, Int, Date),Seq[(Int, String)]]),slick.dbio.NoStream,Effect.Read] {
           case (formId, fields) =>
             val fieldIds = fields.map(f => f.fieldId.get).toSet
 
             staffs.filter(_.eventId === eventId)
-              .join(applications).on((staff, app) => app.formId === formId && app.userId === staff.userId)
+              .join(users).on(_.userId === _.userId)
+              .join(applications).on((staff, app) => app.formId === formId && app.userId === staff._1.userId)
               .join(applicationsContents).on((l, r) => r.applicationId === l._2.applicationId)
-              .map { case ((staff, _), content) => ((staff.staffNumber, staff.userId), content.fieldId, content.value) }
+              .map { case (((staff, user), _), content) => ((staff.staffNumber, staff.userId, user.birthDate), content.fieldId, content.value) }
               .result
               .map(seq => {
                 seq.groupBy(_._1).mapValues(answers => {
@@ -75,9 +78,7 @@ class StaffsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
                       case (_, fieldId, value) => (fieldId, value)
                     }.filter(pair => fieldIds(pair._1))
 
-                  val missingIds = ans.map(_._1).toSet -- fieldIds
-
-                  ans ++ missingIds.map(id => (id, ""))
+                  ans
                 })
               })
             .map(map => (fields, map))

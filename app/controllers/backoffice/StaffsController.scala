@@ -47,12 +47,14 @@ class StaffsController @Inject()(cc: ControllerComponents, auth: AuthApi, staffs
           case Left(profiles) =>
 
             val header =
-              List("#", "Prénom", "Nom", "Téléphone", "Email", "Adresse", "Adresse 2", "NPA", "Ville", "Pays") ++ fields.map(_.name)
+              List("#", "Prénom", "Nom", "Téléphone", "Email", "Adresse", "Adresse 2", "NPA", "Ville", "Pays", "Date de naissance") ++ fields.map(_.name)
 
             val lines: Seq[Seq[String]] = header :: map.toList.sortBy(_._1._1).map {
-              case ((staffId, userId), content) =>
+              case ((staffId, userId, birthdate), content) =>
                 val profile = profiles(userId)
-                val orderedContent = content.toList.sortBy(pair => fieldsOrdering(pair._1))
+                val missingIds = fieldsOrdering.keySet -- content.map(_._1).toSet
+
+                val orderedContent = (content.toList ++ missingIds.map(id => (id, ""))).sortBy(pair => fieldsOrdering(pair._1))
 
                 val address = profile.address.getOrElse(UserAddress("Unknown", None, "Unknown", "Unknown", "Unknown"))
 
@@ -67,6 +69,7 @@ class StaffsController @Inject()(cc: ControllerComponents, auth: AuthApi, staffs
                   address.postCode,
                   address.city,
                   address.country,
+                  birthdate.toString
                 ) ::: orderedContent.map(_._2)
             }
 
