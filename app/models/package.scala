@@ -1,12 +1,13 @@
 
-import java.sql.{Date, Timestamp}
+import java.sql.{Date, Time, Timestamp}
 
 import data.Applications.ApplicationComment
 import slick.jdbc.MySQLProfile.api._
-import data.{Forms, _}
 import slick.ast.BaseTypedType
 import slick.jdbc.{JdbcType, MySQLProfile}
 import utils.EnumUtils
+import data.{Forms, _}
+
 
 /**
  * @author Louis Vialar

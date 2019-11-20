@@ -1,7 +1,10 @@
-import java.sql.{Date, Timestamp}
+import java.sql.{Date, Time, Timestamp}
+import java.time.temporal.{ChronoField, TemporalField}
+import java.util.{Calendar, GregorianCalendar}
 
 import ch.japanimpact.auth.api.UserProfile
 import data.Applications.{ApplicationComment, ApplicationState}
+import data.Forms.FieldType.Value
 import play.api.libs.json._
 import utils.EnumUtils
 
@@ -10,7 +13,19 @@ import utils.EnumUtils
  */
 package object data {
 
-  case class User(userId: Int, birthDate: Date)
+  case class User(userId: Int, birthDate: Date) {
+    def ageAt(date: Date): Int = {
+      val eventDateCalendar = new GregorianCalendar()
+      val birthDateCalendar = new GregorianCalendar()
+      eventDateCalendar.setTime(date)
+      birthDateCalendar.setTime(date)
+
+      val ageAtEndOfYear = eventDateCalendar.get(Calendar.YEAR) - birthDateCalendar.get(Calendar.YEAR)
+
+      if (eventDateCalendar.get(Calendar.DAY_OF_YEAR) > birthDateCalendar.get(Calendar.DAY_OF_YEAR)) ageAtEndOfYear - 1
+      else ageAtEndOfYear
+    }
+  }
 
   case class Event(eventId: Option[Int], eventBegin: Date, name: String, mainForm: Option[Int], isActive: Boolean)
 
@@ -126,6 +141,10 @@ package object data {
     implicit val commentFormat: OFormat[CommentWithAuthor] = Json.format[CommentWithAuthor]
     implicit def staffHistoryFormat: Writes[StaffingHistory] = Json.writes[StaffingHistory]
     implicit def applicationHistoryFormat: Writes[ApplicationHistory] = Json.writes[ApplicationHistory]
+  }
+
+  object Scheduling {
+
   }
 
 }
