@@ -97,8 +97,8 @@ Class | Method | HTTP request | Description
 *FormsApi* | [**getFormById**](docs/Api/FormsApi.md#getformbyid) | **GET** /forms/{id} | Returns the requested form, regardless of whether the edition is active or not
 *FormsApi* | [**getFormPageByIdAndPosition**](docs/Api/FormsApi.md#getformpagebyidandposition) | **GET** /forms/{id}/pages/{pageNum} | Returns a specific page in the form
 *FormsApi* | [**getFormPagesById**](docs/Api/FormsApi.md#getformpagesbyid) | **GET** /forms/{id}/pages | Returns the list of pages of a given form
-*StaffsApi* | [**getStaffId**](docs/Api/StaffsApi.md#getstaffid) | **GET** /front/staffs/staffId/{user} | Returns the staff number of a user for the current edition
-*StaffsApi* | [**isStaff**](docs/Api/StaffsApi.md#isstaff) | **GET** /front/staffs/isStaff/{user} | Checks if the given user is a staff of the current edition
+*StaffsApi* | [**getStaffId**](docs/Api/StaffsApi.md#getstaffid) | **GET** /staffs/staffId/{user} | Returns the staff number of a user for the current edition
+*StaffsApi* | [**isStaff**](docs/Api/StaffsApi.md#isstaff) | **GET** /staffs/isStaff/{user} | Checks if the given user is a staff of the current edition
 *UserApi* | [**getUser**](docs/Api/UserApi.md#getuser) | **GET** /user_profile/{userId} | Returns a user profile
 *UserApi* | [**updateUser**](docs/Api/UserApi.md#updateuser) | **PUT** /user_profile/{userId} | Creates or updates a user profile
 

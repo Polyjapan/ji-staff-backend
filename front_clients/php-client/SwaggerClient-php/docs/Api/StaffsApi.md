@@ -4,8 +4,8 @@ All URIs are relative to *https://staff.japan-impact.ch/api/v2/front*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**getStaffId**](StaffsApi.md#getStaffId) | **GET** /front/staffs/staffId/{user} | Returns the staff number of a user for the current edition
-[**isStaff**](StaffsApi.md#isStaff) | **GET** /front/staffs/isStaff/{user} | Checks if the given user is a staff of the current edition
+[**getStaffId**](StaffsApi.md#getStaffId) | **GET** /staffs/staffId/{user} | Returns the staff number of a user for the current edition
+[**isStaff**](StaffsApi.md#isStaff) | **GET** /staffs/isStaff/{user} | Checks if the given user is a staff of the current edition
 
 
 # **getStaffId**

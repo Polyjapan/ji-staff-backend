@@ -268,7 +268,7 @@ class StaffsApi
             );
         }
 
-        $resourcePath = '/front/staffs/staffId/{user}';
+        $resourcePath = '/staffs/staffId/{user}';
         $formParams = [];
         $queryParams = [];
         $headerParams = [];
@@ -537,7 +537,7 @@ class StaffsApi
             );
         }
 
-        $resourcePath = '/front/staffs/isStaff/{user}';
+        $resourcePath = '/staffs/isStaff/{user}';
         $formParams = [];
         $queryParams = [];
         $headerParams = [];

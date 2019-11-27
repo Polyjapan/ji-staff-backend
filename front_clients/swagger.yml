@@ -14,6 +14,8 @@ tags:
     description: "Operations about events"
   - name: "user"
     description: "Operations about user"
+  - name: "staffs"
+    description: "Operations about staffs"
 schemes:
   - "https"
 paths:
@@ -125,6 +127,57 @@ paths:
             $ref: "#/definitions/Form"
         404:
           description: "no event is currently active or it has no main form"
+  /staffs/isStaff/{user}:
+    get:
+      tags:
+        - "staffs"
+      summary: "Checks if the given user is a staff of the current edition"
+      description: ""
+      parameters:
+        - name: "user"
+          in: "path"
+          description: "ID of the user to check"
+          required: true
+          type: "integer"
+          format: "int32"
+      operationId: "isStaff"
+      produces:
+        - "application/json"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "object"
+            properties:
+              is_staff:
+                type: "boolean"
+  /staffs/staffId/{user}:
+    get:
+      tags:
+        - "staffs"
+      summary: "Returns the staff number of a user for the current edition"
+      description: ""
+      parameters:
+        - name: "user"
+          in: "path"
+          description: "ID of the user to check"
+          required: true
+          type: "integer"
+          format: "int32"
+      operationId: "getStaffId"
+      produces:
+        - "application/json"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "object"
+            properties:
+              staff_id:
+                type: "integer"
+                format: "int32"
+        404:
+          description: "the user is not a staff in the current event"
   /forms/{id}:
     get:
       tags:

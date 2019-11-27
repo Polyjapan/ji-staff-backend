@@ -161,7 +161,7 @@
         }
       }
     },
-    "/front/staffs/isStaff/{user}" : {
+    "/staffs/isStaff/{user}" : {
       "get" : {
         "tags" : [ "staffs" ],
         "summary" : "Checks if the given user is a staff of the current edition",
@@ -186,7 +186,7 @@
         }
       }
     },
-    "/front/staffs/staffId/{user}" : {
+    "/staffs/staffId/{user}" : {
       "get" : {
         "tags" : [ "staffs" ],
         "summary" : "Returns the staff number of a user for the current edition",
