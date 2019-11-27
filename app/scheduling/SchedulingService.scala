@@ -3,6 +3,7 @@ package scheduling
 import javax.inject.{Inject, Singleton}
 import jp.kobe_u.copris._
 import jp.kobe_u.copris.dsl._
+import scheduling.constraints.ScheduleConstraint
 import scheduling.models.{SchedulingModel, TaskSlot, TaskTimePartition, taskSlots}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -28,7 +29,7 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
 
   implicit def assignationAsVariable(assignation: StaffAssignation): Var = Var(assignation.taskSlot.id + "-by-" + assignation.user.user.userId)
 
-  private def computePlanification(project: ScheduleProject, staffs: Seq[scheduling.Staff], slots: Iterable[scheduling.TaskSlot], constraints: Seq[constraints.ScheduleConstraint]): (List[StaffAssignation], Int) = {
+  private def computePlanification(project: ScheduleProject, staffs: Seq[scheduling.Staff], slots: Iterable[scheduling.TaskSlot], constraints: Seq[ScheduleConstraint]): (List[StaffAssignation], Int) = {
     def planify(allowRecomputation: Boolean = true, recomputation: Int = 0): (List[StaffAssignation], Int) = {
       init
 

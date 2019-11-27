@@ -34,12 +34,17 @@ class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
    */
   def buildSlots(project: Int) = {
     getTimePartitions(project).flatMap {
-      tasks => db.run(taskSlots ++= tasks.flatMap(_.produceSlots))
+      tasks => {
+        if (tasks.isEmpty) Future.successful(false)
+        else db.run(taskSlots ++= tasks.flatMap(_.produceSlots)).map(_ => true)
+      }
     }
   }
 
   def getScheduleData(projectId: Int): Future[(scheduling.ScheduleProject, Seq[scheduling.Staff], immutable.Iterable[scheduling.TaskSlot], Seq[ScheduleConstraint])] = {
-    db.run(scheduleProjects.filter(_.id === projectId)
+    db.run {
+      // Type Inference in Slick is a bit buggy... We need to force it.
+      val req: DBIOAction[(scheduling.ScheduleProject, Seq[scheduling.Staff], immutable.Iterable[scheduling.TaskSlot], Seq[ScheduleConstraint]), NoStream, Effect.Read] = scheduleProjects.filter(_.id === projectId)
         .join(models.events).on(_.event === _.eventId)
         .result.head
         .flatMap {
@@ -59,6 +64,7 @@ class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
               lines.groupBy(_._1).map { case ((slot, task), caps) =>
                 scheduling.TaskSlot(slot.taskSlotId.get,
                   scheduling.Task(
+                    task.taskId.get,
                     scheduling.ScheduleProject(project.projectId.get, event, project.projectTitle, project.maxTimePerStaff),
                     task.name, task.minAge, task.minExperience, caps.map(_._2).toList
                   ), slot.staffsRequired, slot.timeSlot
@@ -66,8 +72,19 @@ class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
               }
             }
 
+          val constraints =
+            associationConstraints.filter(_.projectId === projectId).result flatMap { asso =>
+            fixedTaskConstraints.filter(_.projectId === projectId).result flatMap { ftc =>
+            fixedTaskSlotConstraints.filter(_.projectId === projectId).result flatMap { ftsc =>
+            unavailableConstraints.filter(_.projectId === projectId).result map { uc => asso ++ ftc ++ ftsc ++ uc}}}}
+
           val proj = scheduling.ScheduleProject(project.projectId.get, event, project.projectTitle, project.maxTimePerStaff)
-            staffs.flatMap(staffs => slots.map(slots => (proj, staffs, slots, Nil))) // TODO: constraints
-      })
+
+
+          staffs.flatMap(staffs => constraints.flatMap(constraints => slots.map(slots => (proj, staffs, slots, constraints))))
+      }
+
+      req
+    }
   }
 }

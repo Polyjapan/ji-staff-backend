@@ -1,9 +1,13 @@
 import java.sql.{Date, Time}
 
-import data.{Event, User}
+import play.api.libs.json.{Json, OFormat, OWrites}
 
 package object scheduling {
+  import data._
+
   case class ScheduleProject(id: Int, event: Event, projectTitle: String, maxTimePerStaff: Int)
+
+  implicit val scheduleProjectFormat: OWrites[ScheduleProject] = Json.writes[ScheduleProject]
 
   case class Period(day: Date, start: Time, end: Time) {
     private def timeToSeconds(t: Time) = t.getTime.toInt // t.toInstant.get(ChronoField.SECOND_OF_DAY)
@@ -31,14 +35,25 @@ package object scheduling {
     def apply(day: Date, start: Int, end: Int): Period = {
       Period(day, new Time(start * 1000), new Time(end * 1000))
     }
+
+    def apply(tuple: (Date, Time, Time)): Period = {
+      val (d, s, e) = tuple
+      Period(d, s, e)
+    }
   }
 
-  case class Task(project: ScheduleProject, name: String, minAge: Int, minExperience: Int, difficulties: List[String])
+  implicit val periodFormat: OWrites[Period] = Json.writes[Period]
 
+
+  case class Task(id: Int, project: ScheduleProject, name: String, minAge: Int, minExperience: Int, difficulties: List[String])
+
+  implicit val taskFormat: OWrites[Task] = Json.writes[Task]
 
   case class TaskSlot(id: Int, task: Task, staffsRequired: Int, timeSlot: Period) {
     def assign(staff: Staff) = StaffAssignation(this, staff)
   }
+
+  implicit val taskSlotFormat: OWrites[TaskSlot] = Json.writes[TaskSlot]
 
   case class StaffAssignation(taskSlot: TaskSlot, user: Staff)
 
