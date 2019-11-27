@@ -183,7 +183,10 @@
               "$ref" : "#/definitions/inline_response_200"
             }
           }
-        }
+        },
+        "security" : [ {
+          "api_key" : [ ]
+        } ]
       }
     },
     "/staffs/staffId/{user}" : {
@@ -211,7 +214,10 @@
           "404" : {
             "description" : "the user is not a staff in the current event"
           }
-        }
+        },
+        "security" : [ {
+          "api_key" : [ ]
+        } ]
       }
     },
     "/forms/{id}" : {

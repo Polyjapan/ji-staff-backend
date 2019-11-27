@@ -143,6 +143,8 @@ paths:
       operationId: "isStaff"
       produces:
         - "application/json"
+      security:
+        - api_key: []
       responses:
         200:
           description: "successful operation"
@@ -167,6 +169,8 @@ paths:
       operationId: "getStaffId"
       produces:
         - "application/json"
+      security:
+        - api_key: []
       responses:
         200:
           description: "successful operation"
