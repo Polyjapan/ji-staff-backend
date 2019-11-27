@@ -1,6 +1,6 @@
 <?php
 /**
- * EventTest
+ * InlineResponse2002Test
  *
  * PHP version 5
  *
@@ -30,15 +30,15 @@
 namespace Swagger\Client;
 
 /**
- * EventTest Class Doc Comment
+ * InlineResponse2002Test Class Doc Comment
  *
  * @category    Class
- * @description Event
+ * @description InlineResponse2002
  * @package     Swagger\Client
  * @author      Swagger Codegen team
  * @link        https://github.com/swagger-api/swagger-codegen
  */
-class EventTest extends \PHPUnit_Framework_TestCase
+class InlineResponse2002Test extends \PHPUnit_Framework_TestCase
 {
 
     /**
@@ -70,44 +70,23 @@ class EventTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test "Event"
+     * Test "InlineResponse2002"
      */
-    public function testEvent()
+    public function testInlineResponse2002()
     {
     }
 
     /**
-     * Test attribute "event_id"
+     * Test attribute "page"
      */
-    public function testPropertyEventId()
+    public function testPropertyPage()
     {
     }
 
     /**
-     * Test attribute "is_active"
+     * Test attribute "fields"
      */
-    public function testPropertyIsActive()
-    {
-    }
-
-    /**
-     * Test attribute "event_begin"
-     */
-    public function testPropertyEventBegin()
-    {
-    }
-
-    /**
-     * Test attribute "name"
-     */
-    public function testPropertyName()
-    {
-    }
-
-    /**
-     * Test attribute "main_form"
-     */
-    public function testPropertyMainForm()
+    public function testPropertyFields()
     {
     }
 }

@@ -1,6 +1,6 @@
 <?php
 /**
- * UserApi
+ * StaffsApi
  * PHP version 5
  *
  * @category Class
@@ -40,14 +40,14 @@ use Swagger\Client\HeaderSelector;
 use Swagger\Client\ObjectSerializer;
 
 /**
- * UserApi Class Doc Comment
+ * StaffsApi Class Doc Comment
  *
  * @category Class
  * @package  Swagger\Client
  * @author   Swagger Codegen team
  * @link     https://github.com/swagger-api/swagger-codegen
  */
-class UserApi
+class StaffsApi
 {
     /**
      * @var ClientInterface
@@ -88,37 +88,37 @@ class UserApi
     }
 
     /**
-     * Operation getUser
+     * Operation getStaffId
      *
-     * Returns a user profile
+     * Returns the staff number of a user for the current edition
      *
-     * @param  int $user_id ID of user to return (required)
+     * @param  int $user ID of the user to check (required)
      *
      * @throws \Swagger\Client\ApiException on non-2xx response
      * @throws \InvalidArgumentException
-     * @return \Swagger\Client\Model\User
+     * @return \Swagger\Client\Model\InlineResponse2001
      */
-    public function getUser($user_id)
+    public function getStaffId($user)
     {
-        list($response) = $this->getUserWithHttpInfo($user_id);
+        list($response) = $this->getStaffIdWithHttpInfo($user);
         return $response;
     }
 
     /**
-     * Operation getUserWithHttpInfo
+     * Operation getStaffIdWithHttpInfo
      *
-     * Returns a user profile
+     * Returns the staff number of a user for the current edition
      *
-     * @param  int $user_id ID of user to return (required)
+     * @param  int $user ID of the user to check (required)
      *
      * @throws \Swagger\Client\ApiException on non-2xx response
      * @throws \InvalidArgumentException
-     * @return array of \Swagger\Client\Model\User, HTTP status code, HTTP response headers (array of strings)
+     * @return array of \Swagger\Client\Model\InlineResponse2001, HTTP status code, HTTP response headers (array of strings)
      */
-    public function getUserWithHttpInfo($user_id)
+    public function getStaffIdWithHttpInfo($user)
     {
-        $returnType = '\Swagger\Client\Model\User';
-        $request = $this->getUserRequest($user_id);
+        $returnType = '\Swagger\Client\Model\InlineResponse2001';
+        $request = $this->getStaffIdRequest($user);
 
         try {
             $options = $this->createHttpClientOption();
@@ -169,7 +169,7 @@ class UserApi
                 case 200:
                     $data = ObjectSerializer::deserialize(
                         $e->getResponseBody(),
-                        '\Swagger\Client\Model\User',
+                        '\Swagger\Client\Model\InlineResponse2001',
                         $e->getResponseHeaders()
                     );
                     $e->setResponseObject($data);
@@ -180,18 +180,18 @@ class UserApi
     }
 
     /**
-     * Operation getUserAsync
+     * Operation getStaffIdAsync
      *
-     * Returns a user profile
+     * Returns the staff number of a user for the current edition
      *
-     * @param  int $user_id ID of user to return (required)
+     * @param  int $user ID of the user to check (required)
      *
      * @throws \InvalidArgumentException
      * @return \GuzzleHttp\Promise\PromiseInterface
      */
-    public function getUserAsync($user_id)
+    public function getStaffIdAsync($user)
     {
-        return $this->getUserAsyncWithHttpInfo($user_id)
+        return $this->getStaffIdAsyncWithHttpInfo($user)
             ->then(
                 function ($response) {
                     return $response[0];
@@ -200,19 +200,19 @@ class UserApi
     }
 
     /**
-     * Operation getUserAsyncWithHttpInfo
+     * Operation getStaffIdAsyncWithHttpInfo
      *
-     * Returns a user profile
+     * Returns the staff number of a user for the current edition
      *
-     * @param  int $user_id ID of user to return (required)
+     * @param  int $user ID of the user to check (required)
      *
      * @throws \InvalidArgumentException
      * @return \GuzzleHttp\Promise\PromiseInterface
      */
-    public function getUserAsyncWithHttpInfo($user_id)
+    public function getStaffIdAsyncWithHttpInfo($user)
     {
-        $returnType = '\Swagger\Client\Model\User';
-        $request = $this->getUserRequest($user_id);
+        $returnType = '\Swagger\Client\Model\InlineResponse2001';
+        $request = $this->getStaffIdRequest($user);
 
         return $this->client
             ->sendAsync($request, $this->createHttpClientOption())
@@ -252,23 +252,23 @@ class UserApi
     }
 
     /**
-     * Create request for operation 'getUser'
+     * Create request for operation 'getStaffId'
      *
-     * @param  int $user_id ID of user to return (required)
+     * @param  int $user ID of the user to check (required)
      *
      * @throws \InvalidArgumentException
      * @return \GuzzleHttp\Psr7\Request
      */
-    protected function getUserRequest($user_id)
+    protected function getStaffIdRequest($user)
     {
-        // verify the required parameter 'user_id' is set
-        if ($user_id === null || (is_array($user_id) && count($user_id) === 0)) {
+        // verify the required parameter 'user' is set
+        if ($user === null || (is_array($user) && count($user) === 0)) {
             throw new \InvalidArgumentException(
-                'Missing the required parameter $user_id when calling getUser'
+                'Missing the required parameter $user when calling getStaffId'
             );
         }
 
-        $resourcePath = '/user_profile/{userId}';
+        $resourcePath = '/front/staffs/staffId/{user}';
         $formParams = [];
         $queryParams = [];
         $headerParams = [];
@@ -277,10 +277,10 @@ class UserApi
 
 
         // path params
-        if ($user_id !== null) {
+        if ($user !== null) {
             $resourcePath = str_replace(
-                '{' . 'userId' . '}',
-                ObjectSerializer::toPathValue($user_id),
+                '{' . 'user' . '}',
+                ObjectSerializer::toPathValue($user),
                 $resourcePath
             );
         }
@@ -335,11 +335,6 @@ class UserApi
             }
         }
 
-        // this endpoint requires API key authentication
-        $apiKey = $this->config->getApiKeyWithPrefix('Authorization');
-        if ($apiKey !== null) {
-            $headers['Authorization'] = $apiKey;
-        }
 
         $defaultHeaders = [];
         if ($this->config->getUserAgent()) {
@@ -362,38 +357,37 @@ class UserApi
     }
 
     /**
-     * Operation updateUser
+     * Operation isStaff
      *
-     * Creates or updates a user profile
+     * Checks if the given user is a staff of the current edition
      *
-     * @param  int $user_id ID of user to update (required)
-     * @param  \Swagger\Client\Model\User $body The user to update or create (required)
+     * @param  int $user ID of the user to check (required)
      *
      * @throws \Swagger\Client\ApiException on non-2xx response
      * @throws \InvalidArgumentException
-     * @return void
+     * @return \Swagger\Client\Model\InlineResponse200
      */
-    public function updateUser($user_id, $body)
+    public function isStaff($user)
     {
-        $this->updateUserWithHttpInfo($user_id, $body);
+        list($response) = $this->isStaffWithHttpInfo($user);
+        return $response;
     }
 
     /**
-     * Operation updateUserWithHttpInfo
+     * Operation isStaffWithHttpInfo
      *
-     * Creates or updates a user profile
+     * Checks if the given user is a staff of the current edition
      *
-     * @param  int $user_id ID of user to update (required)
-     * @param  \Swagger\Client\Model\User $body The user to update or create (required)
+     * @param  int $user ID of the user to check (required)
      *
      * @throws \Swagger\Client\ApiException on non-2xx response
      * @throws \InvalidArgumentException
-     * @return array of null, HTTP status code, HTTP response headers (array of strings)
+     * @return array of \Swagger\Client\Model\InlineResponse200, HTTP status code, HTTP response headers (array of strings)
      */
-    public function updateUserWithHttpInfo($user_id, $body)
+    public function isStaffWithHttpInfo($user)
     {
-        $returnType = '';
-        $request = $this->updateUserRequest($user_id, $body);
+        $returnType = '\Swagger\Client\Model\InlineResponse200';
+        $request = $this->isStaffRequest($user);
 
         try {
             $options = $this->createHttpClientOption();
@@ -423,29 +417,50 @@ class UserApi
                 );
             }
 
-            return [null, $statusCode, $response->getHeaders()];
+            $responseBody = $response->getBody();
+            if ($returnType === '\SplFileObject') {
+                $content = $responseBody; //stream goes to serializer
+            } else {
+                $content = $responseBody->getContents();
+                if ($returnType !== 'string') {
+                    $content = json_decode($content);
+                }
+            }
+
+            return [
+                ObjectSerializer::deserialize($content, $returnType, []),
+                $response->getStatusCode(),
+                $response->getHeaders()
+            ];
 
         } catch (ApiException $e) {
             switch ($e->getCode()) {
+                case 200:
+                    $data = ObjectSerializer::deserialize(
+                        $e->getResponseBody(),
+                        '\Swagger\Client\Model\InlineResponse200',
+                        $e->getResponseHeaders()
+                    );
+                    $e->setResponseObject($data);
+                    break;
             }
             throw $e;
         }
     }
 
     /**
-     * Operation updateUserAsync
+     * Operation isStaffAsync
      *
-     * Creates or updates a user profile
+     * Checks if the given user is a staff of the current edition
      *
-     * @param  int $user_id ID of user to update (required)
-     * @param  \Swagger\Client\Model\User $body The user to update or create (required)
+     * @param  int $user ID of the user to check (required)
      *
      * @throws \InvalidArgumentException
      * @return \GuzzleHttp\Promise\PromiseInterface
      */
-    public function updateUserAsync($user_id, $body)
+    public function isStaffAsync($user)
     {
-        return $this->updateUserAsyncWithHttpInfo($user_id, $body)
+        return $this->isStaffAsyncWithHttpInfo($user)
             ->then(
                 function ($response) {
                     return $response[0];
@@ -454,26 +469,39 @@ class UserApi
     }
 
     /**
-     * Operation updateUserAsyncWithHttpInfo
+     * Operation isStaffAsyncWithHttpInfo
      *
-     * Creates or updates a user profile
+     * Checks if the given user is a staff of the current edition
      *
-     * @param  int $user_id ID of user to update (required)
-     * @param  \Swagger\Client\Model\User $body The user to update or create (required)
+     * @param  int $user ID of the user to check (required)
      *
      * @throws \InvalidArgumentException
      * @return \GuzzleHttp\Promise\PromiseInterface
      */
-    public function updateUserAsyncWithHttpInfo($user_id, $body)
+    public function isStaffAsyncWithHttpInfo($user)
     {
-        $returnType = '';
-        $request = $this->updateUserRequest($user_id, $body);
+        $returnType = '\Swagger\Client\Model\InlineResponse200';
+        $request = $this->isStaffRequest($user);
 
         return $this->client
             ->sendAsync($request, $this->createHttpClientOption())
             ->then(
                 function ($response) use ($returnType) {
-                    return [null, $response->getStatusCode(), $response->getHeaders()];
+                    $responseBody = $response->getBody();
+                    if ($returnType === '\SplFileObject') {
+                        $content = $responseBody; //stream goes to serializer
+                    } else {
+                        $content = $responseBody->getContents();
+                        if ($returnType !== 'string') {
+                            $content = json_decode($content);
+                        }
+                    }
+
+                    return [
+                        ObjectSerializer::deserialize($content, $returnType, []),
+                        $response->getStatusCode(),
+                        $response->getHeaders()
+                    ];
                 },
                 function ($exception) {
                     $response = $exception->getResponse();
@@ -493,30 +521,23 @@ class UserApi
     }
 
     /**
-     * Create request for operation 'updateUser'
+     * Create request for operation 'isStaff'
      *
-     * @param  int $user_id ID of user to update (required)
-     * @param  \Swagger\Client\Model\User $body The user to update or create (required)
+     * @param  int $user ID of the user to check (required)
      *
      * @throws \InvalidArgumentException
      * @return \GuzzleHttp\Psr7\Request
      */
-    protected function updateUserRequest($user_id, $body)
+    protected function isStaffRequest($user)
     {
-        // verify the required parameter 'user_id' is set
-        if ($user_id === null || (is_array($user_id) && count($user_id) === 0)) {
+        // verify the required parameter 'user' is set
+        if ($user === null || (is_array($user) && count($user) === 0)) {
             throw new \InvalidArgumentException(
-                'Missing the required parameter $user_id when calling updateUser'
-            );
-        }
-        // verify the required parameter 'body' is set
-        if ($body === null || (is_array($body) && count($body) === 0)) {
-            throw new \InvalidArgumentException(
-                'Missing the required parameter $body when calling updateUser'
+                'Missing the required parameter $user when calling isStaff'
             );
         }
 
-        $resourcePath = '/user_profile/{userId}';
+        $resourcePath = '/front/staffs/isStaff/{user}';
         $formParams = [];
         $queryParams = [];
         $headerParams = [];
@@ -525,19 +546,16 @@ class UserApi
 
 
         // path params
-        if ($user_id !== null) {
+        if ($user !== null) {
             $resourcePath = str_replace(
-                '{' . 'userId' . '}',
-                ObjectSerializer::toPathValue($user_id),
+                '{' . 'user' . '}',
+                ObjectSerializer::toPathValue($user),
                 $resourcePath
             );
         }
 
         // body params
         $_tempBody = null;
-        if (isset($body)) {
-            $_tempBody = $body;
-        }
 
         if ($multipart) {
             $headers = $this->headerSelector->selectHeadersForMultipart(
@@ -546,7 +564,7 @@ class UserApi
         } else {
             $headers = $this->headerSelector->selectHeaders(
                 ['application/json'],
-                ['application/json']
+                []
             );
         }
 
@@ -586,11 +604,6 @@ class UserApi
             }
         }
 
-        // this endpoint requires API key authentication
-        $apiKey = $this->config->getApiKeyWithPrefix('Authorization');
-        if ($apiKey !== null) {
-            $headers['Authorization'] = $apiKey;
-        }
 
         $defaultHeaders = [];
         if ($this->config->getUserAgent()) {
@@ -605,7 +618,7 @@ class UserApi
 
         $query = \GuzzleHttp\Psr7\build_query($queryParams);
         return new Request(
-            'PUT',
+            'GET',
             $this->config->getHost() . $resourcePath . ($query ? "?{$query}" : ''),
             $headers,
             $httpBody

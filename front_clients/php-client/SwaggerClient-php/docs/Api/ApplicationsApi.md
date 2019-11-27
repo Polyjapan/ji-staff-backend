@@ -12,7 +12,7 @@ Method | HTTP request | Description
 
 
 # **getApplicationComments**
-> object[] getApplicationComments($form_id, $user_id)
+> \Swagger\Client\Model\InlineResponse2003[] getApplicationComments($form_id, $user_id)
 
 Returns all the public comments made on this application
 
@@ -55,7 +55,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-**object[]**
+[**\Swagger\Client\Model\InlineResponse2003[]**](../Model/InlineResponse2003.md)
 
 ### Authorization
 

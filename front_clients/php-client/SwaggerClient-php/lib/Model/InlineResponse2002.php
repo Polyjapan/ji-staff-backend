@@ -1,6 +1,6 @@
 <?php
 /**
- * ApplicationReply
+ * InlineResponse2002
  *
  * PHP version 5
  *
@@ -33,14 +33,14 @@ use \ArrayAccess;
 use \Swagger\Client\ObjectSerializer;
 
 /**
- * ApplicationReply Class Doc Comment
+ * InlineResponse2002 Class Doc Comment
  *
  * @category Class
  * @package  Swagger\Client
  * @author   Swagger Codegen team
  * @link     https://github.com/swagger-api/swagger-codegen
  */
-class ApplicationReply implements ModelInterface, ArrayAccess
+class InlineResponse2002 implements ModelInterface, ArrayAccess
 {
     const DISCRIMINATOR = null;
 
@@ -49,7 +49,7 @@ class ApplicationReply implements ModelInterface, ArrayAccess
       *
       * @var string
       */
-    protected static $swaggerModelName = 'ApplicationReply';
+    protected static $swaggerModelName = 'inline_response_200_2';
 
     /**
       * Array of property to type mappings. Used for (de)serialization
@@ -57,8 +57,8 @@ class ApplicationReply implements ModelInterface, ArrayAccess
       * @var string[]
       */
     protected static $swaggerTypes = [
-        'field_id' => 'int',
-        'field_value' => 'string'
+        'page' => '\Swagger\Client\Model\FormPage',
+        'fields' => '\Swagger\Client\Model\InlineResponse2002Fields[]'
     ];
 
     /**
@@ -67,8 +67,8 @@ class ApplicationReply implements ModelInterface, ArrayAccess
       * @var string[]
       */
     protected static $swaggerFormats = [
-        'field_id' => 'int32',
-        'field_value' => null
+        'page' => null,
+        'fields' => null
     ];
 
     /**
@@ -98,8 +98,8 @@ class ApplicationReply implements ModelInterface, ArrayAccess
      * @var string[]
      */
     protected static $attributeMap = [
-        'field_id' => 'fieldId',
-        'field_value' => 'fieldValue'
+        'page' => 'page',
+        'fields' => 'fields'
     ];
 
     /**
@@ -108,8 +108,8 @@ class ApplicationReply implements ModelInterface, ArrayAccess
      * @var string[]
      */
     protected static $setters = [
-        'field_id' => 'setFieldId',
-        'field_value' => 'setFieldValue'
+        'page' => 'setPage',
+        'fields' => 'setFields'
     ];
 
     /**
@@ -118,8 +118,8 @@ class ApplicationReply implements ModelInterface, ArrayAccess
      * @var string[]
      */
     protected static $getters = [
-        'field_id' => 'getFieldId',
-        'field_value' => 'getFieldValue'
+        'page' => 'getPage',
+        'fields' => 'getFields'
     ];
 
     /**
@@ -182,8 +182,8 @@ class ApplicationReply implements ModelInterface, ArrayAccess
      */
     public function __construct(array $data = null)
     {
-        $this->container['field_id'] = isset($data['field_id']) ? $data['field_id'] : null;
-        $this->container['field_value'] = isset($data['field_value']) ? $data['field_value'] : null;
+        $this->container['page'] = isset($data['page']) ? $data['page'] : null;
+        $this->container['fields'] = isset($data['fields']) ? $data['fields'] : null;
     }
 
     /**
@@ -211,49 +211,49 @@ class ApplicationReply implements ModelInterface, ArrayAccess
 
 
     /**
-     * Gets field_id
+     * Gets page
      *
-     * @return int
+     * @return \Swagger\Client\Model\FormPage
      */
-    public function getFieldId()
+    public function getPage()
     {
-        return $this->container['field_id'];
+        return $this->container['page'];
     }
 
     /**
-     * Sets field_id
+     * Sets page
      *
-     * @param int $field_id field_id
+     * @param \Swagger\Client\Model\FormPage $page page
      *
      * @return $this
      */
-    public function setFieldId($field_id)
+    public function setPage($page)
     {
-        $this->container['field_id'] = $field_id;
+        $this->container['page'] = $page;
 
         return $this;
     }
 
     /**
-     * Gets field_value
+     * Gets fields
      *
-     * @return string
+     * @return \Swagger\Client\Model\InlineResponse2002Fields[]
      */
-    public function getFieldValue()
+    public function getFields()
     {
-        return $this->container['field_value'];
+        return $this->container['fields'];
     }
 
     /**
-     * Sets field_value
+     * Sets fields
      *
-     * @param string $field_value field_value
+     * @param \Swagger\Client\Model\InlineResponse2002Fields[] $fields fields
      *
      * @return $this
      */
-    public function setFieldValue($field_value)
+    public function setFields($fields)
     {
-        $this->container['field_value'] = $field_value;
+        $this->container['fields'] = $fields;
 
         return $this;
     }

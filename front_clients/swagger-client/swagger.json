@@ -19,6 +19,9 @@
   }, {
     "name" : "user",
     "description" : "Operations about user"
+  }, {
+    "name" : "staffs",
+    "description" : "Operations about staffs"
   } ],
   "schemes" : [ "https" ],
   "paths" : {
@@ -158,6 +161,59 @@
         }
       }
     },
+    "/front/staffs/isStaff/{user}" : {
+      "get" : {
+        "tags" : [ "staffs" ],
+        "summary" : "Checks if the given user is a staff of the current edition",
+        "description" : "",
+        "operationId" : "isStaff",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "user",
+          "in" : "path",
+          "description" : "ID of the user to check",
+          "required" : true,
+          "type" : "integer",
+          "format" : "int32"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/inline_response_200"
+            }
+          }
+        }
+      }
+    },
+    "/front/staffs/staffId/{user}" : {
+      "get" : {
+        "tags" : [ "staffs" ],
+        "summary" : "Returns the staff number of a user for the current edition",
+        "description" : "",
+        "operationId" : "getStaffId",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "user",
+          "in" : "path",
+          "description" : "ID of the user to check",
+          "required" : true,
+          "type" : "integer",
+          "format" : "int32"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "$ref" : "#/definitions/inline_response_200_1"
+            }
+          },
+          "404" : {
+            "description" : "the user is not a staff in the current event"
+          }
+        }
+      }
+    },
     "/forms/{id}" : {
       "get" : {
         "tags" : [ "forms" ],
@@ -243,18 +299,7 @@
           "200" : {
             "description" : "successful operation",
             "schema" : {
-              "type" : "object",
-              "properties" : {
-                "page" : {
-                  "$ref" : "#/definitions/FormPage"
-                },
-                "fields" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/definitions/inline_response_200_fields"
-                  }
-                }
-              }
+              "$ref" : "#/definitions/inline_response_200_2"
             }
           },
           "404" : {
@@ -463,16 +508,7 @@
             "schema" : {
               "type" : "array",
               "items" : {
-                "type" : "object",
-                "properties" : {
-                  "time" : {
-                    "type" : "integer",
-                    "format" : "int64"
-                  },
-                  "comment" : {
-                    "type" : "string"
-                  }
-                }
+                "$ref" : "#/definitions/inline_response_200_3"
               }
             }
           }
@@ -673,7 +709,25 @@
       "type" : "string",
       "enum" : [ "draft", "sent", "accepted", "refused", "requested_changes" ]
     },
-    "inline_response_200_fields" : {
+    "inline_response_200" : {
+      "type" : "object",
+      "properties" : {
+        "is_staff" : {
+          "type" : "boolean"
+        }
+      }
+    },
+    "inline_response_200_1" : {
+      "type" : "object",
+      "properties" : {
+        "staff_id" : {
+          "type" : "integer",
+          "format" : "int32"
+        }
+      }
+    },
+    "inline_response_200_2_fields" : {
+      "type" : "object",
       "properties" : {
         "field" : {
           "$ref" : "#/definitions/FormField"
@@ -686,7 +740,8 @@
         }
       }
     },
-    "inline_response_200" : {
+    "inline_response_200_2" : {
+      "type" : "object",
       "properties" : {
         "page" : {
           "$ref" : "#/definitions/FormPage"
@@ -694,12 +749,13 @@
         "fields" : {
           "type" : "array",
           "items" : {
-            "$ref" : "#/definitions/inline_response_200_fields"
+            "$ref" : "#/definitions/inline_response_200_2_fields"
           }
         }
       }
     },
-    "inline_response_200_1" : {
+    "inline_response_200_3" : {
+      "type" : "object",
       "properties" : {
         "time" : {
           "type" : "integer",

@@ -151,7 +151,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../../README.md#documentation-for-api-endpoints) [[Back to Model list]](../../README.md#documentation-for-models) [[Back to README]](../../README.md)
 
 # **getFormPageByIdAndPosition**
-> \Swagger\Client\Model\InlineResponse200 getFormPageByIdAndPosition($id, $page_num)
+> \Swagger\Client\Model\InlineResponse2002 getFormPageByIdAndPosition($id, $page_num)
 
 Returns a specific page in the form
 
@@ -188,7 +188,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**\Swagger\Client\Model\InlineResponse200**](../Model/InlineResponse200.md)
+[**\Swagger\Client\Model\InlineResponse2002**](../Model/InlineResponse2002.md)
 
 ### Authorization
 
