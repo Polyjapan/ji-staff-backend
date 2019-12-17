@@ -13,7 +13,7 @@ class PartitionsController @Inject()(cc: ControllerComponents, model: Partitions
 
   def getPartitions(project: Int) = Action.async(req => ???).requiresAuthentication
 
-  def getPartitions(project: Int, task: Int) = Action.async(req => ???).requiresAuthentication
+  def getPartitionsForTask(project: Int, task: Int) = Action.async(req => ???).requiresAuthentication
 
   def updatePartition(project: Int, partition: Int) = Action.async(req => ???).requiresAuthentication
 

@@ -25,7 +25,7 @@ package object models {
 
 
   private[models] class ScheduleProjects(tag: Tag) extends Table[ScheduleProject](tag, "schedule_projects") {
-    def id = column[Int]("project_id", O.PrimaryKey)
+    def id = column[Int]("project_id", O.PrimaryKey, O.AutoInc)
 
     def event = column[Int]("event_id")
 
@@ -40,7 +40,7 @@ package object models {
 
 
   private[models] class Tasks(tag: Tag) extends Table[Task](tag, "schedule_tasks") {
-    def id = column[Int]("task_id", O.PrimaryKey)
+    def id = column[Int]("task_id", O.PrimaryKey, O.AutoInc)
 
     def projectId = column[Int]("project_id")
 
@@ -58,7 +58,7 @@ package object models {
   val tasks = TableQuery[Tasks]
 
   private[models] class Capabilities(tag: Tag) extends Table[(Int, String)](tag, "schedule_capabilities") {
-    def id = column[Int]("capability_id", O.PrimaryKey)
+    def id = column[Int]("capability_id", O.PrimaryKey, O.AutoInc)
 
     def name = column[String]("name")
 
@@ -84,17 +84,17 @@ package object models {
   val taskCapabilities = TableQuery[TasksCapabilities]
 
   private[models] abstract class PeriodTable[T](tag: Tag, tblName: String) extends Table[T](tag, tblName) {
-    def day = column[Date]("period_day")
+    def day = column[Date]("day")
 
-    def start = column[Time]("period_start")
+    def start = column[Time]("start")
 
-    def end = column[Time]("period_end")
+    def end = column[Time]("end")
 
     def period = (day, start, end).shaped <> (Period.apply, Period.unapply)
   }
 
-  private[models] class TaskTimePartitions(tag: Tag) extends PeriodTable[TaskTimePartition](tag, "schedule_tasks_partitions") {
-    def id = column[Int]("task_partition_id", O.PrimaryKey)
+  private[models] class TaskTimePartitions(tag: Tag) extends PeriodTable[TaskTimePartition](tag, "schedule_task_partitions") {
+    def id = column[Int]("task_partition_id", O.PrimaryKey, O.AutoInc)
 
     def taskId = column[Int]("task_id")
 
@@ -119,7 +119,7 @@ package object models {
   val taskTimePartitions = TableQuery[TaskTimePartitions]
 
   private[models] class TaskSlots(tag: Tag) extends PeriodTable[TaskSlot](tag, "schedule_tasks_slots") {
-    def id = column[Int]("task_slot_id", O.PrimaryKey)
+    def id = column[Int]("task_slot_id", O.PrimaryKey, O.AutoInc)
 
     def taskId = column[Int]("task_id")
 
@@ -146,7 +146,7 @@ package object models {
   val staffsAssignation = TableQuery[StaffsAssignation]
 
   private[models] abstract class ConstraintTable[T <: ScheduleConstraint](tag: Tag, tblName: String) extends Table[T](tag, tblName) {
-    def constraintId = column[Int]("constraint_id", O.PrimaryKey)
+    def constraintId = column[Int]("constraint_id", O.PrimaryKey, O.AutoInc)
     def projectId = column[Int]("project_id")
 
     def project = foreignKey("projects_fk", projectId, scheduleProjects)(_.id)
@@ -171,7 +171,7 @@ package object models {
   val fixedTaskSlotConstraints = TableQuery[FixedTaskSlotConstraints]
 
   private[models] class UnavailableConstraints(tag: Tag) extends PeriodTable[UnavailableConstraint](tag, "unavailable_constraints") {
-    def constraintId = column[Int]("constraint_id", O.PrimaryKey)
+    def constraintId = column[Int]("constraint_id", O.PrimaryKey, O.AutoInc)
     def projectId = column[Int]("project_id")
     def staffId = column[Int]("staff_id")
 
