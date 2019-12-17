@@ -2,7 +2,7 @@
 
 create table `schedule_projects`
 (
-    `project_id` INTEGER NOT NULL PRIMARY KEY,
+    `project_id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     `event_id` INTEGER NOT NULL,
     `project_title` VARCHAR(100) NOT NULL,
     `max_hours_per_staff` INTEGER NOT NULL,
@@ -12,7 +12,7 @@ create table `schedule_projects`
 
 create table `schedule_tasks`
 (
-    `task_id` INTEGER NOT NULL PRIMARY KEY,
+    `task_id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     `project_id` INTEGER NOT NULL,
     `min_age` INTEGER NOT NULL,
     `min_experience` INTEGER NOT NULL,
@@ -23,7 +23,7 @@ create table `schedule_tasks`
 
 create table `schedule_capabilities`
 (
-    `capability_id` INTEGER NOT NULL PRIMARY KEY,
+    `capability_id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     `name` VARCHAR(100) NOT NULL
 );
 
@@ -39,7 +39,7 @@ create table `task_capabilities`
 
 create table `schedule_task_partitions`
 (
-    `task_partition_id` INTEGER NOT NULL PRIMARY KEY,
+    `task_partition_id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     `task_id` INTEGER NOT NULL,
     `split_in` INTEGER NOT NULL,
     `staffs_required` INTEGER NOT NULL,
@@ -57,7 +57,7 @@ create table `schedule_task_partitions`
 
 create table `schedule_tasks_slots`
 (
-    `task_slot_id` INTEGER NOT NULL PRIMARY KEY,
+    `task_slot_id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     `task_id` INTEGER NOT NULL,
     `staffs_required` INTEGER NOT NULL,
     `day` DATE NOT NULL,
@@ -80,7 +80,7 @@ create table `schedule_staffs_assignation`
 
 create table `fixed_task_constraints`
 (
-    `constraint_id` INTEGER NOT NULL PRIMARY KEY,
+    `constraint_id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     `project_id` INTEGER NOT NULL,
     `staff_id` INTEGER NOT NULL,
     `task_id` INTEGER NOT NULL,
@@ -93,7 +93,7 @@ create table `fixed_task_constraints`
 
 create table `fixed_task_slot_constraints`
 (
-    `constraint_id` INTEGER NOT NULL PRIMARY KEY,
+    `constraint_id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     `project_id` INTEGER NOT NULL,
     `staff_id` INTEGER NOT NULL,
     `task_slot_id` INTEGER NOT NULL,
@@ -105,7 +105,7 @@ create table `fixed_task_slot_constraints`
 
 create table `unavailable_constraints`
 (
-    `constraint_id` INTEGER NOT NULL PRIMARY KEY,
+    `constraint_id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     `project_id` INTEGER NOT NULL,
     `staff_id` INTEGER NOT NULL,
 
@@ -119,7 +119,7 @@ create table `unavailable_constraints`
 
 create table `association_constraints`
 (
-    `constraint_id` INTEGER NOT NULL PRIMARY KEY,
+    `constraint_id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     `project_id` INTEGER NOT NULL,
     `staff_1` INTEGER NOT NULL,
     `staff_2` INTEGER NOT NULL,
