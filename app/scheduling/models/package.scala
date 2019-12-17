@@ -3,6 +3,7 @@ package scheduling
 import java.sql.{Date, Time}
 
 import data.User
+import play.api.libs.json.{Json, OWrites}
 import scheduling.constraints._
 import slick.lifted.Tag
 import slick.jdbc.MySQLProfile.api._
@@ -10,7 +11,9 @@ import slick.ast.BaseTypedType
 import slick.jdbc.{JdbcType, MySQLProfile}
 
 package object models {
-  private[models] case class ScheduleProject(projectId: Option[Int], eventId: Int, projectTitle: String, maxTimePerStaff: Int)
+  case class ScheduleProject(projectId: Option[Int], event: Int, projectTitle: String, maxTimePerStaff: Int)
+
+  implicit val scheduleProjectFormat: OWrites[ScheduleProject] = Json.writes[ScheduleProject]
 
   private[scheduling] case class Task(taskId: Option[Int], projectId: Int, name: String, minAge: Int, minExperience: Int)
 

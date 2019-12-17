@@ -21,6 +21,10 @@ class ProjectsController @Inject()(cc: ControllerComponents, model: ProjectsMode
     model.getProjects(event).map(lst => Ok(Json.toJson(lst)))
   ).requiresAuthentication
 
+  def getAllProjects: Action[AnyContent] = Action.async(_ =>
+    model.getAllProjects.map(lst => Ok(Json.toJson(lst)))
+  ).requiresAuthentication
+
   def createProject(event: Int): Action[CreateProject] = Action.async(bodyParser = parse.json[CreateProject])(req => {
     model.createProject(event, req.body.name, req.body.maxHoursPerStaff)
       .flatMap(projectId => {

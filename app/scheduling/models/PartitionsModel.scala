@@ -14,7 +14,8 @@ class PartitionsModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
   def getPartitions(project: Int): Future[Seq[scheduling.models.TaskTimePartition]] = {
     db.run(tasks.filter(_.projectId === project)
         .join(taskTimePartitions).on(_.id === _.taskId)
+        .map(_._2)
+        .result
     )
-    ???
   }
 }

@@ -17,6 +17,15 @@ class ProjectsModel@Inject()(protected val dbConfigProvider: DatabaseConfigProvi
       .map(list => list.map { case (proj, ev) => scheduling.ScheduleProject(proj.projectId.get, ev, proj.projectTitle, proj.maxTimePerStaff)})
   }
 
+  def getAllProjects: Future[Map[data.Event, Seq[scheduling.models.ScheduleProject]]] = {
+    db.run(scheduleProjects.join(models.events).on(_.event === _.eventId).result)
+      .map(list => list
+        .map { case (proj, ev) => (ev, scheduling.models.ScheduleProject(proj.projectId, ev.eventId.get, proj.projectTitle, proj.maxTimePerStaff)) }
+        .groupBy(_._1)
+        .mapValues(_.map(_._2))
+      )
+  }
+
   def createProject(event: Int, name: String, maxHoursPerStaff: Int): Future[Int] = {
     db.run(scheduleProjects.returning(scheduleProjects.map(_.id)) += ScheduleProject(None, event, name, maxHoursPerStaff))
   }

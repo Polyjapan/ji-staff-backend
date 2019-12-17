@@ -18,8 +18,8 @@ GET                 /front/forms/:id/pages/:page                                
 
 GET                 /front/applications/:id/replies/:user                               controllers.front.ApplicationsController.getReplies(id: Int, user: Int)
 
-GET           /front/staffs/isStaff/:user                                         controllers.front.StaffsController.isStaff(user: Int)
-GET           /front/staffs/staffId/:user                                         controllers.front.StaffsController.getStaffNumber(user: Int)
+GET                 /front/staffs/isStaff/:user                                         controllers.front.StaffsController.isStaff(user: Int)
+GET                 /front/staffs/staffId/:user                                         controllers.front.StaffsController.getStaffNumber(user: Int)
 
 +nocsrf
 POST                /front/applications/:id/replies/:user                               controllers.front.ApplicationsController.postReplies(id: Int, user: Int)
@@ -87,6 +87,7 @@ GET                 /back/staffs/:event.csv                                     
 GET                 /back/staffs/:event                                                 controllers.backoffice.StaffsController.getStaffs(event: Int)
 GET                 /back/users/:user                                                   controllers.backoffice.UsersController.getHistory(user: Int)
 
+GET                 /scheduling/projects                                                scheduling.controllers.ProjectsController.getAllProjects
 GET                 /scheduling/:event/projects                                         scheduling.controllers.ProjectsController.getProjects(event: Int)
 +nocsrf POST        /scheduling/:event/projects                                         scheduling.controllers.ProjectsController.createProject(event: Int)
 
