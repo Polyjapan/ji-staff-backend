@@ -1,6 +1,6 @@
 <?php
 /**
- * ApplicationReply
+ * InlineResponse2002Fields
  *
  * PHP version 5
  *
@@ -33,14 +33,14 @@ use \ArrayAccess;
 use \Swagger\Client\ObjectSerializer;
 
 /**
- * ApplicationReply Class Doc Comment
+ * InlineResponse2002Fields Class Doc Comment
  *
  * @category Class
  * @package  Swagger\Client
  * @author   Swagger Codegen team
  * @link     https://github.com/swagger-api/swagger-codegen
  */
-class ApplicationReply implements ModelInterface, ArrayAccess
+class InlineResponse2002Fields implements ModelInterface, ArrayAccess
 {
     const DISCRIMINATOR = null;
 
@@ -49,7 +49,7 @@ class ApplicationReply implements ModelInterface, ArrayAccess
       *
       * @var string
       */
-    protected static $swaggerModelName = 'ApplicationReply';
+    protected static $swaggerModelName = 'inline_response_200_2_fields';
 
     /**
       * Array of property to type mappings. Used for (de)serialization
@@ -57,8 +57,8 @@ class ApplicationReply implements ModelInterface, ArrayAccess
       * @var string[]
       */
     protected static $swaggerTypes = [
-        'field_id' => 'int',
-        'field_value' => 'string'
+        'field' => '\Swagger\Client\Model\FormField',
+        'additional' => 'string[]'
     ];
 
     /**
@@ -67,8 +67,8 @@ class ApplicationReply implements ModelInterface, ArrayAccess
       * @var string[]
       */
     protected static $swaggerFormats = [
-        'field_id' => 'int32',
-        'field_value' => null
+        'field' => null,
+        'additional' => null
     ];
 
     /**
@@ -98,8 +98,8 @@ class ApplicationReply implements ModelInterface, ArrayAccess
      * @var string[]
      */
     protected static $attributeMap = [
-        'field_id' => 'fieldId',
-        'field_value' => 'fieldValue'
+        'field' => 'field',
+        'additional' => 'additional'
     ];
 
     /**
@@ -108,8 +108,8 @@ class ApplicationReply implements ModelInterface, ArrayAccess
      * @var string[]
      */
     protected static $setters = [
-        'field_id' => 'setFieldId',
-        'field_value' => 'setFieldValue'
+        'field' => 'setField',
+        'additional' => 'setAdditional'
     ];
 
     /**
@@ -118,8 +118,8 @@ class ApplicationReply implements ModelInterface, ArrayAccess
      * @var string[]
      */
     protected static $getters = [
-        'field_id' => 'getFieldId',
-        'field_value' => 'getFieldValue'
+        'field' => 'getField',
+        'additional' => 'getAdditional'
     ];
 
     /**
@@ -182,8 +182,8 @@ class ApplicationReply implements ModelInterface, ArrayAccess
      */
     public function __construct(array $data = null)
     {
-        $this->container['field_id'] = isset($data['field_id']) ? $data['field_id'] : null;
-        $this->container['field_value'] = isset($data['field_value']) ? $data['field_value'] : null;
+        $this->container['field'] = isset($data['field']) ? $data['field'] : null;
+        $this->container['additional'] = isset($data['additional']) ? $data['additional'] : null;
     }
 
     /**
@@ -211,49 +211,49 @@ class ApplicationReply implements ModelInterface, ArrayAccess
 
 
     /**
-     * Gets field_id
+     * Gets field
      *
-     * @return int
+     * @return \Swagger\Client\Model\FormField
      */
-    public function getFieldId()
+    public function getField()
     {
-        return $this->container['field_id'];
+        return $this->container['field'];
     }
 
     /**
-     * Sets field_id
+     * Sets field
      *
-     * @param int $field_id field_id
+     * @param \Swagger\Client\Model\FormField $field field
      *
      * @return $this
      */
-    public function setFieldId($field_id)
+    public function setField($field)
     {
-        $this->container['field_id'] = $field_id;
+        $this->container['field'] = $field;
 
         return $this;
     }
 
     /**
-     * Gets field_value
+     * Gets additional
      *
-     * @return string
+     * @return string[]
      */
-    public function getFieldValue()
+    public function getAdditional()
     {
-        return $this->container['field_value'];
+        return $this->container['additional'];
     }
 
     /**
-     * Sets field_value
+     * Sets additional
      *
-     * @param string $field_value field_value
+     * @param string[] $additional additional
      *
      * @return $this
      */
-    public function setFieldValue($field_value)
+    public function setAdditional($additional)
     {
-        $this->container['field_value'] = $field_value;
+        $this->container['additional'] = $additional;
 
         return $this;
     }

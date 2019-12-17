@@ -97,6 +97,8 @@ Class | Method | HTTP request | Description
 *FormsApi* | [**getFormById**](docs/Api/FormsApi.md#getformbyid) | **GET** /forms/{id} | Returns the requested form, regardless of whether the edition is active or not
 *FormsApi* | [**getFormPageByIdAndPosition**](docs/Api/FormsApi.md#getformpagebyidandposition) | **GET** /forms/{id}/pages/{pageNum} | Returns a specific page in the form
 *FormsApi* | [**getFormPagesById**](docs/Api/FormsApi.md#getformpagesbyid) | **GET** /forms/{id}/pages | Returns the list of pages of a given form
+*StaffsApi* | [**getStaffId**](docs/Api/StaffsApi.md#getstaffid) | **GET** /staffs/staffId/{user} | Returns the staff number of a user for the current edition
+*StaffsApi* | [**isStaff**](docs/Api/StaffsApi.md#isstaff) | **GET** /staffs/isStaff/{user} | Checks if the given user is a staff of the current edition
 *UserApi* | [**getUser**](docs/Api/UserApi.md#getuser) | **GET** /user_profile/{userId} | Returns a user profile
 *UserApi* | [**updateUser**](docs/Api/UserApi.md#updateuser) | **PUT** /user_profile/{userId} | Creates or updates a user profile
 
@@ -111,7 +113,9 @@ Class | Method | HTTP request | Description
  - [FormPage](docs/Model/FormPage.md)
  - [InlineResponse200](docs/Model/InlineResponse200.md)
  - [InlineResponse2001](docs/Model/InlineResponse2001.md)
- - [InlineResponse200Fields](docs/Model/InlineResponse200Fields.md)
+ - [InlineResponse2002](docs/Model/InlineResponse2002.md)
+ - [InlineResponse2002Fields](docs/Model/InlineResponse2002Fields.md)
+ - [InlineResponse2003](docs/Model/InlineResponse2003.md)
  - [User](docs/Model/User.md)
 
 

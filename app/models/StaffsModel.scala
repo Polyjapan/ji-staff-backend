@@ -13,7 +13,7 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
  * @author Louis Vialar
  */
-class StaffsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext) extends HasDatabaseConfigProvider[MySQLProfile] {
+class StaffsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, editions: EditionsModel)(implicit ec: ExecutionContext) extends HasDatabaseConfigProvider[MySQLProfile] {
 
   import profile.api._
 
@@ -89,6 +89,13 @@ class StaffsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
   def getStaffId(event: Int, user: Int): Future[Option[Int]] =
     db.run(staffs.filter(line => line.eventId === event && line.userId === user).map(_.staffNumber).result.headOption)
 
+
+  def getStaffIdForCurrentEvent(user: Int): Future[Option[Int]] =
+    db.run(editions.activeEvents.result.headOption)
+      .flatMap {
+        case Some(event) => getStaffId(event.eventId.get, user)
+        case None => Future.successful(None)
+      }
 
   def getStaffings(user: Int): Future[Seq[StaffingHistory]] =
     db.run(staffs.filter(line => line.userId === user)

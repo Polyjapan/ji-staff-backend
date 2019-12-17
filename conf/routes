@@ -17,6 +17,10 @@ GET                 /front/forms/:id/pages                                      
 GET                 /front/forms/:id/pages/:page                                        controllers.front.FormsController.getPage(id: Int, page: Int)
 
 GET                 /front/applications/:id/replies/:user                               controllers.front.ApplicationsController.getReplies(id: Int, user: Int)
+
+GET           /front/staffs/isStaff/:user                                         controllers.front.StaffsController.isStaff(user: Int)
+GET           /front/staffs/staffId/:user                                         controllers.front.StaffsController.getStaffNumber(user: Int)
+
 +nocsrf
 POST                /front/applications/:id/replies/:user                               controllers.front.ApplicationsController.postReplies(id: Int, user: Int)
 

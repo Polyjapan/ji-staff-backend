@@ -1,6 +1,6 @@
 <?php
 /**
- * ApplicationReply
+ * InlineResponse2003
  *
  * PHP version 5
  *
@@ -33,14 +33,14 @@ use \ArrayAccess;
 use \Swagger\Client\ObjectSerializer;
 
 /**
- * ApplicationReply Class Doc Comment
+ * InlineResponse2003 Class Doc Comment
  *
  * @category Class
  * @package  Swagger\Client
  * @author   Swagger Codegen team
  * @link     https://github.com/swagger-api/swagger-codegen
  */
-class ApplicationReply implements ModelInterface, ArrayAccess
+class InlineResponse2003 implements ModelInterface, ArrayAccess
 {
     const DISCRIMINATOR = null;
 
@@ -49,7 +49,7 @@ class ApplicationReply implements ModelInterface, ArrayAccess
       *
       * @var string
       */
-    protected static $swaggerModelName = 'ApplicationReply';
+    protected static $swaggerModelName = 'inline_response_200_3';
 
     /**
       * Array of property to type mappings. Used for (de)serialization
@@ -57,8 +57,8 @@ class ApplicationReply implements ModelInterface, ArrayAccess
       * @var string[]
       */
     protected static $swaggerTypes = [
-        'field_id' => 'int',
-        'field_value' => 'string'
+        'time' => 'int',
+        'comment' => 'string'
     ];
 
     /**
@@ -67,8 +67,8 @@ class ApplicationReply implements ModelInterface, ArrayAccess
       * @var string[]
       */
     protected static $swaggerFormats = [
-        'field_id' => 'int32',
-        'field_value' => null
+        'time' => 'int64',
+        'comment' => null
     ];
 
     /**
@@ -98,8 +98,8 @@ class ApplicationReply implements ModelInterface, ArrayAccess
      * @var string[]
      */
     protected static $attributeMap = [
-        'field_id' => 'fieldId',
-        'field_value' => 'fieldValue'
+        'time' => 'time',
+        'comment' => 'comment'
     ];
 
     /**
@@ -108,8 +108,8 @@ class ApplicationReply implements ModelInterface, ArrayAccess
      * @var string[]
      */
     protected static $setters = [
-        'field_id' => 'setFieldId',
-        'field_value' => 'setFieldValue'
+        'time' => 'setTime',
+        'comment' => 'setComment'
     ];
 
     /**
@@ -118,8 +118,8 @@ class ApplicationReply implements ModelInterface, ArrayAccess
      * @var string[]
      */
     protected static $getters = [
-        'field_id' => 'getFieldId',
-        'field_value' => 'getFieldValue'
+        'time' => 'getTime',
+        'comment' => 'getComment'
     ];
 
     /**
@@ -182,8 +182,8 @@ class ApplicationReply implements ModelInterface, ArrayAccess
      */
     public function __construct(array $data = null)
     {
-        $this->container['field_id'] = isset($data['field_id']) ? $data['field_id'] : null;
-        $this->container['field_value'] = isset($data['field_value']) ? $data['field_value'] : null;
+        $this->container['time'] = isset($data['time']) ? $data['time'] : null;
+        $this->container['comment'] = isset($data['comment']) ? $data['comment'] : null;
     }
 
     /**
@@ -211,49 +211,49 @@ class ApplicationReply implements ModelInterface, ArrayAccess
 
 
     /**
-     * Gets field_id
+     * Gets time
      *
      * @return int
      */
-    public function getFieldId()
+    public function getTime()
     {
-        return $this->container['field_id'];
+        return $this->container['time'];
     }
 
     /**
-     * Sets field_id
+     * Sets time
      *
-     * @param int $field_id field_id
+     * @param int $time time
      *
      * @return $this
      */
-    public function setFieldId($field_id)
+    public function setTime($time)
     {
-        $this->container['field_id'] = $field_id;
+        $this->container['time'] = $time;
 
         return $this;
     }
 
     /**
-     * Gets field_value
+     * Gets comment
      *
      * @return string
      */
-    public function getFieldValue()
+    public function getComment()
     {
-        return $this->container['field_value'];
+        return $this->container['comment'];
     }
 
     /**
-     * Sets field_value
+     * Sets comment
      *
-     * @param string $field_value field_value
+     * @param string $comment comment
      *
      * @return $this
      */
-    public function setFieldValue($field_value)
+    public function setComment($comment)
     {
-        $this->container['field_value'] = $field_value;
+        $this->container['comment'] = $comment;
 
         return $this;
     }
