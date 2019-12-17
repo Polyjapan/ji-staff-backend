@@ -23,6 +23,15 @@ class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
     )
   }
 
+  def getTimePartitionsForTask(taskId: Int): Future[Seq[TaskTimePartition]] = {
+    db.run(
+        tasks.filter(task => task.id === taskId)
+        .join(taskTimePartitions).on { case (task, ttp) => ttp.taskId === task.id }
+        .map { case (task, ttp) => ttp }
+        .result
+    )
+  }
+
   def pushSchedule(list: List[scheduling.StaffAssignation]): Future[_] = {
     db.run(staffsAssignation ++= list.map(a => StaffAssignation(a.taskSlot.id, a.user.user.userId)))
   }
@@ -32,11 +41,23 @@ class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
    * @param project the project on which the operation should be done
    * @return
    */
-  def buildSlots(project: Int) = {
-    getTimePartitions(project).flatMap {
+  def buildSlotsForProject(project: Int) = {
+    buildSlots(getTimePartitions(project))
+  }
+
+  def buildSlotsForTask(task: Int) = {
+    buildSlots(getTimePartitionsForTask(task))
+  }
+
+  private def buildSlots(slots: Future[Seq[TaskTimePartition]]) = {
+    slots.flatMap {
       tasks => {
+        val taskIds = tasks.map(part => part.task).toSet
+
         if (tasks.isEmpty) Future.successful(false)
-        else db.run(taskSlots ++= tasks.flatMap(_.produceSlots)).map(_ => true)
+        else db.run(
+          taskSlots.filter(_.taskId.inSet(taskIds)).delete andThen
+            (taskSlots ++= tasks.flatMap(_.produceSlots)).map(_ => true))
       }
     }
   }

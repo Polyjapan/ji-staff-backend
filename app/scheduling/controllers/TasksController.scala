@@ -33,12 +33,12 @@ class TasksController @Inject()(cc: ControllerComponents, model: SchedulingModel
     tasks.updateTask(task, req.body.difficulties).map(r => Ok)
   }).requiresAuthentication
 
-  def getTaskSlots(project: Int) = Action.async(req => {
-    tasks.getTaskSlots(project).map(r => Ok(Json.toJson(r)))
+  def getTaskSlots(project: Int, task: Int) = Action.async(req => {
+    tasks.getTaskSlots(project, task).map(r => Ok(Json.toJson(r)))
   }).requiresAuthentication
 
-  def generateSlots(project: Int) = Action.async(body => {
-    model.buildSlots(project).map {
+  def generateSlots(project: Int, task: Int) = Action.async(body => {
+    model.buildSlotsForProject(task).map {
       case true => Ok
       case false => NotFound
     }

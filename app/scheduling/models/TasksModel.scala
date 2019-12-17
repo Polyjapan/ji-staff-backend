@@ -47,8 +47,8 @@ class TasksModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
    * @param project
    * @return
    */
-  def getTaskSlots(project: Int): Future[Seq[scheduling.TaskSlot]] = {
-    db.run(tasks.filter(_.projectId === project)
+  def getTaskSlots(project: Int, taskId: Int): Future[Seq[scheduling.TaskSlot]] = {
+    db.run(tasks.filter(task => task.id === taskId && task.projectId === project)
       .join(taskSlots).on(_.id === _.taskId)
       .result)
       .map(list => list.map {

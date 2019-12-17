@@ -18,7 +18,7 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
    * @return
    */
   def buildSlots(project: Int): Future[_] = {
-    schedulingModel.buildSlots(project)
+    schedulingModel.buildSlotsForProject(project)
   }
 
   def buildSchedule(project: Int): Future[_] = {
@@ -43,7 +43,7 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
       for (staff <- staffs) {
         // Staffs cannot work more than max
         val sum = Add(slots.map(slot => Var(StaffAssignation(slot, staff).toString) * slot.timeSlot.duration))
-        add(sum < project.maxTimePerStaff)
+        add(sum < project.maxTimePerStaff * 3600)
 
         // Staffs cannot work on tasks that are "too difficult" for them
         slots

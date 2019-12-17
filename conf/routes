@@ -92,27 +92,36 @@ GET                 /scheduling/:event/projects                                 
 +nocsrf
 POST                /scheduling/:event/projects                                         scheduling.controllers.ProjectsController.createProject(event: Int)
 
+
+
 GET                 /scheduling/capabilities                                            scheduling.controllers.CapabilitiesController.getCapabilities
 +nocsrf
 POST                /scheduling/capabilities                                            scheduling.controllers.CapabilitiesController.createCapability
+
+
+#-- Tasks
 
 GET                 /scheduling/projects/:project/tasks                                 scheduling.controllers.TasksController.getTasks(project: Int)
 +nocsrf
 POST                /scheduling/projects/:project/tasks                                 scheduling.controllers.TasksController.createTask(project: Int)
 +nocsrf
 PUT                 /scheduling/projects/:project/tasks/:id                             scheduling.controllers.TasksController.updateTask(project: Int, id: Int)
-GET                 /scheduling/projects/:project/tasks/slots                           scheduling.controllers.TasksController.getTaskSlots(project: Int)
-+nocsrf
-POST                /scheduling/projects/:project/tasks/slots/generate                  scheduling.controllers.TasksController.generateSlots(project: Int)
 
-GET                 /scheduling/projects/:project/tasks/partitions                      scheduling.controllers.PartitionsController.getPartitions(project: Int)
+#-- Tasks partitions
+
+GET                 /scheduling/projects/:project/tasks/:task/partitions                  scheduling.controllers.PartitionsController.getPartitionsForTask(project: Int, task: Int)
 +nocsrf
-POST                /scheduling/projects/:project/tasks/partitions                      scheduling.controllers.PartitionsController.createPartition(project: Int)
+POST                /scheduling/projects/:project/tasks/:task/partitions                  scheduling.controllers.PartitionsController.createPartitionForTask(project: Int, task: Int)
 +nocsrf
-POST                /scheduling/projects/:project/tasks/:task/partitions                scheduling.controllers.PartitionsController.getPartitionsForTask(project: Int, task: Int)
-GET                 /scheduling/projects/:project/tasks/partitions/:id                  scheduling.controllers.PartitionsController.getPartition(project: Int, id: Int)
+GET                 /scheduling/projects/:project/tasks/:task/partitions/:id            scheduling.controllers.PartitionsController.getPartition(project: Int, task: Int, id: Int)
 +nocsrf
-PUT                 /scheduling/projects/:project/tasks/partitions/:id                  scheduling.controllers.PartitionsController.updatePartition(project: Int, id: Int)
+PUT                 /scheduling/projects/:project/tasks/:task/partitions/:id            scheduling.controllers.PartitionsController.updatePartition(project: Int, task: Int, id: Int)
+
+#-- Tasks partitions slots
+
+GET                 /scheduling/projects/:project/tasks/:task/slots                       scheduling.controllers.TasksController.getTaskSlots(project: Int, task: Int)
++nocsrf
+POST                /scheduling/projects/:project/tasks/:task/slots/generate              scheduling.controllers.TasksController.generateSlots(project: Int, task: Int)
 
 
 GET                 /scheduling/projects/:project/constraints                           scheduling.controllers.ConstraintsController.getConstraints(project: Int)
