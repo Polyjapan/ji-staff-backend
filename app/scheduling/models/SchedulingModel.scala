@@ -8,45 +8,23 @@ import slick.jdbc.MySQLProfile
 import scala.collection.immutable
 import scala.concurrent.{ExecutionContext, Future}
 
-class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext)
+class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, val partitions: PartitionsModel)(implicit ec: ExecutionContext)
   extends HasDatabaseConfigProvider[MySQLProfile] {
 
 
   import profile.api._
 
-  def getTimePartitions(project: Int): Future[Seq[TaskTimePartition]] = {
-    db.run(
-        tasks.filter(task => task.projectId === project)
-        .join(taskTimePartitions).on { case (task, ttp) => ttp.taskId === task.id }
-        .map { case (task, ttp) => ttp }
-        .result
-    )
-  }
-
-  def getTimePartitionsForTask(taskId: Int): Future[Seq[TaskTimePartition]] = {
-    db.run(
-        tasks.filter(task => task.id === taskId)
-        .join(taskTimePartitions).on { case (task, ttp) => ttp.taskId === task.id }
-        .map { case (task, ttp) => ttp }
-        .result
-    )
-  }
-
   def pushSchedule(list: List[scheduling.StaffAssignation]): Future[_] = {
     db.run(staffsAssignation ++= list.map(a => StaffAssignation(a.taskSlot.id, a.user.user.userId)))
   }
 
-  /**
-   * This will take all the [[TaskTimePartition]] objects, produce the associated [[TaskSlot]], and push them to the database
-   * @param project the project on which the operation should be done
-   * @return
-   */
-  def buildSlotsForProject(project: Int) = {
-    buildSlots(getTimePartitions(project))
+  def buildSlotsForTask(project: Int, task: Int) = {
+    buildSlots(partitions.getPartitionsForTask(project, task))
   }
 
-  def buildSlotsForTask(task: Int) = {
-    buildSlots(getTimePartitionsForTask(task))
+  // Used when building the schedule, to ensure everything is generated correctly
+  def buildSlotsForProject(project: Int) = {
+    buildSlots(partitions.getPartitions(project))
   }
 
   private def buildSlots(slots: Future[Seq[TaskTimePartition]]) = {
@@ -85,8 +63,8 @@ class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
               lines.groupBy(_._1).map { case ((slot, task), caps) =>
                 scheduling.TaskSlot(slot.taskSlotId.get,
                   scheduling.Task(
-                    task.taskId.get,
-                    scheduling.ScheduleProject(project.projectId.get, event, project.projectTitle, project.maxTimePerStaff),
+                    task.taskId,
+                    task.projectId,
                     task.name, task.minAge, task.minExperience, caps.map(_._2).toList
                   ), slot.staffsRequired, slot.timeSlot
                 )

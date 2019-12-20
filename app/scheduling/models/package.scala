@@ -7,8 +7,6 @@ import play.api.libs.json.{Json, OWrites}
 import scheduling.constraints._
 import slick.lifted.Tag
 import slick.jdbc.MySQLProfile.api._
-import slick.ast.BaseTypedType
-import slick.jdbc.{JdbcType, MySQLProfile}
 
 package object models {
   case class ScheduleProject(projectId: Option[Int], event: Int, projectTitle: String, maxTimePerStaff: Int)
@@ -17,9 +15,11 @@ package object models {
 
   private[scheduling] case class Task(taskId: Option[Int], projectId: Int, name: String, minAge: Int, minExperience: Int)
 
-  private[models] case class TaskSlot(taskSlotId: Option[Int], taskId: Int, staffsRequired: Int, timeSlot: Period) {
+  case class TaskSlot(taskSlotId: Option[Int], taskId: Int, staffsRequired: Int, timeSlot: Period) {
     def assign(staff: User) = StaffAssignation(taskSlotId.get, staff.userId)
   }
+
+  implicit val taskSlotFormat: OWrites[TaskSlot] = Json.writes[TaskSlot]
 
   private[models] case class StaffAssignation(taskSlot: Int, user: Int)
 
@@ -90,6 +90,8 @@ package object models {
 
     def end = column[Time]("end")
 
+    def periodOrdering = (day, start, end)
+
     def period = (day, start, end).shaped <> (Period.apply, Period.unapply)
   }
 
@@ -101,19 +103,9 @@ package object models {
     def splitIn = column[Int]("split_in")
     def staffsRequired = column[Int]("staffs_required")
 
-    def allowAlternate = column[Boolean]("allow_alternate")
+    def doAlternate = column[Boolean]("alternate_shifts")
 
-    def firstStartsLater = column[Boolean]("first_starts_later")
-
-    def firstEndsEarlier = column[Boolean]("first_ends_earlier")
-
-    def lastEndsEarlier = column[Boolean]("last_ends_earlier")
-
-    def lastEndsLater = column[Boolean]("last_ends_later")
-
-    def task = foreignKey("task", taskId, tasks)(_.id, onDelete = ForeignKeyAction.Cascade)
-
-    def * = (id.?, taskId, staffsRequired, splitIn, period, allowAlternate, firstStartsLater, firstEndsEarlier, lastEndsEarlier, lastEndsLater).shaped.<>(TaskTimePartition.tupled, TaskTimePartition.unapply)
+    def * = (id.?, taskId, staffsRequired, splitIn, period, doAlternate).shaped.<>(TaskTimePartition.tupled, TaskTimePartition.unapply)
   }
 
   val taskTimePartitions = TableQuery[TaskTimePartitions]

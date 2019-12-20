@@ -46,11 +46,7 @@ create table `schedule_task_partitions`
     `day` DATE NOT NULL,
     `start` TIME NOT NULL,
     `end` TIME NOT NULL,
-    `allow_alternate` BOOLEAN,
-    `first_starts_later` BOOLEAN,
-    `first_ends_earlier` BOOLEAN,
-    `last_ends_earlier` BOOLEAN,
-    `last_ends_later` BOOLEAN,
+    `alternate_shifts` BOOLEAN,
 
     FOREIGN KEY (`task_id`) REFERENCES `schedule_tasks` (`task_id`) ON DELETE CASCADE
 );

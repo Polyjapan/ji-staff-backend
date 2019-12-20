@@ -13,7 +13,7 @@ package object constraints {
   case class FixedTaskConstraint(projectId: Int, staffId: Int, taskId: Int) extends ScheduleConstraint {
     override def computeConstraint(variables: Map[Var, StaffAssignation]): Iterable[Constraint] = {
       // Block other tasks
-      variables.filter { case (_, StaffAssignation(slot, user)) => slot.task.id != taskId && user.user.userId == staffId }.map(_._1 === 0)
+      variables.filter { case (_, StaffAssignation(slot, user)) => slot.task.id.get != taskId && user.user.userId == staffId }.map(_._1 === 0)
     }
   }
 

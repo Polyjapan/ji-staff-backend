@@ -17,18 +17,25 @@ class TasksController @Inject()(cc: ControllerComponents, model: SchedulingModel
     tasks.getTasks(project).map(res => Ok(Json.toJson(res)))
   }).requiresAuthentication
 
-  case class CreateUpdateTask(name: String, minAge: Int, minExperience: Int, difficulties: List[Int])
+  def getTask(project: Int, task: Int) = Action.async(req => {
+    tasks.getTask(project, task).map {
+      case Some(res) => Ok(Json.toJson(res))
+      case None => NotFound
+    }
+  }).requiresAuthentication
+
+  case class CreateUpdateTask(name: String, minAge: Option[Int], minExperience: Option[Int], difficulties: List[Int])
 
   implicit val taskReads: Reads[CreateUpdateTask] = Json.reads[CreateUpdateTask]
 
   def createTask(project: Int): Action[CreateUpdateTask] = Action.async(parse.json[CreateUpdateTask])(req => {
-    val task = scheduling.models.Task(None, project, req.body.name, req.body.minAge, req.body.minExperience)
+    val task = scheduling.models.Task(None, project, req.body.name, req.body.minAge.getOrElse(0), req.body.minExperience.getOrElse(0))
 
     tasks.createTask(task, req.body.difficulties).map(r => Ok(Json.toJson(r)))
   }).requiresAuthentication
 
   def updateTask(project: Int, taskId: Int): Action[CreateUpdateTask] = Action.async(parse.json[CreateUpdateTask])(req => {
-    val task = scheduling.models.Task(Some(taskId), project, req.body.name, req.body.minAge, req.body.minExperience)
+    val task = scheduling.models.Task(Some(taskId), project, req.body.name, req.body.minAge.getOrElse(0), req.body.minExperience.getOrElse(0))
 
     tasks.updateTask(task, req.body.difficulties).map(r => Ok)
   }).requiresAuthentication
@@ -38,7 +45,7 @@ class TasksController @Inject()(cc: ControllerComponents, model: SchedulingModel
   }).requiresAuthentication
 
   def generateSlots(project: Int, task: Int) = Action.async(body => {
-    model.buildSlotsForProject(task).map {
+    model.buildSlotsForTask(project, task).map {
       case true => Ok
       case false => NotFound
     }

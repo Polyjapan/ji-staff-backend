@@ -1,4 +1,6 @@
 import java.sql.{Date, Time, Timestamp}
+import java.text.SimpleDateFormat
+import java.time.Instant
 import java.time.temporal.{ChronoField, TemporalField}
 import java.util.{Calendar, GregorianCalendar}
 
@@ -12,6 +14,8 @@ import utils.EnumUtils
  * @author Louis Vialar
  */
 package object data {
+  val AngularDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+  val TimeFormat = new SimpleDateFormat("HH:mm")
 
   case class User(userId: Int, birthDate: Date) {
     def ageAt(date: Date): Int = {
@@ -44,8 +48,33 @@ package object data {
     }
 
     override def reads(json: JsValue): JsResult[Date] = json match {
-      case JsString(str) => JsSuccess(Date.valueOf(str))
+      case JsString(str) => try {
+        JsSuccess(Date.valueOf(str))
+      } catch {
+        case _ =>
+          val time = AngularDateFormat.parse(str).getTime
+          JsSuccess(new Date(time))
+      }
       case _ => JsError("invalid type")
+    }
+  }
+
+  implicit val timeFormat: Format[Time] = new Format[Time] {
+    override def writes(o: Time): JsValue = {
+      JsString(TimeFormat.format(o))
+    }
+
+    private val pattern = raw"([0-9]{1,2}):([0-9]{1,2})".r
+
+    override def reads(json: JsValue): JsResult[Time] = json match {
+      case JsString(str) =>
+        val timeString = if (str.count(_ == ':') >= 2) str else str + ":00"
+        try {
+          JsSuccess(Time.valueOf(timeString))
+        } catch {
+          case e: Exception => JsError(e.getMessage)
+        }
+      case _ => JsError("invalid type");
     }
   }
 

@@ -11,18 +11,31 @@ class TasksModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
 
   import profile.api._
 
-  def getTasks(project: Int): Future[Seq[scheduling.Task]] = {
-    db.run(tasks.filter(_.projectId === project)
-      .join(taskCapabilities).on(_.id === _.taskId)
-      .join(capabilities).on(_._2.capabilityId === _.id)
-      .map { case ((task, _), cap) => (task, cap.name) }
+  private val capsJoin = taskCapabilities.join(capabilities).on(_.capabilityId === _.id)
+
+  private def getTaskWithFilter(predicate: Tasks => Rep[Boolean]): Future[Seq[scheduling.Task]] = {
+    db.run(tasks
+      .filter(predicate)
+      .joinLeft(capsJoin).on(_.id === _._1.taskId)
       .result)
       .map(list =>
         list
+          .map {
+            case (task, Some((_, cap))) => (task, Some(cap._2))
+            case (task, None) => (task, None)
+          }
           .groupBy(_._1).mapValues(_.map(_._2))
-          .map { case (task, caps) => scheduling.Task(task.taskId.get, null, task.name, task.minAge, task.minExperience, caps.toList) }
-        .toSeq
+          .map { case (task, caps) => scheduling.Task(task.taskId, task.projectId, task.name, task.minAge, task.minExperience, caps.flatten.toList) }
+          .toSeq
       )
+  }
+
+  def getTasks(project: Int): Future[Seq[scheduling.Task]] = {
+    this.getTaskWithFilter(_.projectId === project)
+  }
+
+  def getTask(project: Int, task: Int): Future[Option[scheduling.Task]] = {
+    this.getTaskWithFilter(t => t.projectId === project && t.id === task).map(seq => seq.headOption)
   }
 
   def createTask(task: Task, capabilities: Seq[Int]): Future[Int] = {
@@ -47,13 +60,17 @@ class TasksModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
    * @param project
    * @return
    */
-  def getTaskSlots(project: Int, taskId: Int): Future[Seq[scheduling.TaskSlot]] = {
+  def getCompleteTaskSlots(project: Int, taskId: Int): Future[Seq[scheduling.TaskSlot]] = {
     db.run(tasks.filter(task => task.id === taskId && task.projectId === project)
       .join(taskSlots).on(_.id === _.taskId)
       .result)
       .map(list => list.map {
         case (task, slot) =>
-          scheduling.TaskSlot(slot.taskSlotId.get, scheduling.Task(task.taskId.get, null, task.name, task.minAge, task.minExperience, Nil), slot.staffsRequired, slot.timeSlot)
+          scheduling.TaskSlot(slot.taskSlotId.get, scheduling.Task(task.taskId, task.projectId, task.name, task.minAge, task.minExperience, Nil), slot.staffsRequired, slot.timeSlot)
       })
   }
+
+  def getTaskSlots(project: Int, taskId: Int): Future[Seq[scheduling.models.TaskSlot]] =
+    db.run(taskSlots.filter(_.taskId === taskId).sortBy(slot => (slot.day, slot.start, slot.end)).result)
+
 }

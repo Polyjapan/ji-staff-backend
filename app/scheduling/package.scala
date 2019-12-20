@@ -1,6 +1,9 @@
 import java.sql.{Date, Time}
+import java.time.LocalTime
+import java.time.temporal.ChronoField
 
-import play.api.libs.json.{Json, OFormat, OWrites}
+import play.api.libs.json.{Format, Json, OFormat, OWrites}
+import scheduling.models.TaskTimePartition
 
 package object scheduling {
   import data._
@@ -10,10 +13,10 @@ package object scheduling {
   implicit val scheduleProjectFormat: OWrites[ScheduleProject] = Json.writes[ScheduleProject]
 
   case class Period(day: Date, start: Time, end: Time) {
-    private def timeToSeconds(t: Time) = t.getTime.toInt // t.toInstant.get(ChronoField.SECOND_OF_DAY)
+    private def timeToMinutes(t: Time) = t.toLocalTime.get(ChronoField.MINUTE_OF_DAY) // t.toInstant.get(ChronoField.SECOND_OF_DAY)
 
-    lazy val timeStart: Int = timeToSeconds(start)
-    lazy val timeEnd: Int = timeToSeconds(end)
+    lazy val timeStart: Int = timeToMinutes(start)
+    lazy val timeEnd: Int = timeToMinutes(end)
 
     lazy val dayToString: String = day.toString
 
@@ -33,7 +36,10 @@ package object scheduling {
 
   object Period {
     def apply(day: Date, start: Int, end: Int): Period = {
-      Period(day, new Time(start * 1000), new Time(end * 1000))
+      val startTime = Time.valueOf(LocalTime.of(start / 60, start % 60))
+      val endTime = Time.valueOf(LocalTime.of(end / 60, end % 60))
+
+      Period(day, startTime, endTime)
     }
 
     def apply(tuple: (Date, Time, Time)): Period = {
@@ -42,12 +48,12 @@ package object scheduling {
     }
   }
 
-  implicit val periodFormat: OWrites[Period] = Json.writes[Period]
+  implicit val periodFormat: Format[Period] = Json.format[Period]
 
 
-  case class Task(id: Int, project: ScheduleProject, name: String, minAge: Int, minExperience: Int, difficulties: List[String])
+  case class Task(id: Option[Int], projectId: Int, name: String, minAge: Int, minExperience: Int, difficulties: List[String])
 
-  implicit val taskFormat: OWrites[Task] = Json.writes[Task]
+  implicit val taskFormat: OFormat[Task] = Json.format[Task]
 
   case class TaskSlot(id: Int, task: Task, staffsRequired: Int, timeSlot: Period) {
     def assign(staff: Staff) = StaffAssignation(this, staff)
@@ -58,5 +64,7 @@ package object scheduling {
   case class StaffAssignation(taskSlot: TaskSlot, user: Staff)
 
   case class Staff(user: User, capabilities: List[String], experience: Int, age: Int)
+
+  implicit val taskTimePartitionFormat: OFormat[TaskTimePartition] = Json.format[TaskTimePartition]
 
 }

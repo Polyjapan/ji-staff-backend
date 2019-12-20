@@ -11,16 +11,6 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec: ExecutionContext) {
 
-
-  /**
-   * This will take all the [[TaskTimePartition]] objects, produce the associated [[TaskSlot]], and push them to the database
-   * @param project the project on which the operation should be done
-   * @return
-   */
-  def buildSlots(project: Int): Future[_] = {
-    schedulingModel.buildSlotsForProject(project)
-  }
-
   def buildSchedule(project: Int): Future[_] = {
     schedulingModel.getScheduleData(project).map {
       case (proj, staffs, slots, constraints) => computePlanification(proj, staffs, slots, constraints)
@@ -43,7 +33,7 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
       for (staff <- staffs) {
         // Staffs cannot work more than max
         val sum = Add(slots.map(slot => Var(StaffAssignation(slot, staff).toString) * slot.timeSlot.duration))
-        add(sum < project.maxTimePerStaff * 3600)
+        add(sum < project.maxTimePerStaff * 60)
 
         // Staffs cannot work on tasks that are "too difficult" for them
         slots
