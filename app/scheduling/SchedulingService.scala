@@ -1,89 +1,191 @@
 package scheduling
 
 import javax.inject.{Inject, Singleton}
-import jp.kobe_u.copris._
-import jp.kobe_u.copris.dsl._
-import scheduling.constraints.ScheduleConstraint
-import scheduling.models.{SchedulingModel, TaskSlot, TaskTimePartition, taskSlots}
+import scheduling.constraints._
+import scheduling.models.SchedulingModel
 
+import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec: ExecutionContext) {
 
-  def buildSchedule(project: Int): Future[_] = {
-    schedulingModel.getScheduleData(project).map {
-      case (proj, staffs, slots, constraints) => computePlanification(proj, staffs, slots, constraints)
-    }.flatMap { case (list, _) => schedulingModel.pushSchedule(list)}
+  def buildSchedule(project: Int): Future[SchedulingResult] = {
+    // 1st regen all slots
+    schedulingModel.buildSlotsForProject(project).flatMap { _ =>
+
+      // 2nd get data
+      schedulingModel.getScheduleData(project).map {
+        case (proj, staffs, slots, constraints) =>
+          println("Generating planning for " + slots.size + " slots and " + staffs.size + " staffs")
+          computePlanification(proj, staffs, slots, constraints)
+      }.flatMap { case (list, result) => {
+        println("DONE computing schedule, generated " + list.size + " assignations")
+        schedulingModel.pushSchedule(list).map(_ => result)
+      }
+      }
+    }
   }
 
-  implicit def assignationAsVariable(assignation: StaffAssignation): Var = Var(assignation.taskSlot.id + "-by-" + assignation.user.user.userId)
 
-  private def computePlanification(project: ScheduleProject, staffs: Seq[scheduling.Staff], slots: Iterable[scheduling.TaskSlot], constraints: Seq[ScheduleConstraint]): (List[StaffAssignation], Int) = {
-    def planify(allowRecomputation: Boolean = true, recomputation: Int = 0): (List[StaffAssignation], Int) = {
-      init
+  private def computePlanification(project: ScheduleProject, staffs: Seq[scheduling.Staff], slots: Iterable[scheduling.TaskSlot], constraintsSeq: Seq[ScheduleConstraint]): (List[StaffAssignation], SchedulingResult) = {
+    implicit val periodsOrdering: Ordering[Period] = (x, y) => {
+      if (x.day == y.day) {
+        if (x.timeStart != y.timeStart) x.timeStart - y.timeStart
+        else x.timeEnd - y.timeEnd
+      } else (x.day.getTime - y.day.getTime).toInt
+    }
 
-      // Create variables
-      val assignations = staffs.flatMap(staff => slots.map(slot => StaffAssignation(slot, staff)))
-      val variables = (assignations.map(ass => boolInt(Var(ass.toString))) zip assignations).toMap
+    implicit val slotsOrdering: Ordering[TaskSlot] = (x, y) => {
+      val a = periodsOrdering.compare(x.timeSlot, y.timeSlot)
+      if (a == 0) x.id - y.id else a
+    }
 
-      val constraintsApplied = constraints.flatMap(c => c.computeConstraint(variables))
-      add(constraintsApplied: _*)
+    val (preConstraints, constraints) = constraintsSeq.partition(_.isInstanceOf[PreProcessConstraint]) match {
+      case (pre, con) => pre.map(_.asInstanceOf[PreProcessConstraint]) -> con.map(_.asInstanceOf[ProcessConstraint])
+    }
 
-      for (staff <- staffs) {
-        // Staffs cannot work more than max
-        val sum = Add(slots.map(slot => Var(StaffAssignation(slot, staff).toString) * slot.timeSlot.duration))
-        add(sum < project.maxTimePerStaff * 60)
+    // Create variables
+    // Algorithm by Tony Clavien
+    val toAttribute = mutable.SortedSet[TaskSlot]()
+    toAttribute ++= slots
 
-        // Staffs cannot work on tasks that are "too difficult" for them
-        slots
-          .filter(slot => slot.task.difficulties.nonEmpty)
-          .filter(slot => slot.task.difficulties.exists(diff => !staff.capabilities.contains(diff)))
-          .foreach(slot => add(slot.assign(staff) === 0))
+    val notAttributed = mutable.Set[TaskSlot]() // Slots for which no-one was found
+
+    val attributions = mutable.Map[TaskSlot, mutable.HashSet[Staff]]()
+
+    /**
+     * Get all the attributed tasks for a given staff
+     */
+    def attributionsFor(staff: Staff): Iterable[TaskSlot] = attributions.filter(_._2.contains(staff)).keys
+
+    /**
+     * Count the total time done by a staff
+     */
+    def countTime(staff: Staff): Int = attributionsFor(staff).map(_.timeSlot.duration).sum
+
+    implicit val staffsOrdering: Ordering[Staff] = (x, y) => {
+      val a = countTime(x) - countTime(y)
+      if (a == 0) x.user.userId - y.user.userId else a
+    }
+
+    var staffsToAttribute = staffs.sorted.toList
+
+    /**
+     * Give a task to a staff
+     */
+    def attribute(slot: TaskSlot, staff: Staff): Boolean = {
+      if (!attributions.contains(slot)) {
+        attributions.put(slot, mutable.HashSet())
       }
 
-      for (slot <- slots) {
-        // Each task has required number of staffs
-        val sum = Add(staffs.map(staff => Var(StaffAssignation(slot, staff).toString)))
+      attributions(slot) += staff
+      staffsToAttribute = staffsToAttribute.sorted // re-sort the list
+      attributions(slot).size >= slot.staffsRequired
+    }
 
-        if (!allowRecomputation || recomputation == 0)
-          add(sum === slot.staffsRequired)
-        else if (recomputation == 1)
-          add(And(sum > 0, sum <= slot.staffsRequired))
-        else add(sum <= slot.staffsRequired)
 
-        // Each task only has qualified staffs
-        staffs.foreach(staff => {
-          if (staff.experience < slot.task.minExperience || staff.age < slot.task.minAge)
-            add(slot.assign(staff) === 0)
-        })
+    /**
+     * Check if a staff is already busy during a given slot
+     */
+    def checkBusy(staff: Staff, slot: TaskSlot): Boolean = {
+      attributionsFor(staff).map(_.timeSlot).exists(period => period.isOverlapping(slot.timeSlot))
+    }
 
-        // Staffs cannot work twice at the same time
-        for (slot2 <- slots if slot2 != slot && slot.timeSlot.day == slot2.timeSlot.day) {
-          // Both at the same time
-          val s1 = slot.timeSlot
-          val s2 = slot2.timeSlot
+    /**
+     * Check if a given staff is able (has required experience, age and abilities) to do a task
+     */
+    def isAble(staff: Staff, slot: TaskSlot): Boolean = {
+      staff.experience >= slot.task.minExperience &&
+        staff.age >= slot.task.minAge &&
+        slot.task.difficulties.forall(diff => staff.capabilities.contains(diff))
+    }
 
-          if (s1.isOverlapping(s2)) {
-            staffs.foreach(staff =>
-              add( // no slot | slot 1 | slot 2 | both slots
-                Not( // staff doesn't work on both slots (1 | 1 | 1 | 0)
-                  And( // staff works on both slots (0 | 0 | 0 | 1)
-                    slot.assign(staff) === 1, // staff works on slot 1
-                    slot2.assign(staff) === 1) // staff works on slot 2
-                )))
+
+    // Pre-attributed slots
+    val staffsMap = staffs.map(s => (s.user.userId -> s)).toMap
+    val slotsMap = slots.map(s => (s.id -> s)).toMap
+    preConstraints.foreach {
+      case FixedTaskConstraint(_, staffId, taskId) =>
+      // TODO
+      case FixedTaskSlotConstraint(_, staffId, slotId) =>
+        val staff = staffsMap(staffId)
+        val slot = slotsMap(slotId)
+
+        if (attribute(slot, staff)) {
+          toAttribute - slot
+        }
+
+      case _ =>
+    }
+
+
+    /**
+     * Logique d'attribution :
+     * Tant que il y a des slots à attribuer
+     * et tant qu'on a pas trouvé de staff qui lui conviennent
+     * on récupère le staff suivant selon leur nombre d'heure
+     * on vérifie que les contraintes sont respectées pour ces 2 élément
+     * si ça marche on attribue
+     * // sinon on passe au staff suivant
+     * Si on arrive au bout et qu'on a pas trouvé de staff qui satisfassent les contraintes
+     * on l'ajoute au slot non attribué
+     * On passe au slot suivant
+     */
+    toAttribute.foreach(slot => {
+      var nextStaff = staffsToAttribute.headOption
+      var rest = staffsToAttribute.tail
+      var attributed = 0
+
+      println("Attributing " + slot)
+
+      while (attributed < slot.staffsRequired && nextStaff.isDefined) {
+        val staff = nextStaff.get
+        val constr = constraints.filter(c => c.appliesTo(staff, slot))
+          .map(c => c.offerAssignation(staff, staffs, slot, attributions.toMap.mapValues(_.toSet)))
+
+        if (!constr.exists(_.isEmpty)) {
+          val staffs = constr.foldLeft(Set(staff))(_ union _)
+
+          if (staffs.forall(staff => isAble(staff, slot) && !checkBusy(staff, slot))) {
+
+            staffs.foreach(staff => {
+              attribute(slot, staff)
+              println(s"PLANNER:: Attribute slot ${slot.id} (${slot.task}) to staff ${staff.user.userId} " +
+                s"(${attributed + 1}/${slot.staffsRequired})")
+            })
+            attributed += staffs.size
           }
+        }
+
+        nextStaff = rest.headOption
+
+        if (rest.nonEmpty) {
+          rest = rest.tail
         }
       }
 
-      println(s"Project $project - Solving following constraints for computation $recomputation:")
-      show
+      if (attributed < slot.staffsRequired) {
+        notAttributed + slot
+        println(s"PLANNER:: Cannot attribute slot ${slot.id} (${slot.task}). Only $attributed staffs found out of ${slot.staffsRequired}.")
+      }
+    })
 
-      if (find) solution.intValues.filter(p => p._2 > 0).map(p => variables(p._1)).toList -> recomputation
-      else if (allowRecomputation && recomputation < 2) planify(allowRecomputation, recomputation + 1)._1 -> recomputation
-      else List.empty[StaffAssignation] -> recomputation
-    }
+    // Compute stats
+    val stats = attributions.toList.flatMap { case (slot, staffs) => staffs.map(staff => staff -> slot) }.groupBy(_._1)
+      .mapValues(_.map(_._2.timeSlot.duration.toDouble / 60D).sum)
+      .values
 
-    planify()
+    val sum = stats.sum
+    val cnt = stats.size
+    val avg = sum.toDouble / cnt
+    val variance = stats.map(x => math.pow(x - avg, 2)).sum / cnt
+    val std = Math.sqrt(variance)
+
+
+    attributions.flatMap {
+      case (slot, set) => set.toList.map(staff => StaffAssignation(slot, staff))
+    }.toList -> SchedulingResult(notAttributed.toList, avg, std)
+
   }
 }

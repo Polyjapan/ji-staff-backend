@@ -4,31 +4,40 @@ import java.sql.Date
 
 package object constraints {
 
-  import jp.kobe_u.copris._
+  trait ScheduleConstraint
 
-  trait ScheduleConstraint {
-    def computeConstraint(variables: Map[Var, StaffAssignation]): Iterable[Constraint]
+  trait PreProcessConstraint extends ScheduleConstraint
+
+  trait ProcessConstraint extends ScheduleConstraint {
+    def appliesTo(staff: Staff, task: TaskSlot): Boolean
+
+    def offerAssignation(offeredStaff: Staff, otherStaffs: Iterable[Staff], task: TaskSlot, assignations: Map[TaskSlot, Set[Staff]]): Set[Staff]
   }
 
-  case class FixedTaskConstraint(projectId: Int, staffId: Int, taskId: Int) extends ScheduleConstraint {
-    override def computeConstraint(variables: Map[Var, StaffAssignation]): Iterable[Constraint] = {
-      // Block other tasks
-      variables.filter { case (_, StaffAssignation(slot, user)) => slot.task.id.get != taskId && user.user.userId == staffId }.map(_._1 === 0)
+  trait ResolutionConstraint extends ProcessConstraint {
+    override def offerAssignation(offeredStaff: Staff, otherStaffs: Iterable[Staff], task: TaskSlot, assignations: Map[TaskSlot, Set[Staff]]): Set[Staff] = {
+      if (isAssignationValid(offeredStaff, task, assignations)) Set(offeredStaff)
+      else Set.empty
     }
+
+    def isAssignationValid(staff: Staff, task: TaskSlot, assignations: Map[TaskSlot, Set[Staff]]): Boolean
   }
 
-  case class FixedTaskSlotConstraint(projectId: Int, staffId: Int, slotId: Int) extends ScheduleConstraint {
-    override def computeConstraint(variables: Map[Var, StaffAssignation]): Iterable[Constraint] = {
-      variables filter { case (_, StaffAssignation(slot, user)) => slot.id == slotId && user.user.userId == staffId } map (_._1 === 1)
-    }
+  case class FixedTaskConstraint(projectId: Int, staffId: Int, taskId: Int) extends PreProcessConstraint
+
+  case class BannedTaskConstraint(projectId: Int, staffId: Int, taskId: Int) extends ResolutionConstraint {
+    override def isAssignationValid(staff: Staff, task: TaskSlot, assignations: Map[TaskSlot, Set[Staff]]): Boolean = appliesTo(staff, task)
+
+    override def appliesTo(staff: Staff, task: TaskSlot): Boolean = staff.user.userId == staffId && task.task.id.get == taskId
   }
 
+  case class FixedTaskSlotConstraint(projectId: Int, staffId: Int, slotId: Int) extends PreProcessConstraint
 
-  case class UnavailableConstraint(projectId: Int, staffId: Int, period: Period) extends ScheduleConstraint {
-    override def computeConstraint(variables: Map[Var, StaffAssignation]): Iterable[Constraint] = {
-      variables.filter(p => p._2.user.user.userId == staffId && p._2.taskSlot.timeSlot.isOverlapping(period))
-        .map(_._1 === 0) // These variables must be set to 0 (unavailability slot)
-    }
+  case class UnavailableConstraint(projectId: Int, staffId: Int, period: Period) extends ResolutionConstraint {
+    override def isAssignationValid(staff: Staff, task: TaskSlot, assignations: Map[TaskSlot, Set[Staff]]): Boolean =
+      appliesTo(staff, task)
+
+    override def appliesTo(staff: Staff, task: TaskSlot): Boolean = staffId == staff.user.userId && task.timeSlot.isOverlapping(period)
   }
   /**
    *
@@ -37,29 +46,25 @@ package object constraints {
    * @param staff2
    * @param together if true, the constraint will put the staffs together - otherwise, it will ensure they are never together
    */
-  case class AssociationConstraint(projectId: Int, staff1: Int, staff2: Int, together: Boolean) extends ScheduleConstraint {
-    override def computeConstraint(variables: Map[Var, StaffAssignation]): Iterable[Constraint] = {
-      variables
-        .groupBy(_._2.taskSlot) // for each taskslot
-        .filter(_._1.staffsRequired >= 2) // lone tasks we don't care
-        .flatMap(pair => {
-          // Values are maps [var <> staff assignation] for the task
-          val vars = pair._2.filter(p => {
-            val staff = p._2.user.user.userId
-            staff == staff1 || staff == staff2
-          }).keys.toList // Keep only vars related to the two staffs
+  case class AssociationConstraint(projectId: Int, staff1: Int, staff2: Int, together: Boolean) extends ProcessConstraint {
+    override def appliesTo(staff: Staff, slot: TaskSlot): Boolean = staff.user.userId == staff1 || staff.user.userId == staff2
 
-          if (vars.size < 2) None
-          else if (together) Some(And(vars.head === 1, vars(1) === 1))
-          else {
-            Some(
-              Not( // not both work on same task
-                And( // both work on same task
-                  vars.head === 1, // staff 1 works
-                  vars(1) === 1) // staff 2 works
-              ))
-          }
-        })
+    override def offerAssignation(offeredStaff: Staff, otherStaffs: Iterable[Staff], task: TaskSlot, assignations: Map[TaskSlot, Set[Staff]]): Set[Staff] = {
+      val staffId = if (offeredStaff.user.userId == staff1) staff2 else staff1
+      val other = otherStaffs.find(s => s.user.userId == staffId)
+
+      if (other.isEmpty) Set(offeredStaff)
+      else if (together) Set(offeredStaff, other.get)
+      else {
+        // Avoid them to be together
+        val overlappingSlots = assignations
+          .filterKeys(k => k.task == task.task && k.timeSlot.isOverlapping(task.timeSlot))
+          .flatMap(_._2)
+          .toSet
+
+        if (overlappingSlots.contains(other.get)) Set() // other already is in the shift
+        else Set(offeredStaff)
+      }
     }
   }
 

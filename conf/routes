@@ -126,9 +126,12 @@ POST                /scheduling/projects/:project/tasks/:task/slots/generate    
 
 
 GET                 /scheduling/projects/:project/constraints                           scheduling.controllers.ConstraintsController.getConstraints(project: Int)
-+nocsrf POST        /scheduling/projects/:project/constraints                           scheduling.controllers.ConstraintsController.createConstraint(project: Int)
++nocsrf
+POST        /scheduling/projects/:project/constraints                           scheduling.controllers.ConstraintsController.createConstraint(project: Int)
 
-GET                 /scheduling/projects/:project/schedule                              scheduling.controllers.ScheduleController.getSchedule(project: Int)
-+nocsrf POST        /scheduling/projects/:project/schedule/generate                     scheduling.controllers.ScheduleController.generateSchedule(project: Int)
+GET                 /scheduling/projects/:project/schedule/byStaff                              scheduling.controllers.ScheduleController.getScheduleByStaff(project: Int)
+GET                 /scheduling/projects/:project/schedule/byTask                              scheduling.controllers.ScheduleController.getScheduleByTask(project: Int)
++nocsrf
+POST        /scheduling/projects/:project/schedule/generate                     scheduling.controllers.ScheduleController.generateSchedule(project: Int)
 
 # Endpoints to update the schedule! (assignations, slots, ...)

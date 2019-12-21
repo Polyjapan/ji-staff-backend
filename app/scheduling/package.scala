@@ -3,7 +3,7 @@ import java.time.LocalTime
 import java.time.temporal.ChronoField
 
 import play.api.libs.json.{Format, Json, OFormat, OWrites}
-import scheduling.models.TaskTimePartition
+import scheduling.models.{TaskSlot, TaskTimePartition}
 
 package object scheduling {
   import data._
@@ -11,6 +11,10 @@ package object scheduling {
   case class ScheduleProject(id: Int, event: Event, projectTitle: String, maxTimePerStaff: Int)
 
   implicit val scheduleProjectFormat: OWrites[ScheduleProject] = Json.writes[ScheduleProject]
+
+  case class SchedulingResult(notFullSlots: List[TaskSlot], averageHoursPerStaff: Double, stdHoursPerStaff: Double)
+
+  implicit val schedulingResultFormat: OWrites[SchedulingResult] = Json.writes[SchedulingResult]
 
   case class Period(day: Date, start: Time, end: Time) {
     private def timeToMinutes(t: Time) = t.toLocalTime.get(ChronoField.MINUTE_OF_DAY) // t.toInstant.get(ChronoField.SECOND_OF_DAY)
@@ -66,5 +70,13 @@ package object scheduling {
   case class Staff(user: User, capabilities: List[String], experience: Int, age: Int)
 
   implicit val taskTimePartitionFormat: OFormat[TaskTimePartition] = Json.format[TaskTimePartition]
+
+  case class ScheduleLine[LType](slot: models.TaskSlot, line: LType)
+
+  case class ScheduleColumn[CType, LType](header: CType, content: List[ScheduleLine[LType]])
+
+  case class ScheduleDay[CType, LType](day: java.sql.Date, startTime: Int, endTime: Int, schedule: List[ScheduleColumn[CType, LType]])
+
+  case class StaffData(staffNumber: Int, staffName: String)
 
 }
