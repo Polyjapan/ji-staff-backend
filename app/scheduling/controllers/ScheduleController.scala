@@ -28,8 +28,13 @@ class ScheduleController @Inject()(cc: ControllerComponents, model: SchedulingMo
   // Map[Staff, List[TaskSlot with Task]]
   def getScheduleByStaff(project: Int) =
     Action.async(req => model.getScheduleByStaff(project).map(res => {
-      println(Json.toJson(res.head.schedule.head.content.head))
       Ok(Json.toJson(res.toList))
+    }))//.requiresAuthentication
+
+  // Map[Staff, List[TaskSlot with Task]]
+  def getScheduleByStaffHtml(project: Int) =
+    Action.async(req => model.getScheduleByStaff(project).map(res => {
+      Ok(views.html.schedule.schedule(res.toList))
     }))//.requiresAuthentication
 
   // Map[Task, List[TaskSlot with Staff]]
@@ -39,8 +44,15 @@ class ScheduleController @Inject()(cc: ControllerComponents, model: SchedulingMo
       Ok(Json.toJson(res.toList))
     }))//.requiresAuthentication
 
+  // Map[Task, List[TaskSlot with Staff]]
+  def getScheduleByTaskHtml(project: Int) =
+    Action.async(req => model.getScheduleByTasks(project).map(res => {
+      // TODO: fix template!
+      Ok(views.html.schedule.scheduleByTask(res.toList))
+    }))//.requiresAuthentication
+
 
   def generateSchedule(project: Int) = Action.async(req => {
     service.buildSchedule(project).map(res => Ok(Json.toJson(res)))
-  })//.requiresAuthentication
+  })
 }

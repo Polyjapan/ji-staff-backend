@@ -23,8 +23,6 @@ package object constraints {
     def isAssignationValid(staff: Staff, task: TaskSlot, assignations: Map[TaskSlot, Set[Staff]]): Boolean
   }
 
-  case class FixedTaskConstraint(projectId: Int, staffId: Int, taskId: Int) extends PreProcessConstraint
-
   case class BannedTaskConstraint(projectId: Int, staffId: Int, taskId: Int) extends ResolutionConstraint {
     override def isAssignationValid(staff: Staff, task: TaskSlot, assignations: Map[TaskSlot, Set[Staff]]): Boolean = appliesTo(staff, task)
 

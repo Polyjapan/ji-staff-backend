@@ -1,18 +1,18 @@
 @import scheduling._
 @import java.sql.Date
-@(data: List[ScheduleDay[StaffData, String]])
+@(data: List[ScheduleDay[String, StaffData]])
 
-@generateStaffs(data: List[ScheduleColumn[StaffData, String]]) = @{
-    "['" + data.map(_.header).map(h => h.staffNumber + " " + h.staffName).mkString("','") + "']"
+@generateStaffs(data: List[ScheduleColumn[String, StaffData]]) = @{
+    "['" + data.map(_.header).mkString("','") + "']"
 }
 
-@generateEvent(tag: String, day: Date, data: ScheduleLine[String]) = @{
+@generateEvent(tag: String, day: Date, data: ScheduleLine[StaffData]) = @{
     val instant = day.toLocalDate
     val date = List(instant.getYear, instant.getMonthValue, instant.getDayOfMonth)
     val start = (date ++ List(data.slot.timeSlot.timeStart / 60,data.slot.timeSlot.timeStart % 60)).mkString(",")
     val end = (date ++ List(data.slot.timeSlot.timeEnd / 60,data.slot.timeSlot.timeEnd % 60)).mkString(",")
 
-    "timetable.addEvent('" + data.line + "', '" + tag + "', new Date(" + start + "), new Date(" + end + "));"
+    "timetable.addEvent('" + data.line.staffNumber + " " + data.line.staffName + "', '" + tag + "', new Date(" + start + "), new Date(" + end + "));"
 }
 
 <!doctype html>
@@ -40,10 +40,10 @@
 
 
                 @for(col <- day.schedule) {
-                    @defining(col.header.staffNumber + " " + col.header.staffName) { fullName =>
+
                         @for(line <- col.content) {
-                        @Html(generateEvent(fullName, day.day, line))}
-                    }
+                        @Html(generateEvent(col.header, day.day, line))}
+
                 }
                         var renderer = new Timetable.Renderer(timetable);
                     renderer.draw('#timetable-@day.day');

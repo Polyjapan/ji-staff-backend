@@ -74,7 +74,7 @@ create table `schedule_staffs_assignation`
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
-create table `fixed_task_constraints`
+create table `banned_task_constraints`
 (
     `constraint_id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     `project_id` INTEGER NOT NULL,
@@ -131,7 +131,7 @@ create table `association_constraints`
 
 drop table association_constraints;
 drop table unavailable_constraints;
-drop table fixed_task_constraints;
+drop table banned_task_constraints;
 drop table fixed_task_slot_constraints;
 drop table schedule_staffs_assignation;
 drop table schedule_tasks_slots;

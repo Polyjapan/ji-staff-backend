@@ -47,9 +47,6 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
 
     // Create variables
     // Algorithm by Tony Clavien
-    val toAttribute = mutable.SortedSet[TaskSlot]()
-    toAttribute ++= slots
-
     val notAttributed = mutable.Set[TaskSlot]() // Slots for which no-one was found
 
     val attributions = mutable.Map[TaskSlot, mutable.HashSet[Staff]]()
@@ -62,7 +59,7 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
     /**
      * Count the total time done by a staff
      */
-    def countTime(staff: Staff): Int = attributionsFor(staff).map(_.timeSlot.duration).sum
+    def countTime(staff: Staff): Int = attributionsFor(staff).toList.map(_.timeSlot.duration).sum
 
     implicit val staffsOrdering: Ordering[Staff] = (x, y) => {
       val a = countTime(x) - countTime(y)
@@ -80,7 +77,12 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
       }
 
       attributions(slot) += staff
+      val prev = staffsToAttribute.map(staff => staff -> countTime(staff)).takeRight(20) .mkString(", ")
       staffsToAttribute = staffsToAttribute.sorted // re-sort the list
+      val next = staffsToAttribute.map(staff => staff -> countTime(staff)).takeRight(20).mkString(", ")
+
+      println(prev)
+      println(next)
       attributions(slot).size >= slot.staffsRequired
     }
 
@@ -102,23 +104,24 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
     }
 
 
+    var slotsAttributed = Set[TaskSlot]()
     // Pre-attributed slots
     val staffsMap = staffs.map(s => (s.user.userId -> s)).toMap
     val slotsMap = slots.map(s => (s.id -> s)).toMap
     preConstraints.foreach {
-      case FixedTaskConstraint(_, staffId, taskId) =>
-      // TODO
       case FixedTaskSlotConstraint(_, staffId, slotId) =>
         val staff = staffsMap(staffId)
         val slot = slotsMap(slotId)
 
         if (attribute(slot, staff)) {
-          toAttribute - slot
+          slotsAttributed = slotsAttributed + slot
         }
 
       case _ =>
     }
 
+
+    val toAttribute = slots.filter(slot => !slotsAttributed(slot)).toList.sorted
 
     /**
      * Logique d'attribution :
@@ -126,7 +129,7 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
      * et tant qu'on a pas trouvé de staff qui lui conviennent
      * on récupère le staff suivant selon leur nombre d'heure
      * on vérifie que les contraintes sont respectées pour ces 2 élément
-     * si ça marche on attribue
+     * si ça marche on attribueslot ::
      * // sinon on passe au staff suivant
      * Si on arrive au bout et qu'on a pas trouvé de staff qui satisfassent les contraintes
      * on l'ajoute au slot non attribué
@@ -182,6 +185,11 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
     val variance = stats.map(x => math.pow(x - avg, 2)).sum / cnt
     val std = Math.sqrt(variance)
 
+    val max = stats.max
+    val min = stats.min
+
+    println("max hours: " + max)
+    println("min hours: " + min)
 
     attributions.flatMap {
       case (slot, set) => set.toList.map(staff => StaffAssignation(slot, staff))

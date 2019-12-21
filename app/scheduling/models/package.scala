@@ -4,7 +4,7 @@ import java.sql.{Date, Time}
 
 import data.User
 import play.api.libs.json.{Json, OWrites}
-import scheduling.constraints._
+import scheduling.constraints.{BannedTaskConstraint, _}
 import slick.lifted.Tag
 import slick.jdbc.MySQLProfile.api._
 
@@ -144,14 +144,14 @@ package object models {
     def project = foreignKey("projects_fk", projectId, scheduleProjects)(_.id)
   }
 
-  private[models] class FixedTaskConstraints(tag: Tag) extends ConstraintTable[FixedTaskConstraint](tag, "fixed_task_constraints") {
+  private[models] class BannedTaskConstraints(tag: Tag) extends ConstraintTable[BannedTaskConstraint](tag, "banned_task_constraints") {
     def staffId = column[Int]("staff_id")
     def taskId = column[Int]("task_id")
 
-    def * = (projectId, staffId, taskId).shaped <> (FixedTaskConstraint.tupled, FixedTaskConstraint.unapply)
+    def * = (projectId, staffId, taskId).shaped <> (BannedTaskConstraint.tupled, BannedTaskConstraint.unapply)
   }
 
-  val fixedTaskConstraints = TableQuery[FixedTaskConstraints]
+  val bannedTaskConstraints = TableQuery[BannedTaskConstraints]
 
   private[models] class FixedTaskSlotConstraints(tag: Tag) extends ConstraintTable[FixedTaskSlotConstraint](tag, "fixed_task_slot_constraints") {
     def staffId = column[Int]("staff_id")

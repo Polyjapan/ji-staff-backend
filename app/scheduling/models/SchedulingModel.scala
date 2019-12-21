@@ -56,7 +56,7 @@ class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
             val times = seq.map(_._1.timeSlot)
             (
               times.map(_.timeStart).min,
-              times.map(_.timeEnd).min,
+              times.map(_.timeEnd).max,
               seq
             )
           })
@@ -148,9 +148,9 @@ class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
 
             val constraints =
               associationConstraints.filter(_.projectId === projectId).result flatMap { asso =>
-                fixedTaskConstraints.filter(_.projectId === projectId).result flatMap { ftc =>
+                bannedTaskConstraints.filter(_.projectId === projectId).result flatMap { btc =>
                   fixedTaskSlotConstraints.filter(_.projectId === projectId).result flatMap { ftsc =>
-                    unavailableConstraints.filter(_.projectId === projectId).result map { uc => asso ++ ftc ++ ftsc ++ uc }
+                    unavailableConstraints.filter(_.projectId === projectId).result map { uc => asso ++ btc ++ ftsc ++ uc }
                   }
                 }
               }

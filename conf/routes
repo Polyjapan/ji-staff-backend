@@ -3,135 +3,138 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-GET                 /front/user_profile/:user                                           controllers.front.UserProfileController.getProfile(user: Int)
+GET           /front/user_profile/:user                                           controllers.front.UserProfileController.getProfile(user: Int)
 +nocsrf
-PUT                 /front/user_profile/:user                                           controllers.front.UserProfileController.updateProfile(user: Int)
+PUT           /front/user_profile/:user                                           controllers.front.UserProfileController.updateProfile(user: Int)
 
-GET                 /front/edition                                                      controllers.front.EditionController.getEdition
+GET           /front/edition                                                      controllers.front.EditionController.getEdition
 
 
-GET                 /front/forms                                                        controllers.front.FormsController.getForms
-GET                 /front/forms/main_form                                              controllers.front.FormsController.getMainForm
-GET                 /front/forms/:id                                                    controllers.front.FormsController.getForm(id: Int)
-GET                 /front/forms/:id/pages                                              controllers.front.FormsController.getPages(id: Int)
-GET                 /front/forms/:id/pages/:page                                        controllers.front.FormsController.getPage(id: Int, page: Int)
+GET           /front/forms                                                        controllers.front.FormsController.getForms
+GET           /front/forms/main_form                                              controllers.front.FormsController.getMainForm
+GET           /front/forms/:id                                                    controllers.front.FormsController.getForm(id: Int)
+GET           /front/forms/:id/pages                                              controllers.front.FormsController.getPages(id: Int)
+GET           /front/forms/:id/pages/:page                                        controllers.front.FormsController.getPage(id: Int, page: Int)
 
-GET                 /front/applications/:id/replies/:user                               controllers.front.ApplicationsController.getReplies(id: Int, user: Int)
+GET           /front/applications/:id/replies/:user                               controllers.front.ApplicationsController.getReplies(id: Int, user: Int)
 
-GET                 /front/staffs/isStaff/:user                                         controllers.front.StaffsController.isStaff(user: Int)
-GET                 /front/staffs/staffId/:user                                         controllers.front.StaffsController.getStaffNumber(user: Int)
-
-+nocsrf
-POST                /front/applications/:id/replies/:user                               controllers.front.ApplicationsController.postReplies(id: Int, user: Int)
-
-GET                 /front/applications/:id/state/:user                                 controllers.front.ApplicationsController.getState(id: Int, user: Int)
-+nocsrf
-PUT                 /front/applications/:id/state/:user                                 controllers.front.ApplicationsController.setState(id: Int, user: Int)
-
-GET                 /front/applications/:id/comments/:user                              controllers.front.ApplicationsController.getPublicComments(id: Int, user: Int)
-
-GET                 /back/login/:ticket                                                 controllers.backoffice.LoginController.login(ticket: String)
-
-GET                 /back/editions                                                      controllers.backoffice.EditionController.getEditions
-+nocsrf
-POST                /back/editions                                                      controllers.backoffice.EditionController.createEdition
-+nocsrf
-PUT                 /back/editions/:id                                                  controllers.backoffice.EditionController.updateEdition(id: Int)
-+nocsrf
-PUT                 /back/editions/:id/active                                           controllers.backoffice.EditionController.updateActiveStatus(id: Int)
-+nocsrf
-PUT                 /back/editions/:id/mainForm                                         controllers.backoffice.EditionController.updateMainForm(id: Int)
-GET                 /back/stats/:id                                                     controllers.backoffice.EditionController.getStats(id: Int)
-GET                 /back/editions/:id                                                  controllers.backoffice.EditionController.getEdition(id: Int)
-
-GET                 /back/editions/:id/forms                                            controllers.backoffice.FormsController.getForms(id: Int)
+GET           /front/staffs/isStaff/:user                                         controllers.front.StaffsController.isStaff(user: Int)
+GET           /front/staffs/staffId/:user                                         controllers.front.StaffsController.getStaffNumber(user: Int)
 
 +nocsrf
-POST                /back/forms                                                         controllers.backoffice.FormsController.createForm
+POST          /front/applications/:id/replies/:user                               controllers.front.ApplicationsController.postReplies(id: Int, user: Int)
+
+GET           /front/applications/:id/state/:user                                 controllers.front.ApplicationsController.getState(id: Int, user: Int)
 +nocsrf
-PUT                 /back/forms/:id                                                     controllers.backoffice.FormsController.updateForm(id: Int)
+PUT           /front/applications/:id/state/:user                                 controllers.front.ApplicationsController.setState(id: Int, user: Int)
+
+GET           /front/applications/:id/comments/:user                              controllers.front.ApplicationsController.getPublicComments(id: Int, user: Int)
+
+GET           /back/login/:ticket                                                 controllers.backoffice.LoginController.login(ticket: String)
+
+GET           /back/editions                                                      controllers.backoffice.EditionController.getEditions
 +nocsrf
-DELETE              /back/forms/:id                                                     controllers.backoffice.FormsController.deleteForm(id: Int)
+POST          /back/editions                                                      controllers.backoffice.EditionController.createEdition
++nocsrf
+PUT           /back/editions/:id                                                  controllers.backoffice.EditionController.updateEdition(id: Int)
++nocsrf
+PUT           /back/editions/:id/active                                           controllers.backoffice.EditionController.updateActiveStatus(id: Int)
++nocsrf
+PUT           /back/editions/:id/mainForm                                         controllers.backoffice.EditionController.updateMainForm(id: Int)
+GET           /back/stats/:id                                                     controllers.backoffice.EditionController.getStats(id: Int)
+GET           /back/editions/:id                                                  controllers.backoffice.EditionController.getEdition(id: Int)
+
+GET           /back/editions/:id/forms                                            controllers.backoffice.FormsController.getForms(id: Int)
 
 +nocsrf
-POST                /back/forms/:form/pages                                             controllers.backoffice.FormsController.createPage(form: Int)
+POST          /back/forms                                                         controllers.backoffice.FormsController.createForm
 +nocsrf
-PUT                 /back/forms/:form/pages/:id                                         controllers.backoffice.FormsController.updatePage(form: Int, id: Int)
+PUT           /back/forms/:id                                                     controllers.backoffice.FormsController.updateForm(id: Int)
 +nocsrf
-DELETE              /back/forms/:form/pages/:id                                         controllers.backoffice.FormsController.deletePage(form: Int, id: Int)
+DELETE        /back/forms/:id                                                     controllers.backoffice.FormsController.deleteForm(id: Int)
 
 +nocsrf
-POST                /back/forms/:form/pages/:page/fields                                controllers.backoffice.FormsController.createField(form: Int, page: Int)
+POST          /back/forms/:form/pages                                             controllers.backoffice.FormsController.createPage(form: Int)
 +nocsrf
-PUT                 /back/forms/:form/pages/:page/fields/:field                         controllers.backoffice.FormsController.updateField(form: Int, page: Int, field: Int)
+PUT           /back/forms/:form/pages/:id                                         controllers.backoffice.FormsController.updatePage(form: Int, id: Int)
 +nocsrf
-DELETE              /back/forms/:form/pages/:page/fields/:field                         controllers.backoffice.FormsController.deleteField(form: Int, page: Int, field: Int)
-
-+nocsrf
-POST                /back/forms/:form/pages/:page/fields/:field/setAdditional           controllers.backoffice.FormsController.setAdditional(form: Int, page: Int, field: Int)
-+nocsrf
-POST                /back/forms/:form/pages/:page/fields/:field/deleteAdditional        controllers.backoffice.FormsController.removeAdditional(form: Int, page: Int, field: Int)
-
-GET                 /back/forms/:id/pages/:page                                         controllers.backoffice.FormsController.getPageById(id: Int, page: Int)
-
-GET                 /back/forms/:id/applications                                        controllers.backoffice.ApplicationsController.listApplications(id: Int, state: Option[String])
-GET                 /back/applications/content/:id                                      controllers.backoffice.ApplicationsController.getApplication(id:Int)
-GET                 /back/applications/comments/:id                                     controllers.backoffice.ApplicationsController.getComments(id:Int)
-+nocsrf
-POST                /back/applications/comments/:id                                     controllers.backoffice.ApplicationsController.addComment(id:Int)
+DELETE        /back/forms/:form/pages/:id                                         controllers.backoffice.FormsController.deletePage(form: Int, id: Int)
 
 +nocsrf
-PUT                 /back/applications/state/:id                                        controllers.backoffice.ApplicationsController.setState(id:Int)
-
-GET                 /back/staffs/:event.csv                                             controllers.backoffice.StaffsController.exportStaffs(event: Int)
-GET                 /back/staffs/:event                                                 controllers.backoffice.StaffsController.getStaffs(event: Int)
-GET                 /back/users/:user                                                   controllers.backoffice.UsersController.getHistory(user: Int)
-
-GET                 /scheduling/projects                                                scheduling.controllers.ProjectsController.getAllProjects
-GET                 /scheduling/:event/projects                                         scheduling.controllers.ProjectsController.getProjects(event: Int)
+POST          /back/forms/:form/pages/:page/fields                                controllers.backoffice.FormsController.createField(form: Int, page: Int)
 +nocsrf
-POST                /scheduling/:event/projects                                         scheduling.controllers.ProjectsController.createProject(event: Int)
-
-
-
-GET                 /scheduling/capabilities                                            scheduling.controllers.CapabilitiesController.getCapabilities
+PUT           /back/forms/:form/pages/:page/fields/:field                         controllers.backoffice.FormsController.updateField(form: Int, page: Int, field: Int)
 +nocsrf
-POST                /scheduling/capabilities                                            scheduling.controllers.CapabilitiesController.createCapability
+DELETE        /back/forms/:form/pages/:page/fields/:field                         controllers.backoffice.FormsController.deleteField(form: Int, page: Int, field: Int)
+
++nocsrf
+POST          /back/forms/:form/pages/:page/fields/:field/setAdditional           controllers.backoffice.FormsController.setAdditional(form: Int, page: Int, field: Int)
++nocsrf
+POST          /back/forms/:form/pages/:page/fields/:field/deleteAdditional        controllers.backoffice.FormsController.removeAdditional(form: Int, page: Int, field: Int)
+
+GET           /back/forms/:id/pages/:page                                         controllers.backoffice.FormsController.getPageById(id: Int, page: Int)
+
+GET           /back/forms/:id/applications                                        controllers.backoffice.ApplicationsController.listApplications(id: Int, state: Option[String])
+GET           /back/applications/content/:id                                      controllers.backoffice.ApplicationsController.getApplication(id:Int)
+GET           /back/applications/comments/:id                                     controllers.backoffice.ApplicationsController.getComments(id:Int)
++nocsrf
+POST          /back/applications/comments/:id                                     controllers.backoffice.ApplicationsController.addComment(id:Int)
+
++nocsrf
+PUT           /back/applications/state/:id                                        controllers.backoffice.ApplicationsController.setState(id:Int)
+
+GET           /back/staffs/:event.csv                                             controllers.backoffice.StaffsController.exportStaffs(event: Int)
+GET           /back/staffs/:event                                                 controllers.backoffice.StaffsController.getStaffs(event: Int)
+GET           /back/users/:user                                                   controllers.backoffice.UsersController.getHistory(user: Int)
+
+GET           /scheduling/projects                                                scheduling.controllers.ProjectsController.getAllProjects
+GET           /scheduling/:event/projects                                         scheduling.controllers.ProjectsController.getProjects(event: Int)
++nocsrf
+POST          /scheduling/:event/projects                                         scheduling.controllers.ProjectsController.createProject(event: Int)
+
+
+
+GET           /scheduling/capabilities                                            scheduling.controllers.CapabilitiesController.getCapabilities
++nocsrf
+POST          /scheduling/capabilities                                            scheduling.controllers.CapabilitiesController.createCapability
 
 
 #-- Tasks
 
-GET                 /scheduling/projects/:project/tasks                                 scheduling.controllers.TasksController.getTasks(project: Int)
-GET                 /scheduling/projects/:project/tasks/:id                             scheduling.controllers.TasksController.getTask(project: Int, id: Int)
+GET           /scheduling/projects/:project/tasks                                 scheduling.controllers.TasksController.getTasks(project: Int)
+GET           /scheduling/projects/:project/tasks/:id                             scheduling.controllers.TasksController.getTask(project: Int, id: Int)
 +nocsrf
-POST                /scheduling/projects/:project/tasks                                 scheduling.controllers.TasksController.createTask(project: Int)
+POST          /scheduling/projects/:project/tasks                                 scheduling.controllers.TasksController.createTask(project: Int)
 +nocsrf
-PUT                 /scheduling/projects/:project/tasks/:id                             scheduling.controllers.TasksController.updateTask(project: Int, id: Int)
+PUT           /scheduling/projects/:project/tasks/:id                             scheduling.controllers.TasksController.updateTask(project: Int, id: Int)
 
 #-- Tasks partitions
 
-GET                 /scheduling/projects/:project/tasks/:task/partitions                scheduling.controllers.PartitionsController.getPartitionsForTask(project: Int, task: Int)
+GET           /scheduling/projects/:project/tasks/:task/partitions                scheduling.controllers.PartitionsController.getPartitionsForTask(project: Int, task: Int)
 +nocsrf
-POST                /scheduling/projects/:project/tasks/:task/partitions                scheduling.controllers.PartitionsController.createPartitionForTask(project: Int, task: Int)
+POST          /scheduling/projects/:project/tasks/:task/partitions                scheduling.controllers.PartitionsController.createPartitionForTask(project: Int, task: Int)
 +nocsrf
-DELETE              /scheduling/projects/:project/tasks/:task/partitions/:id            scheduling.controllers.PartitionsController.deletePartition(project: Int, task: Int, id: Int)
+DELETE        /scheduling/projects/:project/tasks/:task/partitions/:id            scheduling.controllers.PartitionsController.deletePartition(project: Int, task: Int, id: Int)
 +nocsrf
-PUT                 /scheduling/projects/:project/tasks/:task/partitions/:id            scheduling.controllers.PartitionsController.updatePartition(project: Int, task: Int, id: Int)
+PUT           /scheduling/projects/:project/tasks/:task/partitions/:id            scheduling.controllers.PartitionsController.updatePartition(project: Int, task: Int, id: Int)
 
 #-- Tasks partitions slots
 
-GET                 /scheduling/projects/:project/tasks/:task/slots                     scheduling.controllers.TasksController.getTaskSlots(project: Int, task: Int)
+GET           /scheduling/projects/:project/tasks/:task/slots                     scheduling.controllers.TasksController.getTaskSlots(project: Int, task: Int)
 +nocsrf
-POST                /scheduling/projects/:project/tasks/:task/slots/generate            scheduling.controllers.TasksController.generateSlots(project: Int, task: Int)
+POST          /scheduling/projects/:project/tasks/:task/slots/generate            scheduling.controllers.TasksController.generateSlots(project: Int, task: Int)
 
 
-GET                 /scheduling/projects/:project/constraints                           scheduling.controllers.ConstraintsController.getConstraints(project: Int)
+GET           /scheduling/projects/:project/constraints                           scheduling.controllers.ConstraintsController.getConstraints(project: Int)
 +nocsrf
-POST        /scheduling/projects/:project/constraints                           scheduling.controllers.ConstraintsController.createConstraint(project: Int)
+POST          /scheduling/projects/:project/constraints                           scheduling.controllers.ConstraintsController.createConstraint(project: Int)
 
-GET                 /scheduling/projects/:project/schedule/byStaff                              scheduling.controllers.ScheduleController.getScheduleByStaff(project: Int)
-GET                 /scheduling/projects/:project/schedule/byTask                              scheduling.controllers.ScheduleController.getScheduleByTask(project: Int)
+GET           /scheduling/projects/:project/schedule/byStaff                      scheduling.controllers.ScheduleController.getScheduleByStaff(project: Int)
+GET           /scheduling/projects/:project/schedule/byStaff.html                 scheduling.controllers.ScheduleController.getScheduleByStaffHtml(project: Int)
+GET           /scheduling/projects/:project/schedule/byTask                       scheduling.controllers.ScheduleController.getScheduleByTask(project: Int)
+GET           /scheduling/projects/:project/schedule/byTask.html                  scheduling.controllers.ScheduleController.getScheduleByTaskHtml(project: Int)
 +nocsrf
-POST        /scheduling/projects/:project/schedule/generate                     scheduling.controllers.ScheduleController.generateSchedule(project: Int)
+POST          /scheduling/projects/:project/schedule/generate                     scheduling.controllers.ScheduleController.generateSchedule(project: Int)
 
+GET           /assets/*file                                                       controllers.Assets.at(file)
 # Endpoints to update the schedule! (assignations, slots, ...)
