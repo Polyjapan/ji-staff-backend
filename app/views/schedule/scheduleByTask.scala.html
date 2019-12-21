@@ -1,0 +1,55 @@
+@import scheduling._
+@import java.sql.Date
+@(data: List[ScheduleDay[StaffData, String]])
+
+@generateStaffs(data: List[ScheduleColumn[StaffData, String]]) = @{
+    "['" + data.map(_.header).map(h => h.staffNumber + " " + h.staffName).mkString("','") + "']"
+}
+
+@generateEvent(tag: String, day: Date, data: ScheduleLine[String]) = @{
+    val instant = day.toLocalDate
+    val date = List(instant.getYear, instant.getMonthValue, instant.getDayOfMonth)
+    val start = (date ++ List(data.slot.timeSlot.timeStart / 60,data.slot.timeSlot.timeStart % 60)).mkString(",")
+    val end = (date ++ List(data.slot.timeSlot.timeEnd / 60,data.slot.timeSlot.timeEnd % 60)).mkString(",")
+
+    "timetable.addEvent('" + data.line + "', '" + tag + "', new Date(" + start + "), new Date(" + end + "));"
+}
+
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="description" content="Vanilla javascript plugin for building nice responsive timetables">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Planning</title>
+
+    <link rel="stylesheet" href="/assets/timetablejs.css">
+  </head>
+    <body>
+        <script src="/assets/timetable.js"></script>
+
+        @for(day <- data) {
+            <h1>@day.day</h1>
+
+            <div id="timetable-@day.day" class="timetable"></div>
+
+            <script>
+                    var timetable = new Timetable();
+                    timetable.addLocations(@Html(generateStaffs(day.schedule)));
+                    timetable.setScope(@(day.startTime / 60),@(day.endTime / 60));
+
+
+                @for(col <- day.schedule) {
+                    @defining(col.header.staffNumber + " " + col.header.staffName) { fullName =>
+                        @for(line <- col.content) {
+                        @Html(generateEvent(fullName, day.day, line))}
+                    }
+                }
+                        var renderer = new Timetable.Renderer(timetable);
+                    renderer.draw('#timetable-@day.day');
+            </script>
+        }
+
+
+    </body>
+</html>
