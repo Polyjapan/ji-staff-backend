@@ -2,6 +2,8 @@ package scheduling
 
 import java.sql.Date
 
+import play.api.libs.json._
+
 package object constraints {
 
   trait ScheduleConstraint
@@ -23,15 +25,44 @@ package object constraints {
     def isAssignationValid(staff: Staff, task: TaskSlot, assignations: Map[TaskSlot, Set[Staff]]): Boolean
   }
 
-  case class BannedTaskConstraint(projectId: Int, staffId: Int, taskId: Int) extends ResolutionConstraint {
+  implicit val bannedTaskConstraintFormat: Format[BannedTaskConstraint] = Json.format[BannedTaskConstraint]
+  implicit val associationConstraintFormat: Format[AssociationConstraint] = Json.format[AssociationConstraint]
+  implicit val unavailableConstraintFormat: Format[UnavailableConstraint] = Json.format[UnavailableConstraint]
+  implicit val fixedTaskSlotConstraintFormat: Format[FixedTaskSlotConstraint] = Json.format[FixedTaskSlotConstraint]
+
+  object ScheduleConstraint {
+    def unapply(constraint: ScheduleConstraint): Option[(String, JsValue)] = {
+      val (prod: Product, sub) = constraint match {
+        case b: BannedTaskConstraint => (b, Json.toJson(b)(bannedTaskConstraintFormat))
+        case b: AssociationConstraint => (b, Json.toJson(b)(associationConstraintFormat))
+        case b: UnavailableConstraint => (b, Json.toJson(b)(unavailableConstraintFormat))
+        case b: FixedTaskSlotConstraint => (b, Json.toJson(b)(fixedTaskSlotConstraintFormat))
+      }
+      Some(prod.productPrefix -> sub)
+    }
+
+    def apply(constraintType: String, data: JsValue): ScheduleConstraint = {
+      (constraintType match {
+        case "BannedTaskConstraint" => Json.fromJson[BannedTaskConstraint](data)
+        case "AssociationConstraint" => Json.fromJson[AssociationConstraint](data)
+        case "UnavailableConstraint" => Json.fromJson[UnavailableConstraint](data)
+        case "FixedTaskSlotConstraint" => Json.fromJson[FixedTaskSlotConstraint](data)
+      }).get
+    }
+  }
+
+  implicit val constraintFormat: Format[ScheduleConstraint] = Json.format[ScheduleConstraint]
+
+
+  case class BannedTaskConstraint(constraintId: Option[Int], projectId: Int, staffId: Int, taskId: Int) extends ResolutionConstraint {
     override def isAssignationValid(staff: Staff, task: TaskSlot, assignations: Map[TaskSlot, Set[Staff]]): Boolean = appliesTo(staff, task)
 
     override def appliesTo(staff: Staff, task: TaskSlot): Boolean = staff.user.userId == staffId && task.task.id.get == taskId
   }
 
-  case class FixedTaskSlotConstraint(projectId: Int, staffId: Int, slotId: Int) extends PreProcessConstraint
+  case class FixedTaskSlotConstraint(constraintId: Option[Int], projectId: Int, staffId: Int, slotId: Int) extends PreProcessConstraint
 
-  case class UnavailableConstraint(projectId: Int, staffId: Int, period: Period) extends ResolutionConstraint {
+  case class UnavailableConstraint(constraintId: Option[Int], projectId: Int, staffId: Int, period: Period) extends ResolutionConstraint {
     override def isAssignationValid(staff: Staff, task: TaskSlot, assignations: Map[TaskSlot, Set[Staff]]): Boolean =
       appliesTo(staff, task)
 
@@ -44,7 +75,7 @@ package object constraints {
    * @param staff2
    * @param together if true, the constraint will put the staffs together - otherwise, it will ensure they are never together
    */
-  case class AssociationConstraint(projectId: Int, staff1: Int, staff2: Int, together: Boolean) extends ProcessConstraint {
+  case class AssociationConstraint(constraintId: Option[Int], projectId: Int, staff1: Int, staff2: Int, together: Boolean) extends ProcessConstraint {
     override def appliesTo(staff: Staff, slot: TaskSlot): Boolean = staff.user.userId == staff1 || staff.user.userId == staff2
 
     override def offerAssignation(offeredStaff: Staff, otherStaffs: Iterable[Staff], task: TaskSlot, assignations: Map[TaskSlot, Set[Staff]]): Set[Staff] = {
@@ -67,8 +98,8 @@ package object constraints {
   }
 
   object UnavailableConstraint {
-    def tupled(tuple: (Int, Int, Period)) = tuple match {
-      case (proj, staff, period) => UnavailableConstraint(proj, staff, period)
+    def tupled(tuple: (Option[Int], Int, Int, Period)) = tuple match {
+      case (id, proj, staff, period) => UnavailableConstraint(id, proj, staff, period)
     }
     /**
      * Specify that a staff is unavailable during the whole day
@@ -77,7 +108,7 @@ package object constraints {
      * @param day   the day he is not available
      * @return the constraint
      */
-    def day(projectId: Int, staff: Staff, day: Date): UnavailableConstraint = UnavailableConstraint(projectId, staff.user.userId, Period(day, 0, 24 * 60))
+    def day(projectId: Int, staff: Staff, day: Date): UnavailableConstraint = UnavailableConstraint(None, projectId, staff.user.userId, Period(day, 0, 24 * 60))
 
     /**
      * Specify that a staff is unavailable one day after a given time
@@ -87,7 +118,7 @@ package object constraints {
      * @param start the time (in minutes after midnight) since when he is not available
      * @return the constraint
      */
-    def after(projectId: Int, staff: Staff, day: Date, start: Int) = UnavailableConstraint(projectId, staff.user.userId, Period(day, start, 24 * 60))
+    def after(projectId: Int, staff: Staff, day: Date, start: Int) = UnavailableConstraint(None, projectId, staff.user.userId, Period(day, start, 24 * 60))
 
     /**
      * Specify that a staff is unavailable one day before a given time
@@ -97,6 +128,6 @@ package object constraints {
      * @param end   the time (in minutes after midnight) since when he is available
      * @return the constraint
      */
-    def before(projectId: Int, staff: Staff, day: Date, end: Int) = UnavailableConstraint(projectId, staff.user.userId, Period(day, 0, end))
+    def before(projectId: Int, staff: Staff, day: Date, end: Int) = UnavailableConstraint(None, projectId, staff.user.userId, Period(day, 0, end))
   }
 }

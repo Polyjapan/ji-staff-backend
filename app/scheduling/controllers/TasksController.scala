@@ -4,7 +4,6 @@ import javax.inject.{Inject, Singleton}
 import play.api.Configuration
 import play.api.libs.json.{Json, Reads}
 import play.api.mvc.{AbstractController, Action, ControllerComponents}
-import scheduling.ScheduleProject
 import scheduling.models.{SchedulingModel, TasksModel}
 import utils.AuthenticationPostfix._
 

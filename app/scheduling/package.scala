@@ -8,7 +8,7 @@ import scheduling.models.{TaskSlot, TaskTimePartition}
 package object scheduling {
   import data._
 
-  case class ScheduleProject(id: Int, event: Event, projectTitle: String, maxTimePerStaff: Int)
+  case class ScheduleProject(id: Int, event: Event, projectTitle: String, maxTimePerStaff: Int, minBreakMinutes: Int)
 
   implicit val scheduleProjectFormat: OWrites[ScheduleProject] = Json.writes[ScheduleProject]
 
@@ -26,15 +26,58 @@ package object scheduling {
 
     lazy val duration: Int = timeEnd - timeStart
 
-    def isOverlapping(other: Period): Boolean = {
-      val s1 = this
-      val s2 = other
+    def isOverlapping(other: Period): Boolean = isOverlappingWithBreakTime(other, 0)
 
-      day == other.day &&
-        ((s1.timeStart <= s2.timeStart && s1.timeEnd >= s2.timeStart) || // s1 starts before s2 but finishes after s2 starts
-          (s2.timeStart <= s1.timeStart && s2.timeEnd >= s1.timeStart) || // s2 starts before s1 but finishes after s1 starts
-          (s1.timeStart >= s2.timeStart && s1.timeEnd <= s2.timeEnd) || // s1 starts after s2 and finishes before s2
-          (s2.timeStart >= s1.timeStart && s2.timeEnd <= s1.timeEnd)) // s2 starts after s1 and finishes befire s1
+
+    override def toString: String = day + " from " + start + " to " + end
+
+    def isOverlappingWithBreakTime(other: Period, breakTime: Int): Boolean = {
+      val (start1, end1) = (timeStart, timeEnd)
+      val (start2, end2) = (other.timeStart, other.timeEnd)
+
+      if (day != other.day) false
+      else {
+        val (first, second) = if (start1 < start2) (this, other) else (other, this)
+
+        /*
+        S1    S-----------E..
+        S2         ---
+
+        first.end > second.start
+
+
+        S1    S-----------E..
+        S2                     ---
+
+        first.end < second.start
+
+
+        S1    S-----------E..
+        S2                 ---
+
+        first.end > second.start
+
+
+        S1    S-----------E..
+        S2    ---
+
+        first.start == second.start
+        first.end > second.start
+         */
+
+        // if the second start before the end of the 1st it means overlap
+        if (first.timeEnd + breakTime > second.timeStart) {
+          true
+        }
+        else {
+          false // pretty sure all other conditions are useless
+
+          /*((s1.timeStart <= s2.timeStart && s1.timeEnd >= s2.timeStart) || // s1 starts before s2 but finishes after s2 starts
+            (s2.timeStart <= s1.timeStart && s2.timeEnd >= s1.timeStart) || // s2 starts before s1 but finishes after s1 starts
+            (s1.timeStart >= s2.timeStart && s1.timeEnd <= s2.timeEnd) || // s1 starts after s2 and finishes before s2
+            (s2.timeStart >= s1.timeStart && s2.timeEnd <= s1.timeEnd)) // s2 starts after s1 and finishes befire s1*/
+        }
+      }
     }
   }
 

@@ -9,7 +9,7 @@ import slick.lifted.Tag
 import slick.jdbc.MySQLProfile.api._
 
 package object models {
-  case class ScheduleProject(projectId: Option[Int], event: Int, projectTitle: String, maxTimePerStaff: Int)
+  case class ScheduleProject(projectId: Option[Int], event: Int, projectTitle: String, maxTimePerStaff: Int, minBreakMinutes: Int)
 
   implicit val scheduleProjectFormat: OWrites[ScheduleProject] = Json.writes[ScheduleProject]
 
@@ -31,9 +31,11 @@ package object models {
 
     def title = column[String]("project_title")
 
-    def maxHoursPerStaff = column[Int]("max_hours_per_staff")
+    def maxHoursPerStaff = column[Int]("max_daily_hours")
 
-    def * = (id.?, event, title, maxHoursPerStaff).shaped <> (ScheduleProject.tupled, ScheduleProject.unapply)
+    def minBreakMinutes = column[Int]("min_break_minutes")
+
+    def * = (id.?, event, title, maxHoursPerStaff, minBreakMinutes).shaped <> (ScheduleProject.tupled, ScheduleProject.unapply)
   }
 
   val scheduleProjects = TableQuery[ScheduleProjects]
@@ -148,7 +150,7 @@ package object models {
     def staffId = column[Int]("staff_id")
     def taskId = column[Int]("task_id")
 
-    def * = (projectId, staffId, taskId).shaped <> (BannedTaskConstraint.tupled, BannedTaskConstraint.unapply)
+    def * = (constraintId.?, projectId, staffId, taskId).shaped <> (BannedTaskConstraint.tupled, BannedTaskConstraint.unapply)
   }
 
   val bannedTaskConstraints = TableQuery[BannedTaskConstraints]
@@ -157,7 +159,7 @@ package object models {
     def staffId = column[Int]("staff_id")
     def slotId = column[Int]("task_slot_id")
 
-    def * = (projectId, staffId, slotId).shaped <> (FixedTaskSlotConstraint.tupled, FixedTaskSlotConstraint.unapply)
+    def * = (constraintId.?, projectId, staffId, slotId).shaped <> (FixedTaskSlotConstraint.tupled, FixedTaskSlotConstraint.unapply)
   }
 
   val fixedTaskSlotConstraints = TableQuery[FixedTaskSlotConstraints]
@@ -167,7 +169,7 @@ package object models {
     def projectId = column[Int]("project_id")
     def staffId = column[Int]("staff_id")
 
-    def * = (projectId, staffId, period).shaped <> (UnavailableConstraint.tupled, UnavailableConstraint.unapply)
+    def * = (constraintId.?, projectId, staffId, period).shaped <> (UnavailableConstraint.tupled, UnavailableConstraint.unapply)
   }
 
   val unavailableConstraints = TableQuery[UnavailableConstraints]
@@ -177,7 +179,7 @@ package object models {
     def staff2 = column[Int]("staff_2")
     def together = column[Boolean]("together")
 
-    def * = (projectId, staff1, staff2, together).shaped <> (AssociationConstraint.tupled, AssociationConstraint.unapply)
+    def * = (constraintId.?, projectId, staff1, staff2, together).shaped <> (AssociationConstraint.tupled, AssociationConstraint.unapply)
   }
 
   val associationConstraints = TableQuery[AssociationConstraints]

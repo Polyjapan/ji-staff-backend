@@ -1,5 +1,7 @@
 package scheduling
 
+import java.sql.Date
+
 import javax.inject.{Inject, Singleton}
 import scheduling.constraints._
 import scheduling.models.SchedulingModel
@@ -61,6 +63,11 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
      */
     def countTime(staff: Staff): Int = attributionsFor(staff).toList.map(_.timeSlot.duration).sum
 
+    /**
+     * Count the total time done by a staff
+     */
+    def countTimeOnDay(staff: Staff, day: Date): Int = attributionsFor(staff).toList.filter(_.timeSlot.day == day).map(_.timeSlot.duration).sum
+
     implicit val staffsOrdering: Ordering[Staff] = (x, y) => {
       val a = countTime(x) - countTime(y)
       if (a == 0) x.user.userId - y.user.userId else a
@@ -77,12 +84,7 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
       }
 
       attributions(slot) += staff
-      val prev = staffsToAttribute.map(staff => staff -> countTime(staff)).takeRight(20) .mkString(", ")
       staffsToAttribute = staffsToAttribute.sorted // re-sort the list
-      val next = staffsToAttribute.map(staff => staff -> countTime(staff)).takeRight(20).mkString(", ")
-
-      println(prev)
-      println(next)
       attributions(slot).size >= slot.staffsRequired
     }
 
@@ -90,8 +92,10 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
     /**
      * Check if a staff is already busy during a given slot
      */
-    def checkBusy(staff: Staff, slot: TaskSlot): Boolean = {
-      attributionsFor(staff).map(_.timeSlot).exists(period => period.isOverlapping(slot.timeSlot))
+    def isBusy(staff: Staff, slot: TaskSlot): Boolean = {
+      attributionsFor(staff)
+        .map(_.timeSlot)
+        .exists(period => period.isOverlappingWithBreakTime(slot.timeSlot, project.minBreakMinutes))
     }
 
     /**
@@ -103,13 +107,18 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
         slot.task.difficulties.forall(diff => staff.capabilities.contains(diff))
     }
 
+    def hasEnoughRemainingTime(staff: Staff, slot: TaskSlot): Boolean = {
+      val time = countTimeOnDay(staff, slot.timeSlot.day) + slot.timeSlot.duration
+      time <= project.maxTimePerStaff * 60
+    }
+
 
     var slotsAttributed = Set[TaskSlot]()
     // Pre-attributed slots
     val staffsMap = staffs.map(s => (s.user.userId -> s)).toMap
     val slotsMap = slots.map(s => (s.id -> s)).toMap
     preConstraints.foreach {
-      case FixedTaskSlotConstraint(_, staffId, slotId) =>
+      case FixedTaskSlotConstraint(_, _, staffId, slotId) =>
         val staff = staffsMap(staffId)
         val slot = slotsMap(slotId)
 
@@ -150,12 +159,12 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
         if (!constr.exists(_.isEmpty)) {
           val staffs = constr.foldLeft(Set(staff))(_ union _)
 
-          if (staffs.forall(staff => isAble(staff, slot) && !checkBusy(staff, slot))) {
+          if (staffs.forall(staff => {
+            isAble(staff, slot) && !isBusy(staff, slot) && hasEnoughRemainingTime(staff, slot)
+          })) {
 
             staffs.foreach(staff => {
               attribute(slot, staff)
-              println(s"PLANNER:: Attribute slot ${slot.id} (${slot.task}) to staff ${staff.user.userId} " +
-                s"(${attributed + 1}/${slot.staffsRequired})")
             })
             attributed += staffs.size
           }
@@ -179,17 +188,15 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
       .mapValues(_.map(_._2.timeSlot.duration.toDouble / 60D).sum)
       .values
 
-    val sum = stats.sum
-    val cnt = stats.size
-    val avg = sum.toDouble / cnt
-    val variance = stats.map(x => math.pow(x - avg, 2)).sum / cnt
-    val std = Math.sqrt(variance)
+    val (avg, std) = if (stats.nonEmpty) {
+      val sum = stats.sum
+      val cnt = stats.size
+      val avg = sum.toDouble / cnt
+      val variance = stats.map(x => math.pow(x - avg, 2)).sum / cnt
+      val std = Math.sqrt(variance)
 
-    val max = stats.max
-    val min = stats.min
-
-    println("max hours: " + max)
-    println("min hours: " + min)
+      (avg, std)
+    } else { (0D, 0D)}
 
     attributions.flatMap {
       case (slot, set) => set.toList.map(staff => StaffAssignation(slot, staff))

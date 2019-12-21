@@ -14,20 +14,24 @@ class ProjectsModel@Inject()(protected val dbConfigProvider: DatabaseConfigProvi
 
   def getProjects(event: Int): Future[Seq[scheduling.ScheduleProject]] = {
     db.run(scheduleProjects.filter(_.event === event).join(models.events).on(_.event === _.eventId).result)
-      .map(list => list.map { case (proj, ev) => scheduling.ScheduleProject(proj.projectId.get, ev, proj.projectTitle, proj.maxTimePerStaff)})
+      .map(list => list.map { case (proj, ev) => scheduling.ScheduleProject(proj.projectId.get, ev, proj.projectTitle, proj.maxTimePerStaff, proj.minBreakMinutes)})
   }
 
   def getAllProjects: Future[Map[data.Event, Seq[scheduling.models.ScheduleProject]]] = {
     db.run(scheduleProjects.join(models.events).on(_.event === _.eventId).result)
       .map(list => list
-        .map { case (proj, ev) => (ev, scheduling.models.ScheduleProject(proj.projectId, ev.eventId.get, proj.projectTitle, proj.maxTimePerStaff)) }
+        .map { case (proj, ev) => (ev, proj.copy(event = ev.eventId.get)) }
         .groupBy(_._1)
         .mapValues(_.map(_._2))
       )
   }
 
-  def createProject(event: Int, name: String, maxHoursPerStaff: Int): Future[Int] = {
-    db.run(scheduleProjects.returning(scheduleProjects.map(_.id)) += ScheduleProject(None, event, name, maxHoursPerStaff))
+  def getProject(project: Int): Future[Option[scheduling.models.ScheduleProject]] = {
+    db.run(scheduleProjects.filter(_.id === project).result.headOption)
+  }
+
+  def createProject(event: Int, name: String, maxHoursPerStaff: Int, minBreak: Int): Future[Int] = {
+    db.run(scheduleProjects.returning(scheduleProjects.map(_.id)) += ScheduleProject(None, event, name, maxHoursPerStaff, minBreak))
   }
 
   def cloneProject(source: Int, target: Int, cloneSlots: Boolean = false, cloneConstraints: Boolean = false) = {

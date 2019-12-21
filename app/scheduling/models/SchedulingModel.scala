@@ -29,7 +29,7 @@ class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
         case Some(eventId) => db.run(
           staffsAssignation
             .join(taskSlots).on(_.taskSlotId === _.id)
-            .join(tasks).on(_._2.taskId === _.id)
+            .join(tasks).on((lhs, task) => lhs._2.taskId === task.id && task.projectId === project)
             .join(models.users).on(_._1._1.userId === _.userId)
             .join(models.staffs).on((line, staff) => line._2.userId === staff.userId && staff.eventId === eventId)
             .map {
@@ -155,7 +155,7 @@ class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
                 }
               }
 
-            val proj = scheduling.ScheduleProject(project.projectId.get, event, project.projectTitle, project.maxTimePerStaff)
+            val proj = scheduling.ScheduleProject(project.projectId.get, event, project.projectTitle, project.maxTimePerStaff, project.minBreakMinutes)
 
 
             staffs.flatMap(staffs => constraints.flatMap(constraints => slots.map(slots => (proj, staffs, slots, constraints))))

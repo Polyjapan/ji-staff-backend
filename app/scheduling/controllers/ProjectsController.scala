@@ -13,7 +13,7 @@ import utils.AuthenticationPostfix._
 class ProjectsController @Inject()(cc: ControllerComponents, model: ProjectsModel)
                                   (implicit conf: Configuration, ec: ExecutionContext) extends AbstractController(cc) {
 
-  case class CreateProject(name: String, maxHoursPerStaff: Int, copyOf: Option[Int], copySlots: Option[Boolean], copyConstraints: Option[Boolean])
+  case class CreateProject(name: String, maxHoursPerStaff: Int, minBreakMinutes: Int, copyOf: Option[Int], copySlots: Option[Boolean], copyConstraints: Option[Boolean])
 
   implicit val createProjectReads: Reads[CreateProject] = Json.reads[CreateProject]
 
@@ -25,8 +25,15 @@ class ProjectsController @Inject()(cc: ControllerComponents, model: ProjectsMode
     model.getAllProjects.map(lst => Ok(Json.toJson(lst)))
   ).requiresAuthentication
 
+  def getProject(project: Int): Action[AnyContent] = Action.async(_ =>
+    model.getProject(project).map {
+      case Some(p) => Ok(Json.toJson(p))
+      case None => NotFound
+    }
+  ).requiresAuthentication
+
   def createProject(event: Int): Action[CreateProject] = Action.async(bodyParser = parse.json[CreateProject])(req => {
-    model.createProject(event, req.body.name, req.body.maxHoursPerStaff)
+    model.createProject(event, req.body.name, req.body.maxHoursPerStaff, req.body.minBreakMinutes)
       .flatMap(projectId => {
         if (req.body.copyOf.isDefined) {
           model.cloneProject(req.body.copyOf.get, projectId, req.body.copySlots.getOrElse(false), req.body.copyConstraints.getOrElse(false)).map(_ => projectId)

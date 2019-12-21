@@ -88,6 +88,7 @@ GET           /back/staffs/:event                                               
 GET           /back/users/:user                                                   controllers.backoffice.UsersController.getHistory(user: Int)
 
 GET           /scheduling/projects                                                scheduling.controllers.ProjectsController.getAllProjects
+GET           /scheduling/projects/:project                                                scheduling.controllers.ProjectsController.getProject(project: Int)
 GET           /scheduling/:event/projects                                         scheduling.controllers.ProjectsController.getProjects(event: Int)
 +nocsrf
 POST          /scheduling/:event/projects                                         scheduling.controllers.ProjectsController.createProject(event: Int)
