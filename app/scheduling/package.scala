@@ -14,7 +14,6 @@ package object scheduling {
 
   case class SchedulingResult(notFullSlots: List[TaskSlot], averageHoursPerStaff: Double, stdHoursPerStaff: Double)
 
-  implicit val schedulingResultFormat: OWrites[SchedulingResult] = Json.writes[SchedulingResult]
 
   case class Period(day: Date, start: Time, end: Time) {
     private def timeToMinutes(t: Time) = t.toLocalTime.get(ChronoField.MINUTE_OF_DAY) // t.toInstant.get(ChronoField.SECOND_OF_DAY)
@@ -121,5 +120,6 @@ package object scheduling {
   case class ScheduleDay[CType, LType](day: java.sql.Date, startTime: Int, endTime: Int, schedule: List[ScheduleColumn[CType, LType]])
 
   case class StaffData(staffNumber: Int, staffName: String)
+  implicit val schedulingResultFormat: OWrites[SchedulingResult] = Json.writes[SchedulingResult]
 
 }

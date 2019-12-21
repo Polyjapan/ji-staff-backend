@@ -41,12 +41,12 @@ package object constraints {
       Some(prod.productPrefix -> sub)
     }
 
-    def apply(constraintType: String, data: JsValue): ScheduleConstraint = {
+    def apply(constraintType: String, constraint: JsValue): ScheduleConstraint = {
       (constraintType match {
-        case "BannedTaskConstraint" => Json.fromJson[BannedTaskConstraint](data)
-        case "AssociationConstraint" => Json.fromJson[AssociationConstraint](data)
-        case "UnavailableConstraint" => Json.fromJson[UnavailableConstraint](data)
-        case "FixedTaskSlotConstraint" => Json.fromJson[FixedTaskSlotConstraint](data)
+        case "BannedTaskConstraint" => Json.fromJson[BannedTaskConstraint](constraint)
+        case "AssociationConstraint" => Json.fromJson[AssociationConstraint](constraint)
+        case "UnavailableConstraint" => Json.fromJson[UnavailableConstraint](constraint)
+        case "FixedTaskSlotConstraint" => Json.fromJson[FixedTaskSlotConstraint](constraint)
       }).get
     }
   }
@@ -55,7 +55,7 @@ package object constraints {
 
 
   case class BannedTaskConstraint(constraintId: Option[Int], projectId: Int, staffId: Int, taskId: Int) extends ResolutionConstraint {
-    override def isAssignationValid(staff: Staff, task: TaskSlot, assignations: Map[TaskSlot, Set[Staff]]): Boolean = appliesTo(staff, task)
+    override def isAssignationValid(staff: Staff, task: TaskSlot, assignations: Map[TaskSlot, Set[Staff]]): Boolean = !appliesTo(staff, task)
 
     override def appliesTo(staff: Staff, task: TaskSlot): Boolean = staff.user.userId == staffId && task.task.id.get == taskId
   }
@@ -63,8 +63,7 @@ package object constraints {
   case class FixedTaskSlotConstraint(constraintId: Option[Int], projectId: Int, staffId: Int, slotId: Int) extends PreProcessConstraint
 
   case class UnavailableConstraint(constraintId: Option[Int], projectId: Int, staffId: Int, period: Period) extends ResolutionConstraint {
-    override def isAssignationValid(staff: Staff, task: TaskSlot, assignations: Map[TaskSlot, Set[Staff]]): Boolean =
-      appliesTo(staff, task)
+    override def isAssignationValid(staff: Staff, task: TaskSlot, assignations: Map[TaskSlot, Set[Staff]]): Boolean = !appliesTo(staff, task)
 
     override def appliesTo(staff: Staff, task: TaskSlot): Boolean = staffId == staff.user.userId && task.timeSlot.isOverlapping(period)
   }

@@ -178,7 +178,7 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
       }
 
       if (attributed < slot.staffsRequired) {
-        notAttributed + slot
+        notAttributed += slot
         println(s"PLANNER:: Cannot attribute slot ${slot.id} (${slot.task}). Only $attributed staffs found out of ${slot.staffsRequired}.")
       }
     })
