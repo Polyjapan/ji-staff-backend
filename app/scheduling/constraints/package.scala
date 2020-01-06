@@ -28,7 +28,7 @@ package object constraints {
   implicit val bannedTaskConstraintFormat: Format[BannedTaskConstraint] = Json.format[BannedTaskConstraint]
   implicit val associationConstraintFormat: Format[AssociationConstraint] = Json.format[AssociationConstraint]
   implicit val unavailableConstraintFormat: Format[UnavailableConstraint] = Json.format[UnavailableConstraint]
-  implicit val fixedTaskSlotConstraintFormat: Format[FixedTaskSlotConstraint] = Json.format[FixedTaskSlotConstraint]
+  implicit val fixedTaskSlotConstraintFormat: Format[FixedTaskConstraint] = Json.format[FixedTaskConstraint]
 
   object ScheduleConstraint {
     def unapply(constraint: ScheduleConstraint): Option[(String, JsValue)] = {
@@ -36,7 +36,7 @@ package object constraints {
         case b: BannedTaskConstraint => (b, Json.toJson(b)(bannedTaskConstraintFormat))
         case b: AssociationConstraint => (b, Json.toJson(b)(associationConstraintFormat))
         case b: UnavailableConstraint => (b, Json.toJson(b)(unavailableConstraintFormat))
-        case b: FixedTaskSlotConstraint => (b, Json.toJson(b)(fixedTaskSlotConstraintFormat))
+        case b: FixedTaskConstraint => (b, Json.toJson(b)(fixedTaskSlotConstraintFormat))
       }
       Some(prod.productPrefix -> sub)
     }
@@ -46,8 +46,16 @@ package object constraints {
         case "BannedTaskConstraint" => Json.fromJson[BannedTaskConstraint](constraint)
         case "AssociationConstraint" => Json.fromJson[AssociationConstraint](constraint)
         case "UnavailableConstraint" => Json.fromJson[UnavailableConstraint](constraint)
-        case "FixedTaskSlotConstraint" => Json.fromJson[FixedTaskSlotConstraint](constraint)
-      }).get
+        case "FixedTaskConstraint" => Json.fromJson[FixedTaskConstraint](constraint)
+        case other =>
+          println(other)
+          throw new IllegalArgumentException("No case for " + other)
+      }) match {
+        case JsSuccess(res, _) => res
+        case JsError(errors) =>
+          errors.foreach(println)
+          throw new IllegalArgumentException("A JS error occurred")
+      }
     }
   }
 
@@ -60,7 +68,7 @@ package object constraints {
     override def appliesTo(staff: Staff, task: TaskSlot): Boolean = staff.user.userId == staffId && task.task.id.get == taskId
   }
 
-  case class FixedTaskSlotConstraint(constraintId: Option[Int], projectId: Int, staffId: Int, slotId: Int) extends PreProcessConstraint
+  case class FixedTaskConstraint(constraintId: Option[Int], projectId: Int, staffId: Int, taskId: Int) extends PreProcessConstraint
 
   case class UnavailableConstraint(constraintId: Option[Int], projectId: Int, staffId: Int, period: Period) extends ResolutionConstraint {
     override def isAssignationValid(staff: Staff, task: TaskSlot, assignations: Map[TaskSlot, Set[Staff]]): Boolean = !appliesTo(staff, task)

@@ -52,20 +52,13 @@ class ProjectsModel@Inject()(protected val dbConfigProvider: DatabaseConfigProvi
           }
 
         val withSlots = if (cloneSlots) {
-          val slots = partAndCaps.andThen {
+          partAndCaps.andThen {
             taskSlots.filter(_.taskId.inSet(idMap.keys)).result
               .flatMap(r =>
                 ((taskSlots returning (taskSlots.map(_.id))) ++= r.map(l => l.copy(taskSlotId = None, taskId = idMap(l.taskId))))
                   .map(res => (r.map(_.taskSlotId.get)) zip res).map(_.toMap)
               )
           }
-
-          if (cloneConstraints) {
-            slots.flatMap { slotsMap =>
-              fixedTaskSlotConstraints.filter(_.slotId.inSet(slotsMap.keys)).result
-                  .flatMap(constraints => fixedTaskSlotConstraints ++= constraints.map(c => c.copy(projectId = target, slotId = slotsMap(c.slotId))))
-            }
-          } else slots
         } else partAndCaps
 
         if (cloneConstraints) {
@@ -78,6 +71,9 @@ class ProjectsModel@Inject()(protected val dbConfigProvider: DatabaseConfigProvi
           }.andThen {
             bannedTaskConstraints.filter(_.projectId === source).result
               .flatMap(r => bannedTaskConstraints ++= r.map(c => c.copy(projectId = target, taskId = idMap(c.taskId))))
+          }.andThen {
+            fixedTaskConstraints.filter(_.projectId === source).result
+              .flatMap(r => fixedTaskConstraints ++= r.map(c => c.copy(projectId = target, taskId = idMap(c.taskId))))
           }
         } else withSlots
 

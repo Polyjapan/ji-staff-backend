@@ -3,6 +3,7 @@ package scheduling.models
 import javax.inject.Inject
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import scheduling.constraints
+import scheduling.constraints.{AssociationConstraint, BannedTaskConstraint, FixedTaskConstraint, ScheduleConstraint, UnavailableConstraint}
 import slick.jdbc.MySQLProfile
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -16,7 +17,7 @@ class ConstraintsModel@Inject()(protected val dbConfigProvider: DatabaseConfigPr
     db.run {
         associationConstraints.filter(_.projectId === projectId).result flatMap { asso =>
           bannedTaskConstraints.filter(_.projectId === projectId).result flatMap { btc =>
-            fixedTaskSlotConstraints.filter(_.projectId === projectId).result flatMap { ftsc =>
+            fixedTaskConstraints.filter(_.projectId === projectId).result flatMap { ftsc =>
               unavailableConstraints.filter(_.projectId === projectId).result map { uc => asso ++ btc ++ ftsc ++ uc }
             }
           }
@@ -24,5 +25,25 @@ class ConstraintsModel@Inject()(protected val dbConfigProvider: DatabaseConfigPr
     }
   }
 
-  def createConstraint(projectId: Int ) = ???
+  def createConstraint(projectId: Int, constraint: ScheduleConstraint) = {
+    db.run {
+      constraint match {
+        case c: AssociationConstraint => associationConstraints += c
+        case c: BannedTaskConstraint => bannedTaskConstraints += c
+        case c: FixedTaskConstraint => fixedTaskConstraints += c
+        case c: UnavailableConstraint => unavailableConstraints += c
+      }
+    }
+  }
+
+  def deleteConstraint(projectId: Int, constraint: ScheduleConstraint) = {
+    db.run {
+      constraint match {
+        case c: AssociationConstraint => associationConstraints.filter(_.constraintId === c.constraintId).delete
+        case c: BannedTaskConstraint => bannedTaskConstraints.filter(_.constraintId === c.constraintId).delete
+        case c: FixedTaskConstraint => fixedTaskConstraints.filter(_.constraintId === c.constraintId).delete
+        case c: UnavailableConstraint => unavailableConstraints.filter(_.constraintId === c.constraintId).delete
+      }
+    }
+  }
 }

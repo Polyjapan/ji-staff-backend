@@ -88,6 +88,13 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
       attributions(slot).size >= slot.staffsRequired
     }
 
+    def countAttributed(slot: TaskSlot): Int = {
+      if (!attributions.contains(slot)) {
+        0
+      } else {
+        attributions(slot).size
+      }
+    }
 
     /**
      * Check if a staff is already busy during a given slot
@@ -113,24 +120,40 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
     }
 
 
-    var slotsAttributed = Set[TaskSlot]()
     // Pre-attributed slots
     val staffsMap = staffs.map(s => (s.user.userId -> s)).toMap
-    val slotsMap = slots.map(s => (s.id -> s)).toMap
-    preConstraints.foreach {
-      case FixedTaskSlotConstraint(_, _, staffId, slotId) =>
-        val staff = staffsMap(staffId)
-        val slot = slotsMap(slotId)
 
-        if (attribute(slot, staff)) {
-          slotsAttributed = slotsAttributed + slot
+    preConstraints.foreach {
+      case FixedTaskConstraint(_, _, staffId, taskId) =>
+        // This constraints attributes the longest possible stream of slots to someone in a task
+
+        val staff = staffsMap(staffId)
+        val eligibleSlots = slots
+          .filter(_.task.id.get == taskId)
+          .filter(task => countAttributed(task) < task.staffsRequired)
+
+        // Get the longest non-overlapping sequence of slots
+        // Dynamic programming ftw
+        def longestNonOverlapping(selected: List[TaskSlot], duration: Int, rest: List[TaskSlot]): (List[TaskSlot], Int) = rest match {
+          case head :: tail =>
+            // Can we use head?
+            if (!selected.exists(slot => slot.timeSlot.isOverlapping(head.timeSlot))) {
+              val headDuration = head.timeSlot.duration
+              val (selIfHead, durIfHead) = longestNonOverlapping(head :: selected, duration + headDuration, tail)
+              val (selfIfNotHead, durIfNotHead) = longestNonOverlapping(selected, duration, tail)
+
+              if (durIfHead > durIfNotHead) (selIfHead, durIfHead) else (selfIfNotHead, durIfNotHead)
+            } else longestNonOverlapping(selected, duration, tail)
+          case Nil => (selected, duration)
         }
 
+        val (takenSlots, dur) = longestNonOverlapping(Nil, 0, eligibleSlots.toList)
+        takenSlots.foreach(slot => attribute(slot, staff))
       case _ =>
     }
 
 
-    val toAttribute = slots.filter(slot => !slotsAttributed(slot)).toList.sorted
+    val toAttribute = slots.toList.sorted
 
     /**
      * Logique d'attribution :
@@ -147,7 +170,7 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
     toAttribute.foreach(slot => {
       var nextStaff = staffsToAttribute.headOption
       var rest = staffsToAttribute.tail
-      var attributed = 0
+      var attributed = countAttributed(slot)
 
       println("Attributing " + slot)
 

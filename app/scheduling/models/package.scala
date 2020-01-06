@@ -155,14 +155,14 @@ package object models {
 
   val bannedTaskConstraints = TableQuery[BannedTaskConstraints]
 
-  private[models] class FixedTaskSlotConstraints(tag: Tag) extends ConstraintTable[FixedTaskSlotConstraint](tag, "fixed_task_slot_constraints") {
+  private[models] class FixedTaskConstraints(tag: Tag) extends ConstraintTable[FixedTaskConstraint](tag, "fixed_task_constraints") {
     def staffId = column[Int]("staff_id")
-    def slotId = column[Int]("task_slot_id")
+    def taskId = column[Int]("task_id")
 
-    def * = (constraintId.?, projectId, staffId, slotId).shaped <> (FixedTaskSlotConstraint.tupled, FixedTaskSlotConstraint.unapply)
+    def * = (constraintId.?, projectId, staffId, taskId).shaped <> (FixedTaskConstraint.tupled, FixedTaskConstraint.unapply)
   }
 
-  val fixedTaskSlotConstraints = TableQuery[FixedTaskSlotConstraints]
+  val fixedTaskConstraints = TableQuery[FixedTaskConstraints]
 
   private[models] class UnavailableConstraints(tag: Tag) extends PeriodTable[UnavailableConstraint](tag, "unavailable_constraints") {
     def constraintId = column[Int]("constraint_id", O.PrimaryKey, O.AutoInc)
