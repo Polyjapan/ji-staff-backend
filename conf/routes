@@ -75,6 +75,7 @@ POST          /back/forms/:form/pages/:page/fields/:field/deleteAdditional      
 GET           /back/forms/:id/pages/:page                                         controllers.backoffice.FormsController.getPageById(id: Int, page: Int)
 
 GET           /back/forms/:id/applications                                        controllers.backoffice.ApplicationsController.listApplications(id: Int, state: Option[String])
+GET           /back/forms/:id/applications.csv                                    controllers.backoffice.ApplicationsController.exportForm(id: Int)
 GET           /back/applications/content/:id                                      controllers.backoffice.ApplicationsController.getApplication(id:Int)
 GET           /back/applications/comments/:id                                     controllers.backoffice.ApplicationsController.getComments(id:Int)
 +nocsrf
@@ -88,7 +89,7 @@ GET           /back/staffs/:event                                               
 GET           /back/users/:user                                                   controllers.backoffice.UsersController.getHistory(user: Int)
 
 GET           /scheduling/projects                                                scheduling.controllers.ProjectsController.getAllProjects
-GET           /scheduling/projects/:project                                                scheduling.controllers.ProjectsController.getProject(project: Int)
+GET           /scheduling/projects/:project                                       scheduling.controllers.ProjectsController.getProject(project: Int)
 GET           /scheduling/:event/projects                                         scheduling.controllers.ProjectsController.getProjects(event: Int)
 +nocsrf
 POST          /scheduling/:event/projects                                         scheduling.controllers.ProjectsController.createProject(event: Int)

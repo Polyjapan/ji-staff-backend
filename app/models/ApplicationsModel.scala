@@ -136,6 +136,44 @@ class ApplicationsModel @Inject()(protected val dbConfigProvider: DatabaseConfig
     db.run(applicationsComments.filter(_.applicationId === application).join(users).on(_.userId === _.userId).result)
   }
 
+  def listReplies(formId: Int): Future[Option[(Seq[Forms.Field], Map[Int, Int], Map[Int, Seq[(Int, String)]])]] = {
+    db.run {
+      forms.filter(_.formId === formId).result.headOption.flatMap[Option[(Seq[data.Forms.Field], Map[Int,Int], Map[Int,Seq[(Int, String)]])],slick.dbio.NoStream,Effect.Read] {
+        case Some(form) =>
+          // Get the staff IDs for the event
+          events.filter(event => event.eventId === form.eventId)
+            .join(staffs).on((event, staff) => event.eventId === staff.eventId)
+            .map { case (_, staff) => (staff.userId, staff.staffNumber) }
+            .result
+            .map(seq => seq.toMap)
+            .flatMap(staffMap => {
+              pages.filter(_.formId === form.formId)
+                .join(fields).on(_.formPageId === _.pageId)
+                .sortBy { case ((page, field)) => page.ordering * 1000 + field.ordering }
+                .map(_._2) // keep only fields
+                .result
+                .flatMap(fields => {
+                  val fieldIds = fields.map(f => f.fieldId.get).toSet
+
+                  applications.filter(app => app.formId === formId)
+                    .join(applicationsContents).on((l, r) => r.applicationId === l.applicationId)
+                    .map { case (application, content) => (application.userId, content.fieldId, content.value) }
+                    .result
+                    .map(seq => {
+                      seq.groupBy(_._1).mapValues(_.map {
+                        case (_, fieldId, value) => (fieldId, value)
+                      }.filter(pair => fieldIds(pair._1)) // Keep only fields that are in the form
+                      )
+                    })
+                    .map(map => Some((fields, staffMap, map)))
+
+                })
+            })
+        case _ => DBIO.successful(None)
+      }
+    }
+  }
+
   def getApplications(form: Int, state: Option[Applications.ApplicationState.Value]): Future[Seq[(Int, Applications.ApplicationState.Value, data.User)]] = {
     val filtered = applications.filter(app => app.formId === form)
     db.run(

@@ -1,5 +1,6 @@
 package controllers.backoffice
 
+import java.io.ByteArrayOutputStream
 import java.sql.Date
 
 import ch.japanimpact.auth.api.{AuthApi, UserProfile}
@@ -56,6 +57,49 @@ class ApplicationsController @Inject()(cc: ControllerComponents, mail: MailingSe
         case None => Future.successful(NotFound)
       }
   }).requiresAuthentication
+
+
+  def exportForm(form: Int): Action[AnyContent] = Action.async({
+    applications.listReplies(form).flatMap {
+      case Some((fields, ids, map)) =>
+        val fieldsOrdering = fields.map(_.fieldId.get).zipWithIndex.toMap
+        val userIds = map.keySet
+
+        api.getUserProfiles(userIds).map {
+          case Left(profiles) =>
+
+            val header =
+              List("ID Staff") ++ List("Prénom") ++ List("Nom") ++ List("Email") ++ fields.map(_.name)
+
+            val lines: Seq[Seq[String]] = header :: map.toList.sortBy(_._1).map {
+              case (userId, content) =>
+                val profile = profiles(userId)
+                val staffId = ids.get(userId).map(i => i.toString).getOrElse("N/A")
+                val missingIds = fieldsOrdering.keySet -- content.map(_._1).toSet
+
+                val orderedContent = (content.toList ++ missingIds.map(id => (id, ""))).sortBy(pair => fieldsOrdering(pair._1))
+
+                List(
+                  staffId,
+                  profile.details.firstName,
+                  profile.details.lastName,
+                  profile.email
+                ) ::: orderedContent.map(_._2)
+            }
+
+            import com.github.tototoshi.csv._
+            val os = new ByteArrayOutputStream()
+            val csv = CSVWriter.open(os, "UTF-8")
+            csv.writeAll(lines)
+            csv.close()
+
+            Ok(os.toString("UTF-8")).as("text/csv; charset=utf-8")
+
+          case Right(_) => InternalServerError
+        }
+    }
+  }).requiresAuthentication
+
 
   private def sendStateMail(applicationId: Int, targetState: ApplicationState.Value) = {
     applications.getApplicationMeta(applicationId).map {
