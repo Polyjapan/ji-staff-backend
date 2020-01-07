@@ -22,4 +22,8 @@ class StaffsController @Inject()(cc: ControllerComponents)(implicit apps: AppsMo
     case Some(staffId) => Ok(Json.obj("staff_id" -> staffId))
     case _ => NotFound
   }).requiresApp
+
+  def getStaffList = Action.async(staffs.listStaffsForCurrentEvent.map {
+    case lst => Ok(Json.toJson(lst.map(staff => List(staff.staffNumber, staff.user.userId))))
+  }).requiresApp
 }

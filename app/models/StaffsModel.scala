@@ -97,6 +97,13 @@ class StaffsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
         case None => Future.successful(None)
       }
 
+  def listStaffsForCurrentEvent: Future[Seq[Staff]] =
+    db.run(editions.activeEvents.result.headOption)
+      .flatMap {
+        case Some(event) => listStaffs(event.eventId.get)
+        case None => Future.successful(Seq.empty[Staff])
+      }
+
   def getStaffings(user: Int): Future[Seq[StaffingHistory]] =
     db.run(staffs.filter(line => line.userId === user)
       .join(events).on(_.eventId === _.eventId)
