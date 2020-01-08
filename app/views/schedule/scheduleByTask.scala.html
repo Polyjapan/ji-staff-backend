@@ -12,7 +12,7 @@
     val start = (date ++ List(data.slot.timeSlot.timeStart / 60,data.slot.timeSlot.timeStart % 60)).mkString(",")
     val end = (date ++ List(data.slot.timeSlot.timeEnd / 60,data.slot.timeSlot.timeEnd % 60)).mkString(",")
 
-    "timetable.addEvent('" + data.line.staffNumber + " " + data.line.staffName + "', '" + tag + "', new Date(" + start + "), new Date(" + end + "));"
+    "timetable.addEvent('" + data.line.staffNumber + " " + data.line.staffName.replaceAll("'", "\\'") + "', '" + tag + "', new Date(" + start + "), new Date(" + end + "));"
 }
 
 <!doctype html>
