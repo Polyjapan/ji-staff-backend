@@ -141,5 +141,5 @@ GET           /scheduling/projects/:project/schedule/byTask.html                
 +nocsrf
 POST          /scheduling/projects/:project/schedule/generate                     scheduling.controllers.ScheduleController.generateSchedule(project: Int)
 
-GET           /assets/*file                                                       controllers.Assets.at(file)
+GET           /static/*file                                                       controllers.Assets.at(file)
 # Endpoints to update the schedule! (assignations, slots, ...)
