@@ -125,7 +125,7 @@ class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
             val staffs = models.staffs.filter(_.eventId === event.eventId)
               .join(models.users).on(_.userId === _.userId).map(_._2)
               .result
-              .map(_.map(user => scheduling.Staff(user, Nil, 0, user.ageAt(event.eventBegin)))) // TODO: Skill and abilities
+              .map(_.map(user => scheduling.Staff(user, Nil, 1000, user.ageAt(event.eventBegin)))) // TODO: CHANGE LEVEL / Skill and abilities
 
             val slots = tasks.filter(task => task.projectId === projectId)
               .join(taskSlots).on { case (task, slot) => task.id === slot.taskId }

@@ -22,11 +22,11 @@ package object data {
       val eventDateCalendar = new GregorianCalendar()
       val birthDateCalendar = new GregorianCalendar()
       eventDateCalendar.setTime(date)
-      birthDateCalendar.setTime(date)
+      birthDateCalendar.setTime(birthDate)
 
       val ageAtEndOfYear = eventDateCalendar.get(Calendar.YEAR) - birthDateCalendar.get(Calendar.YEAR)
 
-      if (eventDateCalendar.get(Calendar.DAY_OF_YEAR) > birthDateCalendar.get(Calendar.DAY_OF_YEAR)) ageAtEndOfYear - 1
+      if (eventDateCalendar.get(Calendar.DAY_OF_YEAR) < birthDateCalendar.get(Calendar.DAY_OF_YEAR)) ageAtEndOfYear - 1
       else ageAtEndOfYear
     }
   }
