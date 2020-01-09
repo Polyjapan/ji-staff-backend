@@ -122,10 +122,19 @@ class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
         .result.head
         .flatMap {
           case (project, event) =>
-            val staffs = models.staffs.filter(_.eventId === event.eventId)
-              .join(models.users).on(_.userId === _.userId).map(_._2)
+            val staffCaps = staffCapabilities.filter(_.eventId === event.eventId)
+              .join(capabilities).on { case (staffCap, cap) => staffCap.capabilityId === cap.id }
+              .map { case (staffCap, cap) => (staffCap.staffNumber, cap.name) }
               .result
-              .map(_.map(user => scheduling.Staff(user, Nil, 1000, user.ageAt(event.eventBegin)))) // TODO: CHANGE LEVEL / Skill and abilities
+              .map(res => res.groupBy(_._1).mapValues(_.map(_._2).toList).withDefaultValue(List.empty[String]))
+
+            val staffs = staffCaps.flatMap(staffCapsMap => {
+              models.staffs.filter(_.eventId === event.eventId)
+                .join(models.users).on(_.userId === _.userId).map{ case (staff, user) => (user, staff.staffLevel, staff.staffNumber) }
+                .result
+                .map(_.map(pair => scheduling.Staff(pair._1, staffCapsMap(pair._3), pair._2, pair._1.ageAt(event.eventBegin))))
+            })
+
 
             val slots = tasks.filter(task => task.projectId === projectId)
               .join(taskSlots).on { case (task, slot) => task.id === slot.taskId }

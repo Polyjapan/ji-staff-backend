@@ -85,6 +85,18 @@ package object models {
 
   val taskCapabilities = TableQuery[TasksCapabilities]
 
+  private[models] class StaffCapabilities(tag: Tag) extends Table[(Int, Int, Int)](tag, "staffs_capabilities") {
+    def eventId = column[Int]("event_id")
+    def staffNumber = column[Int]("staff_number")
+    def capabilityId = column[Int]("capability_id")
+
+    def pKey = primaryKey("primary_key", (eventId, staffNumber, capabilityId))
+
+    def * = (eventId, staffNumber, capabilityId).shaped
+  }
+
+  val staffCapabilities = TableQuery[StaffCapabilities]
+
   private[models] abstract class PeriodTable[T](tag: Tag, tblName: String) extends Table[T](tag, tblName) {
     def day = column[Date]("day")
 

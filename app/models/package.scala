@@ -195,6 +195,7 @@ package object models {
 
     def userId = column[Int]("user_id")
 
+    def staffLevel = column[Int]("staff_level", O.Default(0))
 
     def * = (eventId, staffNumber, userId).shaped
   }
