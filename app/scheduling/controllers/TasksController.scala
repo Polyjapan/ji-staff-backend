@@ -4,13 +4,13 @@ import javax.inject.{Inject, Singleton}
 import play.api.Configuration
 import play.api.libs.json.{Json, Reads}
 import play.api.mvc.{AbstractController, Action, ControllerComponents, Result}
-import scheduling.models.{CapabilitiesModel, SchedulingModel, TasksModel}
+import scheduling.models.{CapabilitiesModel, PartitionsModel, SchedulingModel, TasksModel, tasks}
 import utils.AuthenticationPostfix._
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class TasksController @Inject()(cc: ControllerComponents, model: SchedulingModel, tasks: TasksModel, caps: CapabilitiesModel)(implicit conf: Configuration, ec: ExecutionContext) extends AbstractController(cc) {
+class TasksController @Inject()(cc: ControllerComponents, model: SchedulingModel, tasks: TasksModel, caps: CapabilitiesModel, partitions: PartitionsModel)(implicit conf: Configuration, ec: ExecutionContext) extends AbstractController(cc) {
 
   def getTasks(project: Int) = Action.async(req => {
     tasks.getTasks(project).map(res => Ok(Json.toJson(res)))
@@ -39,10 +39,30 @@ class TasksController @Inject()(cc: ControllerComponents, model: SchedulingModel
     withResolvedCapabilities(req.body) { (add, remove) => tasks.createTask(task, add -- remove).map(r => Ok(Json.toJson(r)))}
   }).requiresAuthentication
 
+  def duplicateTask(project: Int): Action[Int] = Action.async(parse.json[Int])(req => {
+    val copyOf = req.body
+    tasks.getTask(project, copyOf).flatMap {
+      case Some(task) =>
+        caps.resolveCapabilitiesIds(task.difficulties).flatMap(caps => {
+          tasks.createTask(scheduling.models.Task(None, task.projectId, task.name + " (copie)", task.minAge, task.minExperience), caps)
+        }).flatMap(taskId => {
+          partitions.getPartitionsForTask(project, copyOf)
+            .map(parts => parts.map(partition => partition.copy(None, taskId)))
+            .flatMap(parts => partitions.createPartitions(parts))
+            .map(_ => Ok(Json.toJson(taskId)))
+        })
+      case None => Future(NotFound)
+    }
+  }).requiresAuthentication
+
   def updateTask(project: Int, taskId: Int): Action[CreateUpdateTask] = Action.async(parse.json[CreateUpdateTask])(req => {
     val task = scheduling.models.Task(Some(taskId), project, req.body.name, req.body.minAge.getOrElse(0), req.body.minExperience.getOrElse(0))
 
     withResolvedCapabilities(req.body) { (add, remove) => tasks.updateTask(task, add, remove).map(r => Ok)}
+  }).requiresAuthentication
+
+  def deleteTask(project: Int, taskId: Int) = Action.async(req => {
+    tasks.deleteTask(project, taskId).map(_ => Ok)
   }).requiresAuthentication
 
   def getTaskSlots(project: Int, task: Int) = Action.async(req => {

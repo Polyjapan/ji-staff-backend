@@ -113,7 +113,11 @@ GET           /scheduling/projects/:project/tasks/:id                           
 +nocsrf
 POST          /scheduling/projects/:project/tasks                                 scheduling.controllers.TasksController.createTask(project: Int)
 +nocsrf
+POST          /scheduling/projects/:project/tasks/copy                            scheduling.controllers.TasksController.duplicateTask(project: Int)
++nocsrf
 PUT           /scheduling/projects/:project/tasks/:id                             scheduling.controllers.TasksController.updateTask(project: Int, id: Int)
++nocsrf
+DELETE           /scheduling/projects/:project/tasks/:id                             scheduling.controllers.TasksController.deleteTask(project: Int, id: Int)
 
 #-- Tasks partitions
 

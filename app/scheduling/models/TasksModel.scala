@@ -9,6 +9,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class TasksModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext)
   extends HasDatabaseConfigProvider[MySQLProfile] {
 
+
   import profile.api._
 
   private val capsJoin = taskCapabilities.join(capabilities).on(_.capabilityId === _.id)
@@ -30,6 +31,8 @@ class TasksModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
       )
   }
 
+  def deleteTask(project: Int, taskId: Int) = db.run(tasks.filter(t => t.projectId === project && t.id === taskId).delete)
+
   def getTasks(project: Int): Future[Seq[scheduling.Task]] = {
     this.getTaskWithFilter(_.projectId === project)
   }
@@ -50,7 +53,7 @@ class TasksModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
     db.run(
       (tasks.filter(_.id === task.taskId.get).update(task))
         .andThen(taskCapabilities ++= addCaps.map(capId => (task.taskId.get, capId)))
-        .andThen(taskCapabilities.filter(_.capabilityId.inSet(removeCaps)).delete)
+        .andThen(taskCapabilities.filter(c => c.taskId === task.taskId.get && c.capabilityId.inSet(removeCaps)).delete)
     )
   }
 

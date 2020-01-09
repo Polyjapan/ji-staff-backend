@@ -9,6 +9,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class PartitionsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext)
   extends HasDatabaseConfigProvider[MySQLProfile] {
 
+
+
   import profile.api._
 
   def getPartitions(project: Int): Future[Seq[scheduling.models.TaskTimePartition]] = {
@@ -28,6 +30,10 @@ class PartitionsModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
 
   def createPartition(partition: TaskTimePartition): Future[Int] = {
     db.run(taskTimePartitions.returning(taskTimePartitions.map(_.id)) += partition)
+  }
+
+  def createPartitions(partitions: Seq[TaskTimePartition]): Future[_] = {
+    db.run(taskTimePartitions ++= partitions)
   }
 
   def updatePartition(partition: TaskTimePartition): Future[_] = {
