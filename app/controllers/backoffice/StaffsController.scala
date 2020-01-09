@@ -18,7 +18,7 @@ import scala.concurrent.ExecutionContext
 class StaffsController @Inject()(cc: ControllerComponents, auth: AuthApi, staffs: StaffsModel)
                                 (implicit ec: ExecutionContext, conf: Configuration) extends AbstractController(cc) {
 
-  case class StaffLine(staffNumber: Int, applicationId: Int, user: UserProfile)
+  case class StaffLine(staffNumber: Int, applicationId: Int, user: UserProfile, level: Int, capabilities: List[String])
 
   implicit val staffLineWrites: Writes[StaffLine] = Json.writes[StaffLine]
 
@@ -30,12 +30,25 @@ class StaffsController @Inject()(cc: ControllerComponents, auth: AuthApi, staffs
         case Left(seq) => Ok(Json.toJson(seq.map({
           case (k, v) =>
             val staff = staffIdMap(k)
-            StaffLine(staff.staffNumber, staff.application, v)
+            StaffLine(staff.staffNumber, staff.application, v, staff.level, staff.capabilities)
         }).toList.sortBy(l => l.staffNumber)  ))
         case Right(_) => InternalServerError
       }
     })
   }).requiresAuthentication
+
+  def setLevels(event: Int): Action[List[(Int, Int)]] = Action.async(parse.json[List[(Int, Int)]]) { req =>
+    staffs.setLevels(event, req.body).map(r => Ok)
+  }.requiresAuthentication
+
+  def addCapabilities(event: Int): Action[List[List[Int]]] = Action.async(parse.json[List[List[Int]]]) { req =>
+    val caps =
+      req.body.filter(_.size > 1)
+          .map(list => (list.head, list.tail))
+          .flatMap { case (staffId, caps) => caps.map(cap => (event, staffId, cap) )}
+
+    staffs.addCapabilities(caps).map(_ => Ok)
+  }.requiresAuthentication
 
   def exportStaffs(event: Int): Action[AnyContent] = Action.async({
     staffs.listStaffsDetails(event).flatMap {

@@ -87,6 +87,10 @@ PUT           /back/applications/state/:id                                      
 
 GET           /back/staffs/:event.csv                                             controllers.backoffice.StaffsController.exportStaffs(event: Int)
 GET           /back/staffs/:event                                                 controllers.backoffice.StaffsController.getStaffs(event: Int)
++nocsrf
+POST          /back/staffs/:event/levels                                          controllers.backoffice.StaffsController.setLevels(event: Int)
++nocsrf
+POST          /back/staffs/:event/capabilities                                    controllers.backoffice.StaffsController.addCapabilities(event: Int)
 GET           /back/users/:user                                                   controllers.backoffice.UsersController.getHistory(user: Int)
 
 GET           /scheduling/projects                                                scheduling.controllers.ProjectsController.getAllProjects

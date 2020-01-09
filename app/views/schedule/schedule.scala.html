@@ -4,7 +4,7 @@
 
 <!-- todo : fix dangerous XSS -->
 @generateStaffs(data: List[ScheduleColumn[StaffData, String]]) = @{
-    "['" + data.map(_.header).map(h => h.staffNumber + " " + h.staffName.replaceAll("[^a-zA-Z]", "_")).mkString("','") + "']"
+    "['" + data.map(_.header).map(h => h.staffNumber + " " + h.staffName.replaceAll("[^a-zA-Zéöüèäà ]", "_")).mkString("','") + "']"
 }
 
 @generateEvent(tag: String, day: Date, data: ScheduleLine[String]) = @{
@@ -41,7 +41,7 @@
 
 
                 @for(col <- day.schedule) {
-                    @defining(col.header.staffNumber + " " + col.header.staffName.replaceAll("[^a-zA-Z]", "_")) { fullName =>
+                    @defining(col.header.staffNumber + " " + col.header.staffName.replaceAll("[^a-zA-Zéöüèäà ]", "_")) { fullName =>
                         @for(line <- col.content) {
                         @Html(generateEvent(fullName, day.day, line))}
                     }

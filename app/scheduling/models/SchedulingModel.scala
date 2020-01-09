@@ -122,11 +122,7 @@ class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
         .result.head
         .flatMap {
           case (project, event) =>
-            val staffCaps = staffCapabilities.filter(_.eventId === event.eventId)
-              .join(capabilities).on { case (staffCap, cap) => staffCap.capabilityId === cap.id }
-              .map { case (staffCap, cap) => (staffCap.staffNumber, cap.name) }
-              .result
-              .map(res => res.groupBy(_._1).mapValues(_.map(_._2).toList).withDefaultValue(List.empty[String]))
+            val staffCaps = capabilitiesMappingRequestForEvent(event.eventId.get)
 
             val staffs = staffCaps.flatMap(staffCapsMap => {
               models.staffs.filter(_.eventId === event.eventId)

@@ -6,6 +6,7 @@ import data.ReturnTypes.StaffingHistory
 import data.{Forms, User}
 import javax.inject.Inject
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import slick.dbio.Effect.Write
 import slick.jdbc.MySQLProfile
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -33,18 +34,36 @@ class StaffsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
     db.run(staffs.filter(staff => staff.eventId === event && staff.userId === user).delete)
   }
 
-  case class Staff(staffNumber: Int, application: Int, user: User)
+  case class Staff(staffNumber: Int, application: Int, user: User, level: Int, capabilities: List[String])
+
+  def setLevels(event: Int, levels: List[(Int, Int)]): Future[List[Int]] = {
+    db.run(DBIO.sequence(
+      levels.map {
+        case (staff, level) =>
+          staffs.filter(s => s.staffNumber === staff && s.eventId === event)
+            .map(_.staffLevel).update(level)
+
+      }.asInstanceOf[List[DBIOAction[Int,NoStream,Write]]]
+    ))
+  }
+
+  def addCapabilities(caps: List[(Int, Int, Int)]): Future[_] = {
+    db.run(scheduling.models.staffCapabilities ++= caps)
+  }
+
 
   def listStaffs(event: Int): Future[Seq[Staff]] = {
-    db.run(staffs
+    val capabilitiesRequest = scheduling.models.capabilitiesMappingRequestForEvent(event)
+
+    db.run(capabilitiesRequest.flatMap(capabilities => staffs
       .filter(_.eventId === event)
       .sortBy(_.staffNumber)
       .join(users).on(_.userId === _.userId)
       .join(applications).on(_._2.userId === _.userId)
-      .map { case ((staff, user), application) => (staff.staffNumber, application.applicationId, user) }
-
-      .result)
-      .map(list => list.map(Staff.tupled))
+      .map { case ((staff, user), application) => (staff.staffNumber, application.applicationId, user, staff.staffLevel) }
+      .result
+      .map(list => list.map(t4 => (t4._1, t4._2, t4._3, t4._4, capabilities(t4._1))).map(Staff.tupled)))
+    )
   }
 
   def listStaffsDetails(eventId: Int): Future[(Seq[Forms.Field], Map[(Int, Int, Date), Seq[(Int, String)]])] = {
@@ -61,7 +80,7 @@ class StaffsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
 
           (formId.get, rest)
         })
-        .flatMap[(Seq[data.Forms.Field], Map[(Int, Int, Date),Seq[(Int, String)]]),slick.dbio.NoStream,Effect.Read] {
+        .flatMap[(Seq[data.Forms.Field], Map[(Int, Int, Date), Seq[(Int, String)]]), slick.dbio.NoStream, Effect.Read] {
           case (formId, fields) =>
             val fieldIds = fields.map(f => f.fieldId.get).toSet
 
@@ -82,7 +101,7 @@ class StaffsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
                   ans
                 })
               })
-            .map(map => (fields, map))
+              .map(map => (fields, map))
         }
     }
   }

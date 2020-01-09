@@ -8,6 +8,8 @@ import scheduling.constraints.{BannedTaskConstraint, _}
 import slick.lifted.Tag
 import slick.jdbc.MySQLProfile.api._
 
+import scala.concurrent.ExecutionContext
+
 package object models {
   case class ScheduleProject(projectId: Option[Int], event: Int, projectTitle: String, maxTimePerStaff: Int, minBreakMinutes: Int)
 
@@ -93,6 +95,14 @@ package object models {
     def pKey = primaryKey("primary_key", (eventId, staffNumber, capabilityId))
 
     def * = (eventId, staffNumber, capabilityId).shaped
+  }
+
+  def capabilitiesMappingRequestForEvent(event: Int)(implicit ec: ExecutionContext): DBIOAction[Map[Int, List[String]], NoStream, Effect.Read] = {
+    staffCapabilities.filter(_.eventId === event)
+      .join(capabilities).on { case (staffCap, cap) => staffCap.capabilityId === cap.id }
+      .map { case (staffCap, cap) => (staffCap.staffNumber, cap.name) }
+      .result
+      .map(res => res.groupBy(_._1).mapValues(_.map(_._2).toList).withDefaultValue(List.empty[String]))
   }
 
   val staffCapabilities = TableQuery[StaffCapabilities]
