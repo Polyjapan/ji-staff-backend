@@ -38,7 +38,7 @@ class TasksModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
     this.getTaskWithFilter(t => t.projectId === project && t.id === task).map(seq => seq.headOption)
   }
 
-  def createTask(task: Task, capabilities: Seq[Int]): Future[Int] = {
+  def createTask(task: Task, capabilities: Set[Int]): Future[Int] = {
     db.run(
       (tasks.returning(tasks.map(_.id)) += task).flatMap(insertedId => {
         (taskCapabilities ++= capabilities.map(capId => (insertedId, capId))).map(_ => insertedId)
@@ -46,11 +46,11 @@ class TasksModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
     )
   }
 
-  def updateTask(task: Task, capabilities: Seq[Int]): Future[_] = {
+  def updateTask(task: Task, addCaps: Set[Int], removeCaps: Set[Int]): Future[_] = {
     db.run(
-      (tasks.filter(_.id === task.taskId.get).update(task)).andThen({
-        (taskCapabilities ++= capabilities.map(capId => (task.taskId.get, capId)))
-      })
+      (tasks.filter(_.id === task.taskId.get).update(task))
+        .andThen(taskCapabilities ++= addCaps.map(capId => (task.taskId.get, capId)))
+        .andThen(taskCapabilities.filter(_.capabilityId.inSet(removeCaps)).delete)
     )
   }
 

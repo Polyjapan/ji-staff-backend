@@ -27,11 +27,11 @@ class StaffsController @Inject()(cc: ControllerComponents, auth: AuthApi, staffs
       val staffIdMap = list.map(line => (line.user.userId, (line))).toMap
 
       auth.getUserProfiles(staffIdMap.keySet).map {
-        case Left(seq) => Ok(Json.toJson(seq.map {
+        case Left(seq) => Ok(Json.toJson(seq.map({
           case (k, v) =>
             val staff = staffIdMap(k)
             StaffLine(staff.staffNumber, staff.application, v)
-        }))
+        }).toList.sortBy(l => l.staffNumber)  ))
         case Right(_) => InternalServerError
       }
     })

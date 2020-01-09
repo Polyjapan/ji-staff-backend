@@ -66,6 +66,7 @@ class StaffsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
             val fieldIds = fields.map(f => f.fieldId.get).toSet
 
             staffs.filter(_.eventId === eventId)
+              .sortBy(_.staffNumber)
               .join(users).on(_.userId === _.userId)
               .join(applications).on((staff, app) => app.formId === formId && app.userId === staff._1.userId)
               .join(applicationsContents).on((l, r) => r.applicationId === l._2.applicationId)

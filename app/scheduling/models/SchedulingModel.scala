@@ -72,7 +72,7 @@ class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
             .mapValues(col => col.map { case (slot, task, _) => ScheduleLine(slot, task) })
             .map { case (staff, lines) => ScheduleColumn(staff, lines.toList) }
 
-          ScheduleDay(day, minTime, maxTime, columns.toList)
+          ScheduleDay(day, minTime, maxTime, columns.toList.sortBy(_.header.staffNumber))
       }
     })
   }
