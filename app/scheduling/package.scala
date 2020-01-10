@@ -3,9 +3,10 @@ import java.time.LocalTime
 import java.time.temporal.ChronoField
 
 import play.api.libs.json.{Format, Json, OFormat, OWrites}
-import scheduling.models.{TaskSlot, TaskTimePartition}
+import scheduling.models.TaskTimePartition
 
 package object scheduling {
+
   import data._
 
   case class ScheduleProject(id: Int, event: Event, projectTitle: String, maxTimePerStaff: Int, minBreakMinutes: Int)
@@ -105,6 +106,29 @@ package object scheduling {
     def assign(staff: Staff) = StaffAssignation(this, staff)
   }
 
+  // Get the longest non-overlapping sequence of slots
+  // Dynamic programming ftw
+  def longestNonOverlapping(options: List[TaskSlot]): (List[TaskSlot], Int) = {
+    longestNonOverlappingSlot(options, (slot: TaskSlot) => slot.timeSlot)
+  }
+
+  def longestNonOverlappingSlot[T](options: List[T], mapping: T => Period): (List[T], Int) = {
+    def longestNonOverlapping(selected: List[T], duration: Int, rest: List[T]): (List[T], Int) = rest match {
+      case head :: tail =>
+        // Can we use head?
+        if (!selected.exists(slot => mapping(slot).isOverlapping(mapping(head)))) {
+          val headDuration = mapping(head).duration
+          val (selIfHead, durIfHead) = longestNonOverlapping(head :: selected, duration + headDuration, tail)
+          val (selfIfNotHead, durIfNotHead) = longestNonOverlapping(selected, duration, tail)
+
+          if (durIfHead > durIfNotHead) (selIfHead, durIfHead) else (selfIfNotHead, durIfNotHead)
+        } else longestNonOverlapping(selected, duration, tail)
+      case Nil => (selected, duration)
+    }
+
+    longestNonOverlapping(Nil, 0, options)
+  }
+
   implicit val taskSlotFormat: OWrites[TaskSlot] = Json.writes[TaskSlot]
 
   case class StaffAssignation(taskSlot: TaskSlot, user: Staff)
@@ -120,6 +144,7 @@ package object scheduling {
   case class ScheduleDay[CType, LType](day: java.sql.Date, startTime: Int, endTime: Int, schedule: List[ScheduleColumn[CType, LType]])
 
   case class StaffData(staffNumber: Int, staffName: String)
+
   implicit val schedulingResultFormat: OWrites[SchedulingResult] = Json.writes[SchedulingResult]
 
 }

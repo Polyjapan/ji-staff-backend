@@ -83,7 +83,25 @@ class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
         case (day, (minTime, maxTime, seq)) =>
           val columns = seq.groupBy(_._2)
             .mapValues(col => col.map { case (slot, _, staff) => ScheduleLine(slot, staff) })
-            .map { case (task, lines) => ScheduleColumn(task, lines.toList) }
+            .flatMap { case (task, lines) =>
+              val slots = lines.map(_.slot.timeSlot)
+              val maxSim = slots.map(slot => slots.count(s2 => s2.isOverlapping(slot))).max
+
+              if (maxSim <= 1) List(ScheduleColumn(task, lines.toList))
+              else {
+                def chooseSlots(remaining: List[ScheduleLine[StaffData]], i: Int = 1): List[ScheduleColumn[String, StaffData]] = {
+                  if (remaining.isEmpty) Nil
+                  else {
+                    val (choosen, _) = scheduling.longestNonOverlappingSlot[ScheduleLine[StaffData]](remaining, line => line.slot.timeSlot)
+                    val rest = remaining.filterNot(elem => choosen.contains(elem))
+
+                    ScheduleColumn(task + " - " + i, choosen) :: chooseSlots(rest, i + 1)
+                  }
+                }
+
+                chooseSlots(lines.toList)
+              }
+            }
 
           ScheduleDay(day, minTime, maxTime, columns.toList)
       }
@@ -126,7 +144,7 @@ class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
 
             val staffs = staffCaps.flatMap(staffCapsMap => {
               models.staffs.filter(_.eventId === event.eventId)
-                .join(models.users).on(_.userId === _.userId).map{ case (staff, user) => (user, staff.staffLevel, staff.staffNumber) }
+                .join(models.users).on(_.userId === _.userId).map { case (staff, user) => (user, staff.staffLevel, staff.staffNumber) }
                 .result
                 .map(_.map(pair => scheduling.Staff(pair._1, staffCapsMap(pair._3), pair._2, pair._1.ageAt(event.eventBegin))))
             })

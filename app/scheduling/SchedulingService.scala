@@ -132,22 +132,8 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
           .filter(_.task.id.get == taskId)
           .filter(task => countAttributed(task) < task.staffsRequired)
 
-        // Get the longest non-overlapping sequence of slots
-        // Dynamic programming ftw
-        def longestNonOverlapping(selected: List[TaskSlot], duration: Int, rest: List[TaskSlot]): (List[TaskSlot], Int) = rest match {
-          case head :: tail =>
-            // Can we use head?
-            if (!selected.exists(slot => slot.timeSlot.isOverlapping(head.timeSlot))) {
-              val headDuration = head.timeSlot.duration
-              val (selIfHead, durIfHead) = longestNonOverlapping(head :: selected, duration + headDuration, tail)
-              val (selfIfNotHead, durIfNotHead) = longestNonOverlapping(selected, duration, tail)
 
-              if (durIfHead > durIfNotHead) (selIfHead, durIfHead) else (selfIfNotHead, durIfNotHead)
-            } else longestNonOverlapping(selected, duration, tail)
-          case Nil => (selected, duration)
-        }
-
-        val (takenSlots, dur) = longestNonOverlapping(Nil, 0, eligibleSlots.toList)
+        val (takenSlots, dur) = longestNonOverlapping(eligibleSlots.toList)
         takenSlots.foreach(slot => attribute(slot, staff))
       case _ =>
     }
