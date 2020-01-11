@@ -3,7 +3,7 @@
 @(data: List[ScheduleDay[String, StaffData]])
 
 @generateStaffs(data: List[ScheduleColumn[String, StaffData]]) = @{
-    "['" + data.map(_.header).mkString("','") + "']"
+    "['" + data.map(_.header.replaceAll("'", "\\\\'")).mkString("','") + "']"
 }
 
 @generateEvent(tag: String, day: Date, data: ScheduleLine[StaffData]) = @{
@@ -42,7 +42,7 @@
                 @for(col <- day.schedule) {
 
                         @for(line <- col.content) {
-                        @Html(generateEvent(col.header, day.day, line))}
+                        @Html(generateEvent(col.header.replaceAll("'", "\\\\'"), day.day, line))}
 
                 }
                         var renderer = new Timetable.Renderer(timetable);

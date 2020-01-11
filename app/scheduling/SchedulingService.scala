@@ -38,9 +38,39 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
       } else (x.day.getTime - y.day.getTime).toInt
     }
 
+    val amt = staffs.size.toDouble
+    val difficultyRarityScore: Map[String, Double] = staffs.flatMap(s => s.capabilities)
+      .groupBy(a => a)
+      .mapValues(_.size / amt)
+      .mapValues(avail => 1 / avail)
+      .withDefaultValue(1)
+
+    val experienceRarityScore: Map[Int, Double] = staffs.map(staff => staff.experience)
+      .foldLeft(Map[Int, Int]().withDefaultValue(0)) { (map, exp) => (1 to exp).foldLeft(map) {
+        (map, exp) => map.updated(exp, map(exp) + 1)
+      } }
+      .mapValues(_ / amt)
+      .mapValues(avail => 1 / avail)
+      .withDefaultValue(1)
+
+    println("Difficulties rarity score:")
+    println(difficultyRarityScore)
+    println("Experience rarity score:")
+    println(experienceRarityScore)
+
+    def taskRarityScore(task: Task) = {
+      (task.difficulties.map(difficultyRarityScore).product * experienceRarityScore(task.minExperience) * 1000).toInt
+    }
+
     implicit val slotsOrdering: Ordering[TaskSlot] = (x, y) => {
       val a = periodsOrdering.compare(x.timeSlot, y.timeSlot)
-      if (a == 0) x.id - y.id else a
+      val b = taskRarityScore(x.task) - taskRarityScore(y.task)
+
+      if (b == 0) {
+        if (a == 0) {
+          x.id - y.id
+        } else a // desc ordering of difficulties
+      } else -b
     }
 
     val (preConstraints, constraints) = constraintsSeq.partition(_.isInstanceOf[PreProcessConstraint]) match {
@@ -158,25 +188,34 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
       var rest = staffsToAttribute.tail
       var attributed = countAttributed(slot)
 
-      println("Attributing " + slot)
+      if (attributed < slot.staffsRequired)
+        println("Attributing " + slot + " (score " + taskRarityScore(slot.task) + ")")
+
+      var issues = List.empty[String]
 
       while (attributed < slot.staffsRequired && nextStaff.isDefined) {
         val staff = nextStaff.get
-        val constr = constraints.filter(c => c.appliesTo(staff, slot))
+        val appliableConstraints = constraints.filter(c => c.appliesTo(staff, slot))
+        val constr = appliableConstraints
           .map(c => c.offerAssignation(staff, staffs, slot, attributions.toMap.mapValues(_.toSet)))
 
         if (!constr.exists(_.isEmpty)) {
           val staffs = constr.foldLeft(Set(staff))(_ union _)
-
-          if (staffs.forall(staff => {
+          val unavailable = staffs.filterNot(staff => {
             isAble(staff, slot) && !isBusy(staff, slot) && hasEnoughRemainingTime(staff, slot)
-          })) {
+          })
+
+          if (unavailable.isEmpty) {
 
             staffs.foreach(staff => {
               attribute(slot, staff)
             })
             attributed += staffs.size
+          } else {
+            issues = unavailable.filter(s => isAble(s, slot)).map(s => " .. " + s + " : is able but is busy " + isBusy(staff, slot) + ", has time " + hasEnoughRemainingTime(staff, slot)).toList ::: issues
           }
+        } else {
+          issues = constr.zip(appliableConstraints).filter(_._1.isEmpty).map(_._2.toString).map(s => " .. Constraint fail " + s).toList ::: issues
         }
 
         nextStaff = rest.headOption
@@ -189,6 +228,7 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
       if (attributed < slot.staffsRequired) {
         notAttributed += slot
         println(s"PLANNER:: Cannot attribute slot ${slot.id} (${slot.task}). Only $attributed staffs found out of ${slot.staffsRequired}.")
+        issues.foreach(println)
       }
     })
 
@@ -205,7 +245,9 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
       val std = Math.sqrt(variance)
 
       (avg, std)
-    } else { (0D, 0D)}
+    } else {
+      (0D, 0D)
+    }
 
     attributions.flatMap {
       case (slot, set) => set.toList.map(staff => StaffAssignation(slot, staff))
