@@ -139,9 +139,15 @@ package object models {
     def splitIn = column[Int]("split_in")
     def staffsRequired = column[Int]("staffs_required")
 
+    def offset = column[Option[Int]]("alternate_offset")
+
+    def firstAltShift = column[PartitionRule.Value]("first_alternated_shift")
+    def lastAltShift = column[PartitionRule.Value]("last_alternated_shift")
+    def lastNormalShift = column[PartitionRule.Value]("last_normal_shift")
+
     def doAlternate = column[Boolean]("alternate_shifts")
 
-    def * = (id.?, taskId, staffsRequired, splitIn, period, doAlternate).shaped.<>(TaskTimePartition.tupled, TaskTimePartition.unapply)
+    def * = (id.?, taskId, staffsRequired, splitIn, period, doAlternate, offset, firstAltShift, lastAltShift, lastNormalShift).shaped.<>(TaskTimePartition.tupled, TaskTimePartition.unapply)
   }
 
   val taskTimePartitions = TableQuery[TaskTimePartitions]
