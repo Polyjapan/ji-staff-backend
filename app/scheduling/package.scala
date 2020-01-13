@@ -98,7 +98,7 @@ package object scheduling {
   implicit val periodFormat: Format[Period] = Json.format[Period]
 
 
-  case class Task(id: Option[Int], projectId: Int, name: String, minAge: Int, minExperience: Int, difficulties: List[String])
+  case class Task(id: Option[Int], projectId: Int, name: String, minAge: Int, minExperience: Int, difficulties: List[String], taskType: Option[Int])
 
   implicit val taskFormat: OFormat[Task] = Json.format[Task]
 

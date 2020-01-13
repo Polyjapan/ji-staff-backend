@@ -163,7 +163,8 @@ class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
                       scheduling.Task(
                         task.taskId,
                         task.projectId,
-                        task.name, task.minAge, task.minExperience, caps.flatMap(_._2).toList
+                        task.name, task.minAge, task.minExperience, caps.flatMap(_._2).toList,
+                        task.taskType
                       ), slot.staffsRequired, slot.timeSlot
                     )
                   }

@@ -15,7 +15,7 @@ package object models {
 
   implicit val scheduleProjectFormat: OWrites[ScheduleProject] = Json.writes[ScheduleProject]
 
-  private[scheduling] case class Task(taskId: Option[Int], projectId: Int, name: String, minAge: Int, minExperience: Int)
+  private[scheduling] case class Task(taskId: Option[Int], projectId: Int, name: String, minAge: Int, minExperience: Int, taskType: Option[Int])
 
   case class TaskSlot(taskSlotId: Option[Int], taskId: Int, staffsRequired: Int, timeSlot: Period) {
     def assign(staff: User) = StaffAssignation(taskSlotId.get, staff.userId)
@@ -42,6 +42,15 @@ package object models {
 
   val scheduleProjects = TableQuery[ScheduleProjects]
 
+  private[models] class TaskTypes(tag: Tag) extends Table[String](tag, "task_types") {
+    def id = column[Int]("task_type_id", O.PrimaryKey, O.AutoInc)
+
+    def name = column[String]("task_type_name")
+
+    def * = name.shaped
+  }
+
+  val taskTypes = TableQuery[TaskTypes]
 
   private[models] class Tasks(tag: Tag) extends Table[Task](tag, "schedule_tasks") {
     def id = column[Int]("task_id", O.PrimaryKey, O.AutoInc)
@@ -54,9 +63,11 @@ package object models {
 
     def name = column[String]("name")
 
+    def taskTypeId = column[Option[Int]]("task_type_id")
+
     def project = foreignKey("project", projectId, scheduleProjects)(_.id, onDelete = ForeignKeyAction.Cascade)
 
-    def * = (id.?, projectId, name, minAge, minExperience).shaped <> (Task.tupled, Task.unapply)
+    def * = (id.?, projectId, name, minAge, minExperience, taskTypeId).shaped <> (Task.tupled, Task.unapply)
   }
 
   val tasks = TableQuery[Tasks]

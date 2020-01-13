@@ -23,7 +23,7 @@ class TasksController @Inject()(cc: ControllerComponents, model: SchedulingModel
     }
   }).requiresAuthentication
 
-  case class CreateUpdateTask(name: String, minAge: Option[Int], minExperience: Option[Int], addDifficulties: List[String], removeDifficulties: List[String])
+  case class CreateUpdateTask(name: String, minAge: Option[Int], minExperience: Option[Int], taskType: Option[Int], addDifficulties: List[String], removeDifficulties: List[String])
 
   implicit val taskReads: Reads[CreateUpdateTask] = Json.reads[CreateUpdateTask]
 
@@ -34,7 +34,7 @@ class TasksController @Inject()(cc: ControllerComponents, model: SchedulingModel
   }
 
   def createTask(project: Int): Action[CreateUpdateTask] = Action.async(parse.json[CreateUpdateTask])(req => {
-    val task = scheduling.models.Task(None, project, req.body.name, req.body.minAge.getOrElse(0), req.body.minExperience.getOrElse(0))
+    val task = scheduling.models.Task(None, project, req.body.name, req.body.minAge.getOrElse(0), req.body.minExperience.getOrElse(0), req.body.taskType)
 
     withResolvedCapabilities(req.body) { (add, remove) => tasks.createTask(task, add -- remove).map(r => Ok(Json.toJson(r)))}
   }).requiresAuthentication
@@ -44,7 +44,7 @@ class TasksController @Inject()(cc: ControllerComponents, model: SchedulingModel
     tasks.getTask(project, copyOf).flatMap {
       case Some(task) =>
         caps.resolveCapabilitiesIds(task.difficulties).flatMap(caps => {
-          tasks.createTask(scheduling.models.Task(None, task.projectId, task.name + " (copie)", task.minAge, task.minExperience), caps)
+          tasks.createTask(scheduling.models.Task(None, task.projectId, task.name + " (copie)", task.minAge, task.minExperience, task.taskType), caps)
         }).flatMap(taskId => {
           partitions.getPartitionsForTask(project, copyOf)
             .map(parts => parts.map(partition => partition.copy(None, taskId)))
@@ -56,7 +56,7 @@ class TasksController @Inject()(cc: ControllerComponents, model: SchedulingModel
   }).requiresAuthentication
 
   def updateTask(project: Int, taskId: Int): Action[CreateUpdateTask] = Action.async(parse.json[CreateUpdateTask])(req => {
-    val task = scheduling.models.Task(Some(taskId), project, req.body.name, req.body.minAge.getOrElse(0), req.body.minExperience.getOrElse(0))
+    val task = scheduling.models.Task(Some(taskId), project, req.body.name, req.body.minAge.getOrElse(0), req.body.minExperience.getOrElse(0), req.body.taskType)
 
     withResolvedCapabilities(req.body) { (add, remove) => tasks.updateTask(task, add, remove).map(r => Ok)}
   }).requiresAuthentication

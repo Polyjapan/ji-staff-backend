@@ -105,6 +105,10 @@ GET           /scheduling/capabilities                                          
 +nocsrf
 POST          /scheduling/capabilities                                            scheduling.controllers.CapabilitiesController.createCapability
 
+GET           /scheduling/taskTypes                                               scheduling.controllers.TaskTypesController.getTaskTypes
++nocsrf
+POST          /scheduling/taskTypes                                               scheduling.controllers.TaskTypesController.createTaskType
+
 
 #-- Tasks
 
@@ -117,7 +121,7 @@ POST          /scheduling/projects/:project/tasks/copy                          
 +nocsrf
 PUT           /scheduling/projects/:project/tasks/:id                             scheduling.controllers.TasksController.updateTask(project: Int, id: Int)
 +nocsrf
-DELETE           /scheduling/projects/:project/tasks/:id                             scheduling.controllers.TasksController.deleteTask(project: Int, id: Int)
+DELETE        /scheduling/projects/:project/tasks/:id                             scheduling.controllers.TasksController.deleteTask(project: Int, id: Int)
 
 #-- Tasks partitions
 

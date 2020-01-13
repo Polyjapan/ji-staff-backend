@@ -1,4 +1,4 @@
-name := "JIStaffBackend2"
+name := "jistaffbackend2"
 
 version := "1.0"
 

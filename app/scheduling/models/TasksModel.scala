@@ -26,7 +26,7 @@ class TasksModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
             case (task, None) => (task, None)
           }
           .groupBy(_._1).mapValues(_.map(_._2))
-          .map { case (task, caps) => scheduling.Task(task.taskId, task.projectId, task.name, task.minAge, task.minExperience, caps.flatten.toList) }
+          .map { case (task, caps) => scheduling.Task(task.taskId, task.projectId, task.name, task.minAge, task.minExperience, caps.flatten.toList, task.taskType) }
           .toSeq
       )
   }
@@ -69,7 +69,7 @@ class TasksModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
       .result)
       .map(list => list.map {
         case (task, slot) =>
-          scheduling.TaskSlot(slot.taskSlotId.get, scheduling.Task(task.taskId, task.projectId, task.name, task.minAge, task.minExperience, Nil), slot.staffsRequired, slot.timeSlot)
+          scheduling.TaskSlot(slot.taskSlotId.get, scheduling.Task(task.taskId, task.projectId, task.name, task.minAge, task.minExperience, Nil, task.taskType), slot.staffsRequired, slot.timeSlot)
       })
   }
 
