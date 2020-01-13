@@ -14,7 +14,7 @@ class ProjectsModel@Inject()(protected val dbConfigProvider: DatabaseConfigProvi
 
   def getProjects(event: Int): Future[Seq[scheduling.ScheduleProject]] = {
     db.run(scheduleProjects.filter(_.event === event).join(models.events).on(_.event === _.eventId).result)
-      .map(list => list.map { case (proj, ev) => scheduling.ScheduleProject(proj.projectId.get, ev, proj.projectTitle, proj.maxTimePerStaff, proj.minBreakMinutes)})
+      .map(list => list.map { case (proj, ev) => scheduling.ScheduleProject(proj.projectId.get, ev, proj.projectTitle, proj.maxTimePerStaff, proj.minBreakMinutes, proj.maxSameShiftType)})
   }
 
   def getAllProjects: Future[Map[data.Event, Seq[scheduling.models.ScheduleProject]]] = {
@@ -30,8 +30,8 @@ class ProjectsModel@Inject()(protected val dbConfigProvider: DatabaseConfigProvi
     db.run(scheduleProjects.filter(_.id === project).result.headOption)
   }
 
-  def createProject(event: Int, name: String, maxHoursPerStaff: Int, minBreak: Int): Future[Int] = {
-    db.run(scheduleProjects.returning(scheduleProjects.map(_.id)) += ScheduleProject(None, event, name, maxHoursPerStaff, minBreak))
+  def createProject(event: Int, name: String, maxHoursPerStaff: Int, minBreak: Int, maxSameShift: Int): Future[Int] = {
+    db.run(scheduleProjects.returning(scheduleProjects.map(_.id)) += ScheduleProject(None, event, name, maxHoursPerStaff, minBreak, maxSameShift))
   }
 
   def cloneProject(source: Int, target: Int, cloneSlots: Boolean = false, cloneConstraints: Boolean = false) = {

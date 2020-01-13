@@ -11,7 +11,7 @@ import slick.jdbc.MySQLProfile.api._
 import scala.concurrent.ExecutionContext
 
 package object models {
-  case class ScheduleProject(projectId: Option[Int], event: Int, projectTitle: String, maxTimePerStaff: Int, minBreakMinutes: Int)
+  case class ScheduleProject(projectId: Option[Int], event: Int, projectTitle: String, maxTimePerStaff: Int, minBreakMinutes: Int, maxSameShiftType: Int)
 
   implicit val scheduleProjectFormat: OWrites[ScheduleProject] = Json.writes[ScheduleProject]
 
@@ -34,10 +34,11 @@ package object models {
     def title = column[String]("project_title")
 
     def maxHoursPerStaff = column[Int]("max_daily_hours")
+    def maxSameShiftDaily = column[Int]("max_same_shift_daily")
 
     def minBreakMinutes = column[Int]("min_break_minutes")
 
-    def * = (id.?, event, title, maxHoursPerStaff, minBreakMinutes).shaped <> (ScheduleProject.tupled, ScheduleProject.unapply)
+    def * = (id.?, event, title, maxHoursPerStaff, minBreakMinutes, maxSameShiftDaily).shaped <> (ScheduleProject.tupled, ScheduleProject.unapply)
   }
 
   val scheduleProjects = TableQuery[ScheduleProjects]

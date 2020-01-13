@@ -179,7 +179,7 @@ class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
                 }
               }
 
-            val proj = scheduling.ScheduleProject(project.projectId.get, event, project.projectTitle, project.maxTimePerStaff, project.minBreakMinutes)
+            val proj = scheduling.ScheduleProject(project.projectId.get, event, project.projectTitle, project.maxTimePerStaff, project.minBreakMinutes, project.maxSameShiftType)
 
 
             staffs.flatMap(staffs => constraints.flatMap(constraints => slots.map(slots => (proj, staffs, slots, constraints))))

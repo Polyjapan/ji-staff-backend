@@ -98,6 +98,8 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
      */
     def countTimeOnDay(staff: Staff, day: Date): Int = attributionsFor(staff).toList.filter(_.timeSlot.day == day).map(_.timeSlot.duration).sum
 
+    def countSameShiftTypesOnDay(staff: Staff, day: Date, shiftType: Int): Int = attributionsFor(staff).toList.filter(_.timeSlot.day == day).flatMap(_.task.taskType).count(_ == shiftType)
+
     implicit val staffsOrdering: Ordering[Staff] = (x, y) => {
       val a = countTime(x) - countTime(y)
       if (a == 0) x.user.userId - y.user.userId else a
@@ -147,6 +149,11 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
     def hasEnoughRemainingTime(staff: Staff, slot: TaskSlot): Boolean = {
       val time = countTimeOnDay(staff, slot.timeSlot.day) + slot.timeSlot.duration
       time <= project.maxTimePerStaff * 60
+    }
+
+    def hasEnoughRemainingTasks(staff: Staff, slot: TaskSlot): Boolean = {
+      val sameTasks = slot.task.taskType.map(tpe => countSameShiftTypesOnDay(staff, slot.timeSlot.day, tpe) + 1).getOrElse(0)
+      sameTasks <= project.maxSameShiftType
     }
 
 
@@ -202,7 +209,7 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
         if (!constr.exists(_.isEmpty)) {
           val staffs = constr.foldLeft(Set(staff))(_ union _)
           val unavailable = staffs.filterNot(staff => {
-            isAble(staff, slot) && !isBusy(staff, slot) && hasEnoughRemainingTime(staff, slot)
+            isAble(staff, slot) && !isBusy(staff, slot) && hasEnoughRemainingTime(staff, slot) && hasEnoughRemainingTasks(staff, slot)
           })
 
           if (unavailable.isEmpty) {

@@ -9,7 +9,7 @@ package object scheduling {
 
   import data._
 
-  case class ScheduleProject(id: Int, event: Event, projectTitle: String, maxTimePerStaff: Int, minBreakMinutes: Int)
+  case class ScheduleProject(id: Int, event: Event, projectTitle: String, maxTimePerStaff: Int, minBreakMinutes: Int, maxSameShiftType: Int)
 
   implicit val scheduleProjectFormat: OWrites[ScheduleProject] = Json.writes[ScheduleProject]
 
