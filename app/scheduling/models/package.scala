@@ -195,6 +195,15 @@ package object models {
 
   val bannedTaskConstraints = TableQuery[BannedTaskConstraints]
 
+  private[models] class BannedTaskTypeConstraints(tag: Tag) extends ConstraintTable[BannedTaskTypeConstraint](tag, "banned_task_types_constraints") {
+    def staffId = column[Int]("staff_id")
+    def taskTypeId = column[Int]("task_type_id")
+
+    def * = (constraintId.?, projectId, staffId, taskTypeId).shaped <> (BannedTaskTypeConstraint.tupled, BannedTaskTypeConstraint.unapply)
+  }
+
+  val bannedTaskTypesConstraints = TableQuery[BannedTaskTypeConstraints]
+
   private[models] class FixedTaskConstraints(tag: Tag) extends ConstraintTable[FixedTaskConstraint](tag, "fixed_task_constraints") {
     def staffId = column[Int]("staff_id")
     def taskId = column[Int]("task_id")

@@ -26,6 +26,7 @@ package object constraints {
   }
 
   implicit val bannedTaskConstraintFormat: Format[BannedTaskConstraint] = Json.format[BannedTaskConstraint]
+  implicit val bannedTaskTypeConstraintFormat: Format[BannedTaskTypeConstraint] = Json.format[BannedTaskTypeConstraint]
   implicit val associationConstraintFormat: Format[AssociationConstraint] = Json.format[AssociationConstraint]
   implicit val unavailableConstraintFormat: Format[UnavailableConstraint] = Json.format[UnavailableConstraint]
   implicit val fixedTaskSlotConstraintFormat: Format[FixedTaskConstraint] = Json.format[FixedTaskConstraint]
@@ -34,6 +35,7 @@ package object constraints {
     def unapply(constraint: ScheduleConstraint): Option[(String, JsValue)] = {
       val (prod: Product, sub) = constraint match {
         case b: BannedTaskConstraint => (b, Json.toJson(b)(bannedTaskConstraintFormat))
+        case b: BannedTaskTypeConstraint => (b, Json.toJson(b)(bannedTaskTypeConstraintFormat))
         case b: AssociationConstraint => (b, Json.toJson(b)(associationConstraintFormat))
         case b: UnavailableConstraint => (b, Json.toJson(b)(unavailableConstraintFormat))
         case b: FixedTaskConstraint => (b, Json.toJson(b)(fixedTaskSlotConstraintFormat))
@@ -43,6 +45,7 @@ package object constraints {
 
     def apply(constraintType: String, constraint: JsValue): ScheduleConstraint = {
       (constraintType match {
+        case "BannedTaskTypeConstraint" => Json.fromJson[BannedTaskTypeConstraint](constraint)
         case "BannedTaskConstraint" => Json.fromJson[BannedTaskConstraint](constraint)
         case "AssociationConstraint" => Json.fromJson[AssociationConstraint](constraint)
         case "UnavailableConstraint" => Json.fromJson[UnavailableConstraint](constraint)
@@ -66,6 +69,12 @@ package object constraints {
     override def isAssignationValid(staff: Staff, task: TaskSlot, assignations: Map[TaskSlot, Set[Staff]]): Boolean = !appliesTo(staff, task)
 
     override def appliesTo(staff: Staff, task: TaskSlot): Boolean = staff.user.userId == staffId && task.task.id.get == taskId
+  }
+
+  case class BannedTaskTypeConstraint(constraintId: Option[Int], projectId: Int, staffId: Int, taskTypeId: Int) extends ResolutionConstraint {
+    override def isAssignationValid(staff: Staff, task: TaskSlot, assignations: Map[TaskSlot, Set[Staff]]): Boolean = !appliesTo(staff, task)
+
+    override def appliesTo(staff: Staff, task: TaskSlot): Boolean = staff.user.userId == staffId && task.task.taskType.contains(taskTypeId)
   }
 
   case class FixedTaskConstraint(constraintId: Option[Int], projectId: Int, staffId: Int, taskId: Int) extends PreProcessConstraint
