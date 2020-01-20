@@ -173,8 +173,10 @@ class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
             val constraints =
               associationConstraints.filter(_.projectId === projectId).result flatMap { asso =>
                 bannedTaskConstraints.filter(_.projectId === projectId).result flatMap { btc =>
-                  fixedTaskConstraints.filter(_.projectId === projectId).result flatMap { ftsc =>
-                    unavailableConstraints.filter(_.projectId === projectId).result map { uc => asso ++ btc ++ ftsc ++ uc }
+                  bannedTaskTypesConstraints.filter(_.projectId === projectId).result flatMap { bttc =>
+                    fixedTaskConstraints.filter(_.projectId === projectId).result flatMap { ftsc =>
+                      unavailableConstraints.filter(_.projectId === projectId).result map { uc => asso ++ btc ++ bttc ++ ftsc ++ uc }
+                    }
                   }
                 }
               }

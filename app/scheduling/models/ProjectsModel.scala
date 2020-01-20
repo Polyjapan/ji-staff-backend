@@ -74,6 +74,9 @@ class ProjectsModel@Inject()(protected val dbConfigProvider: DatabaseConfigProvi
           }.andThen {
             fixedTaskConstraints.filter(_.projectId === source).result
               .flatMap(r => fixedTaskConstraints ++= r.map(c => c.copy(projectId = target, taskId = idMap(c.taskId))))
+          }.andThen {
+            bannedTaskTypesConstraints.filter(_.projectId === source).result
+              .flatMap(r => bannedTaskTypesConstraints ++= r.map(c => c.copy(projectId = target)))
           }
         } else withSlots
 
