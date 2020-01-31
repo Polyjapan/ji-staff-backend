@@ -22,7 +22,7 @@ class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
     db.run(staffsAssignation ++= list.map(a => StaffAssignation(a.taskSlot.id, a.user.user.userId)))
   }
 
-  private def getScheduleRaw(project: Int): Future[Map[Date, (Int, Int, Seq[(TaskSlot, String, StaffData)])]] = {
+  private def getScheduleRaw(project: Int, staffId: Option[Int] = None): Future[Map[Date, (Int, Int, Seq[(TaskSlot, String, StaffData)])]] = {
     db.run(scheduleProjects.filter(_.id === project).map(_.event).result.headOption)
       .flatMap {
         case None => Future.successful(Nil)
@@ -31,7 +31,13 @@ class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
             .join(taskSlots).on(_.taskSlotId === _.id)
             .join(tasks).on((lhs, task) => lhs._2.taskId === task.id && task.projectId === project)
             .join(models.users).on(_._1._1.userId === _.userId)
-            .join(models.staffs).on((line, staff) => line._2.userId === staff.userId && staff.eventId === eventId)
+            .join(models.staffs).on((line, staff) => {
+            val result = line._2.userId === staff.userId && staff.eventId === eventId
+
+            if (staffId.isDefined)
+              result && staff.staffNumber === staffId.get
+            else result
+          })
             .map {
               case ((((_, slot), task), user), staff) => ((task.name, slot), (user.userId, staff.staffNumber))
             }
@@ -64,8 +70,8 @@ class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
       }
   }
 
-  def getScheduleByStaff(project: Int): Future[immutable.Iterable[ScheduleDay[StaffData, String]]] = {
-    getScheduleRaw(project).map(result => {
+  def getScheduleByStaff(project: Int, staffId: Option[Int] = None): Future[immutable.Iterable[ScheduleDay[StaffData, String]]] = {
+    getScheduleRaw(project, staffId).map(result => {
       result.map {
         case (day, (minTime, maxTime, seq)) =>
           val columns = seq.groupBy(_._3)
