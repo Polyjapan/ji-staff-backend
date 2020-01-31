@@ -93,6 +93,14 @@ POST          /back/staffs/:event/levels                                        
 POST          /back/staffs/:event/capabilities                                    controllers.backoffice.StaffsController.addCapabilities(event: Int)
 GET           /back/users/:user                                                   controllers.backoffice.UsersController.getHistory(user: Int)
 
+GET           /back/staffs/:event/notArrived                                      controllers.backoffice.LogsController.notArrived(event: Int)
+GET           /back/staffs/:event/notLeft                                         controllers.backoffice.LogsController.notLeft(event: Int)
++nocsrf
+POST          /back/staffs/:event/arrived                                         controllers.backoffice.LogsController.arrived(event: Int)
++nocsrf
+POST          /back/staffs/:event/left                                            controllers.backoffice.LogsController.left(event: Int)
+
+
 GET           /scheduling/projects                                                scheduling.controllers.ProjectsController.getAllProjects
 GET           /scheduling/projects/:project                                       scheduling.controllers.ProjectsController.getProject(project: Int)
 GET           /scheduling/:event/projects                                         scheduling.controllers.ProjectsController.getProjects(event: Int)

@@ -1,12 +1,9 @@
 import java.sql.{Date, Time, Timestamp}
 import java.text.SimpleDateFormat
-import java.time.Instant
-import java.time.temporal.{ChronoField, TemporalField}
 import java.util.{Calendar, GregorianCalendar}
 
 import ch.japanimpact.auth.api.UserProfile
 import data.Applications.{ApplicationComment, ApplicationState}
-import data.Forms.FieldType.Value
 import play.api.libs.json._
 import utils.EnumUtils
 
@@ -77,6 +74,16 @@ package object data {
       case _ => JsError("invalid type");
     }
   }
+
+
+  object StaffLogType extends Enumeration {
+    val Arrived, Left = Value
+  }
+
+  case class StaffArrivalLog(staffId: Int, eventId: Int, time: Option[Timestamp], action: StaffLogType.Value)
+
+  implicit val staffLogTypeFormat: Format[StaffLogType.Value] = EnumUtils.format(StaffLogType)
+  implicit val staffLogFormat: Format[StaffArrivalLog] = Json.format[StaffArrivalLog]
 
   object Forms {
 
@@ -168,7 +175,9 @@ package object data {
     implicit val pageFormat: OFormat[FilledPage] = Json.format[FilledPage]
     implicit val resultFormat: OFormat[ApplicationResult] = Json.format[ApplicationResult]
     implicit val commentFormat: OFormat[CommentWithAuthor] = Json.format[CommentWithAuthor]
+
     implicit def staffHistoryFormat: Writes[StaffingHistory] = Json.writes[StaffingHistory]
+
     implicit def applicationHistoryFormat: Writes[ApplicationHistory] = Json.writes[ApplicationHistory]
   }
 

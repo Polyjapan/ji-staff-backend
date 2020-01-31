@@ -6,7 +6,7 @@ import slick.jdbc.MySQLProfile.api._
 import slick.ast.BaseTypedType
 import slick.jdbc.{JdbcType, MySQLProfile}
 import utils.EnumUtils
-import data.{Forms, _}
+import data.{Forms, StaffArrivalLog, _}
 
 
 /**
@@ -201,6 +201,22 @@ package object models {
   }
 
   val staffs = TableQuery[Staffs]
+
+  implicit val staffLogTypeMap: JdbcType[StaffLogType.Value] with BaseTypedType[StaffLogType.Value] = EnumUtils.methodMap(StaffLogType, MySQLProfile)
+
+  private[models] class StaffArrivalLogs(tag: Tag) extends Table[StaffArrivalLog](tag, "staff_arrivals_logs") {
+    def eventId = column[Int]("event_id")
+
+    def staffId = column[Int]("staff_id")
+
+    def action = column[StaffLogType.Value]("action")
+
+    def time = column[Option[Timestamp]]("time")
+
+    def * = (staffId, eventId, time, action).shaped <> (StaffArrivalLog.tupled, StaffArrivalLog.unapply)
+  }
+
+  val staffArrivalLogs = TableQuery[StaffArrivalLogs]
 
 
 }
