@@ -199,6 +199,7 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
         println("Attributing " + slot + " (score " + taskRarityScore(slot.task) + ")")
 
       var issues = List.empty[String]
+      var allowMoreTasks = false
 
       while (attributed < slot.staffsRequired && nextStaff.isDefined) {
         val staff = nextStaff.get
@@ -209,17 +210,24 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
         if (!constr.exists(_.isEmpty)) {
           val staffs = constr.foldLeft(Set(staff))(_ union _)
           val unavailable = staffs.filterNot(staff => {
-            isAble(staff, slot) && !isBusy(staff, slot) && hasEnoughRemainingTime(staff, slot) && hasEnoughRemainingTasks(staff, slot)
+            isAble(staff, slot) && !isBusy(staff, slot) && hasEnoughRemainingTime(staff, slot) && (allowMoreTasks || hasEnoughRemainingTasks(staff, slot))
           })
 
-          if (unavailable.isEmpty) {
-
+          if (unavailable.isEmpty && (staffs.size + attributed) <= slot.staffsRequired) {
             staffs.foreach(staff => {
               attribute(slot, staff)
             })
             attributed += staffs.size
           } else {
-            issues = unavailable.filter(s => isAble(s, slot)).map(s => " .. " + s + " : is able but is busy " + isBusy(staff, slot) + ", has time " + hasEnoughRemainingTime(staff, slot)).toList ::: issues
+            issues = unavailable.filter(s => isAble(s, slot)).map(s => {
+              val cause =
+                if (isBusy(s, slot)) "is busy"
+                else if (!hasEnoughRemainingTime(s, slot)) "doesn't have time"
+                else if (!hasEnoughRemainingTasks(s, slot)) "did that too much"
+                else "???"
+
+              ".. Staff " + s + " (when going through " + staff.user.userId + "): " + cause
+            }).toList ::: issues
           }
         } else {
           issues = constr.zip(appliableConstraints).filter(_._1.isEmpty).map(_._2.toString).map(s => " .. Constraint fail " + s).toList ::: issues
@@ -229,6 +237,15 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
 
         if (rest.nonEmpty) {
           rest = rest.tail
+        }
+
+        if (nextStaff.isEmpty && !allowMoreTasks) {
+          // Second pass system
+          println(s"PLANNER:: Cannot attribute slot ${slot.id} (${slot.task}) after first pass. Only $attributed staffs found out of ${slot.staffsRequired}. Retrying without max jobs limit.")
+
+          allowMoreTasks = true
+          nextStaff = staffsToAttribute.headOption
+          rest = staffsToAttribute.tail
         }
       }
 
