@@ -77,7 +77,7 @@ package object constraints {
     override def appliesTo(staff: Staff, task: TaskSlot): Boolean = staff.user.userId == staffId && task.task.taskType.contains(taskTypeId)
   }
 
-  case class FixedTaskConstraint(constraintId: Option[Int], projectId: Int, staffId: Int, taskId: Int) extends PreProcessConstraint
+  case class FixedTaskConstraint(constraintId: Option[Int], projectId: Int, staffId: Int, taskId: Int, period: Option[Period]) extends PreProcessConstraint
 
   case class UnavailableConstraint(constraintId: Option[Int], projectId: Int, staffId: Int, period: Period) extends ResolutionConstraint {
     override def isAssignationValid(staff: Staff, task: TaskSlot, assignations: Map[TaskSlot, Set[Staff]]): Boolean = !appliesTo(staff, task)

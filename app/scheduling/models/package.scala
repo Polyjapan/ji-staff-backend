@@ -208,7 +208,19 @@ package object models {
     def staffId = column[Int]("staff_id")
     def taskId = column[Int]("task_id")
 
-    def * = (constraintId.?, projectId, staffId, taskId).shaped <> (FixedTaskConstraint.tupled, FixedTaskConstraint.unapply)
+    def day = column[Date]("day")
+    def start = column[Time]("start")
+    def end = column[Time]("end")
+
+    def period = (day.?, start.?, end.?).shaped <> ({
+      case (Some(d), s, e) => Some(Period(d, s.getOrElse(new Time(0, 0, 0)), e.getOrElse(new Time(23, 59, 59))))
+      case _ => None
+    }, (o: Option[Period]) => o match {
+      case Some(Period(d, s, e)) => Some(Some(d), Some(s), Some(e))
+      case None => Some(None, None, None)
+    })
+
+    def * = (constraintId.?, projectId, staffId, taskId, period).shaped <> (FixedTaskConstraint.tupled, FixedTaskConstraint.unapply)
   }
 
   val fixedTaskConstraints = TableQuery[FixedTaskConstraints]

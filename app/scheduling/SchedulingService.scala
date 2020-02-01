@@ -161,7 +161,7 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
     val staffsMap = staffs.map(s => (s.user.userId -> s)).toMap
 
     preConstraints.foreach {
-      case FixedTaskConstraint(_, _, staffId, taskId) =>
+      case FixedTaskConstraint(_, _, staffId, taskId, period) =>
         // This constraints attributes the longest possible stream of slots to someone in a task
 
         val staff = staffsMap(staffId)
@@ -170,7 +170,7 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
           .filter(task => countAttributed(task) < task.staffsRequired)
 
 
-        val (takenSlots, dur) = longestNonOverlapping(eligibleSlots.toList)
+        val (takenSlots, dur) = longestNonOverlapping(eligibleSlots.toList, period)
         takenSlots.foreach(slot => attribute(slot, staff))
       case _ =>
     }

@@ -28,6 +28,10 @@ package object scheduling {
 
     def isOverlapping(other: Period): Boolean = isOverlappingWithBreakTime(other, 0)
 
+    /**
+     * Checks whether this period is included in an other one
+     */
+    def isIncludedIn(other: Period): Boolean = other.day == day && other.timeStart <= timeStart && other.timeEnd >= timeEnd
 
     override def toString: String = day + " from " + start + " to " + end
 
@@ -108,15 +112,16 @@ package object scheduling {
 
   // Get the longest non-overlapping sequence of slots
   // Dynamic programming ftw
-  def longestNonOverlapping(options: List[TaskSlot]): (List[TaskSlot], Int) = {
-    longestNonOverlappingSlot(options, (slot: TaskSlot) => slot.timeSlot)
+  def longestNonOverlapping(options: List[TaskSlot], bounds: Option[Period] = None): (List[TaskSlot], Int) = {
+    longestNonOverlappingSlot(options, (slot: TaskSlot) => slot.timeSlot, bounds)
   }
 
-  def longestNonOverlappingSlot[T](options: List[T], mapping: T => Period): (List[T], Int) = {
+  def longestNonOverlappingSlot[T](options: List[T], mapping: T => Period, bounds: Option[Period] = None): (List[T], Int) = {
     def longestNonOverlapping(selected: List[T], duration: Int, rest: List[T]): (List[T], Int) = rest match {
       case head :: tail =>
+        val isInBounds = bounds.forall(mapping(head).isIncludedIn) // no bounds == everything is in bounds
         // Can we use head?
-        if (!selected.exists(slot => mapping(slot).isOverlapping(mapping(head)))) {
+        if (isInBounds && !selected.exists(slot => mapping(slot).isOverlapping(mapping(head)))) {
           val headDuration = mapping(head).duration
           val (selIfHead, durIfHead) = longestNonOverlapping(head :: selected, duration + headDuration, tail)
           val (selfIfNotHead, durIfNotHead) = longestNonOverlapping(selected, duration, tail)
