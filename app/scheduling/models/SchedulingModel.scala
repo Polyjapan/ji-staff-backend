@@ -109,7 +109,7 @@ class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
               }
             }
 
-          ScheduleDay(day, minTime, maxTime, columns.toList)
+          ScheduleDay(day, minTime, maxTime, columns.toList.sortBy(_.header))
       }
     })
   }
