@@ -39,6 +39,18 @@ class ConstraintsModel @Inject()(protected val dbConfigProvider: DatabaseConfigP
     }
   }
 
+  def updateConstraint(projectId: Int, constraintId: Int, constraint: ScheduleConstraint) = {
+    db.run {
+      constraint match {
+        case c: AssociationConstraint => associationConstraints.filter(_.constraintId === constraintId).update(c.copy(Some(constraintId)))
+        case c: BannedTaskConstraint => bannedTaskConstraints.filter(_.constraintId === constraintId).update(c.copy(Some(constraintId)))
+        case c: FixedTaskConstraint => fixedTaskConstraints.filter(_.constraintId === constraintId).update(c.copy(Some(constraintId)))
+        case c: UnavailableConstraint => unavailableConstraints.filter(_.constraintId === constraintId).update(c.copy(Some(constraintId)))
+        case c: BannedTaskTypeConstraint => bannedTaskTypesConstraints.filter(_.constraintId === constraintId).update(c.copy(Some(constraintId)))
+      }
+    }
+  }
+
   def deleteConstraint(projectId: Int, constraint: ScheduleConstraint) = {
     db.run {
       constraint match {

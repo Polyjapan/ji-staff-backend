@@ -20,6 +20,10 @@ class ConstraintsController @Inject()(cc: ControllerComponents, model: Constrain
     model.createConstraint(project, req.body).map(res => Ok(Json.toJson(res)))
   }).requiresAuthentication
 
+  def updateConstraint(project: Int, constraint: Int): Action[ScheduleConstraint] = Action.async(parse.json[ScheduleConstraint])(req => {
+    model.updateConstraint(project, constraint, req.body).map(res => Ok(Json.toJson(res)))
+  }).requiresAuthentication
+
   def deleteConstraint(project: Int): Action[ScheduleConstraint] = Action.async(parse.json[ScheduleConstraint])(req => {
     model.deleteConstraint(project, req.body).map(res => Ok(Json.toJson(res)))
   }).requiresAuthentication

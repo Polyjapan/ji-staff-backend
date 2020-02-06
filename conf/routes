@@ -152,6 +152,8 @@ GET           /scheduling/projects/:project/constraints                         
 +nocsrf
 POST          /scheduling/projects/:project/constraints                           scheduling.controllers.ConstraintsController.createConstraint(project: Int)
 +nocsrf
+PUT           /scheduling/projects/:project/constraints/:constraint               scheduling.controllers.ConstraintsController.updateConstraint(project: Int, constraint: Int)
++nocsrf
 POST          /scheduling/projects/:project/constraints/delete                    scheduling.controllers.ConstraintsController.deleteConstraint(project: Int)
 
 GET           /scheduling/projects/:project/schedule/byStaff                      scheduling.controllers.ScheduleController.getScheduleByStaff(project: Int)
