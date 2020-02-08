@@ -4,6 +4,7 @@ import java.util.{Calendar, GregorianCalendar}
 
 import ch.japanimpact.auth.api.UserProfile
 import data.Applications.{ApplicationComment, ApplicationState}
+import data.ReturnTypes.{ApplicationResult, CommentWithAuthor}
 import play.api.libs.json._
 import utils.EnumUtils
 
@@ -181,8 +182,12 @@ package object data {
     implicit def applicationHistoryFormat: Writes[ApplicationHistory] = Json.writes[ApplicationHistory]
   }
 
-  object Scheduling {
+  object Meals {
+    case class Meal(mealId: Option[Int], eventId: Int, name: String, date: Option[Date])
 
+    case class MealTaken(mealId: Int, userId: Int, timestamp: Option[Timestamp])
+
+    implicit val mealFormat: OFormat[Meal] = Json.format[Meal]
+    implicit val mealTakenFormat: OFormat[MealTaken] = Json.format[MealTaken]
   }
-
 }

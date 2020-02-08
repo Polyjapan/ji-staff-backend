@@ -87,6 +87,7 @@ PUT           /back/applications/state/:id                                      
 
 GET           /back/staffs/:event.csv                                             controllers.backoffice.StaffsController.exportStaffs(event: Int)
 GET           /back/staffs/:event                                                 controllers.backoffice.StaffsController.getStaffs(event: Int)
+GET           /back/admins                                                        controllers.backoffice.StaffsController.getAdmins
 +nocsrf
 POST          /back/staffs/:event/levels                                          controllers.backoffice.StaffsController.setLevels(event: Int)
 +nocsrf
@@ -107,7 +108,13 @@ GET           /scheduling/:event/projects                                       
 +nocsrf
 POST          /scheduling/:event/projects                                         scheduling.controllers.ProjectsController.createProject(event: Int)
 
-
++nocsrf
+POST          /back/meals                                                         controllers.backoffice.MealsController.createMeal
+GET           /back/meals/byEvent/:event                                          controllers.backoffice.MealsController.getMeals(event: Int)
+GET           /back/meals/:id                                                     controllers.backoffice.MealsController.getMeal(id: Int)
+GET           /back/meals/:id/takenBy                                             controllers.backoffice.MealsController.getMealTaken(id: Int)
++nocsrf
+POST          /back/meals/:id/takenBy                                             controllers.backoffice.MealsController.takeMeal(id: Int)
 
 GET           /scheduling/capabilities                                            scheduling.controllers.CapabilitiesController.getCapabilities
 +nocsrf

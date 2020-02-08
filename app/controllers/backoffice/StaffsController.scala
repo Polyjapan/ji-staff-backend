@@ -37,6 +37,16 @@ class StaffsController @Inject()(cc: ControllerComponents, auth: AuthApi, staffs
     })
   }).requiresAuthentication
 
+  def getAdmins: Action[AnyContent] = Action.async {
+    auth.getGroupMembers("comite-ji").map {
+      case Left(profiles) => Ok(Json.toJson(profiles))
+      case Right(e) => {
+        println("API Error " + e)
+        InternalServerError
+      }
+    }
+  }.requiresAuthentication
+
   def setLevels(event: Int): Action[List[(Int, Int)]] = Action.async(parse.json[List[(Int, Int)]]) { req =>
     staffs.setLevels(event, req.body).map(r => Ok)
   }.requiresAuthentication

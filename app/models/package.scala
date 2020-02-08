@@ -2,6 +2,7 @@
 import java.sql.{Date, Time, Timestamp}
 
 import data.Applications.ApplicationComment
+import data.Meals.{Meal, MealTaken}
 import slick.jdbc.MySQLProfile.api._
 import slick.ast.BaseTypedType
 import slick.jdbc.{JdbcType, MySQLProfile}
@@ -218,5 +219,29 @@ package object models {
 
   val staffArrivalLogs = TableQuery[StaffArrivalLogs]
 
+  private[models] class Meals(tag: Tag) extends Table[Meal](tag, "meals") {
+    def eventId = column[Int]("event_id")
 
+    def mealId = column[Int]("meal_id", O.PrimaryKey, O.AutoInc)
+
+    def name = column[String]("meal_name")
+
+    def date = column[Option[Date]]("meal_date")
+
+    def * = (mealId.?, eventId, name, date).shaped <> (Meal.tupled, Meal.unapply)
+  }
+
+  val meals = TableQuery[Meals]
+
+  private[models] class MealsTaken(tag: Tag) extends Table[MealTaken](tag, "meals_taken") {
+    def userId = column[Int]("user_id")
+
+    def mealId = column[Int]("meal_id")
+
+    def date = column[Option[Timestamp]]("timestamp")
+
+    def * = (mealId, userId, date).shaped <> (MealTaken.tupled, MealTaken.unapply)
+  }
+
+  val mealsTaken = TableQuery[MealsTaken]
 }
