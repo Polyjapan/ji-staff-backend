@@ -116,6 +116,13 @@ GET           /back/meals/:id/takenBy                                           
 +nocsrf
 POST          /back/meals/:id/takenBy                                             controllers.backoffice.MealsController.takeMeal(id: Int)
 
+GET           /back/meals/particularities/staff/:event                            controllers.backoffice.MealsController.getStaffFoodParticularties(event: Int)
+GET           /back/meals/particularities/admin                                   controllers.backoffice.MealsController.getAdminFoodParticularties()
++nocsrf
+PUT           /back/meals/particularities/staff/:event                            controllers.backoffice.MealsController.setStaffFoodParticularities(event: Int)
++nocsrf
+POST          /back/meals/particularities/admin                                   controllers.backoffice.MealsController.setAdminFoodParticularities()
+
 GET           /scheduling/capabilities                                            scheduling.controllers.CapabilitiesController.getCapabilities
 +nocsrf
 POST          /scheduling/capabilities                                            scheduling.controllers.CapabilitiesController.createCapability

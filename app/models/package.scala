@@ -244,4 +244,24 @@ package object models {
   }
 
   val mealsTaken = TableQuery[MealsTaken]
+
+  private[models] class AdminFoodParticularities(tag: Tag) extends Table[(Int, String)](tag, "admin_food_particularities") {
+    def userId = column[Int]("admin_id", O.PrimaryKey)
+
+    def foodParticularities = column[String]("food_particularities")
+
+    def * = (userId, foodParticularities).shaped
+  }
+
+  val adminFoodParticularities = TableQuery[AdminFoodParticularities]
+
+  private[models] class StaffFoodParticularities(tag: Tag) extends Table[(Int, Int)](tag, "staff_food_particularities") {
+    def eventId = column[Int]("event_id", O.PrimaryKey)
+
+    def particularitiesField = column[Int]("particularities_field_id")
+
+    def * = (eventId, particularitiesField).shaped
+  }
+
+  val staffFoodParticularities = TableQuery[StaffFoodParticularities]
 }

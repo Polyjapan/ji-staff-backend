@@ -30,11 +30,46 @@ class MealsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
     db.run(mealsTaken.filter(_.mealId === meal).result)
 
   def takeMeal(meal: Int, user: Int) = {
-    db.run(mealsTaken.filter(m => m.mealId === meal && m.userId === user).result.headOption)
+    db.run(
+      meals.filter(_.mealId === meal)
+        .joinLeft(mealsTaken).on { case (meal, mealTaken) => meal.mealId === mealTaken.mealId && mealTaken.userId === user }
+        .result.headOption
+    )
       .flatMap {
-        case None => db.run(mealsTaken += MealTaken(meal, user, Some(new Timestamp(System.currentTimeMillis())))).map(_ => true)
-        case Some(_) => Future.successful(false)
+        case Some((meal, None)) =>
+          db.run(mealsTaken += MealTaken(meal.mealId.get, user, Some(new Timestamp(System.currentTimeMillis()))))
+          .map(_ => (true, meal.eventId))
+        case Some((meal, _)) => Future.successful((false, meal.eventId))
+      }
+      .flatMap {
+        case (success, eventId) =>
+          getFoodParticularities(eventId, user).map(foodPart => (success, foodPart))
       }
   }
+
+  def getFoodParticularities(event: Int, user: Int) = {
+    db.run {
+      val admin = adminFoodParticularities.filter(_.userId === user).map(_.foodParticularities).result.headOption
+      val staff = staffFoodParticularities.filter(_.eventId === event)
+        .join(applications).on { case (_, app) => app.userId === user }
+        .join(applicationsContents).on { case ((part, app), appContent) => appContent.applicationId === app.applicationId && appContent.fieldId === part.particularitiesField }
+        .map { case (_, content) => content.value }
+        .result.headOption
+
+      admin flatMap(adminFood => staff.map(staffFood => adminFood.orElse(staffFood).getOrElse("N/A")))
+    }
+  }
+
+  def getStaffFoodParticularities(event: Int) =
+    db.run(staffFoodParticularities.filter(_.eventId === event).map(_.particularitiesField).result.headOption)
+
+  def getAdminFoodParticularities =
+    db.run(adminFoodParticularities.result).map(_.toMap)
+
+  def setStaffFoodParticularities(event: Int, field: Int) =
+    db.run(staffFoodParticularities.insertOrUpdate((event, field)))
+
+  def setAdminFoodParticularities(particularities: List[(Int, String)]) =
+    db.run(DBIO.sequence(particularities.map(pair => adminFoodParticularities.insertOrUpdate(pair)))).map(_.sum)
 
 }
