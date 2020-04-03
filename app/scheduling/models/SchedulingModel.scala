@@ -22,13 +22,19 @@ class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
     db.run(staffsAssignation ++= list.map(a => StaffAssignation(a.taskSlot.id, a.user.user.userId)))
   }
 
-  private def getScheduleRaw(project: Int, staffId: Option[Int] = None): Future[Map[Date, (Int, Int, Seq[(TaskSlot, String, StaffData)])]] = {
+  private def getScheduleRaw(project: Int, staffId: Option[Int] = None, taskId: Option[Int] = None): Future[Map[Date, (Int, Int, Seq[(TaskSlot, String, StaffData)])]] = {
     db.run(scheduleProjects.filter(_.id === project).map(_.event).result.headOption)
       .flatMap {
         case None => Future.successful(Nil)
         case Some(eventId) => db.run(
           staffsAssignation
-            .join(taskSlots).on(_.taskSlotId === _.id)
+            .join(taskSlots).on((staff, slot) => {
+            val result = staff.taskSlotId === slot.id
+
+            if (taskId.isDefined)
+              result && slot.taskId === taskId.get
+            else result
+          })
             .join(tasks).on((lhs, task) => lhs._2.taskId === task.id && task.projectId === project)
             .join(models.users).on(_._1._1.userId === _.userId)
             .join(models.staffs).on((line, staff) => {
@@ -83,8 +89,8 @@ class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
     })
   }
 
-  def getScheduleByTasks(project: Int): Future[immutable.Iterable[ScheduleDay[String, StaffData]]] = {
-    getScheduleRaw(project).map(result => {
+  def getScheduleByTasks(project: Int, task: Option[Int] = None): Future[immutable.Iterable[ScheduleDay[String, StaffData]]] = {
+    getScheduleRaw(project, None, task).map(result => {
       result.map {
         case (day, (minTime, maxTime, seq)) =>
           val columns = seq.groupBy(_._2)

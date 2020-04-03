@@ -14,7 +14,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class ConstraintsController @Inject()(cc: ControllerComponents, model: ConstraintsModel)(implicit conf: Configuration, ec: ExecutionContext) extends AbstractController(cc) {
 
   def getConstraints(project: Int) = Action.async(req =>
-    model.getConstraints(project).map(res => Ok(Json.toJson(res))))//.requiresAuthentication
+    model.getConstraints(project).map(res => Ok(Json.toJson(res))))
+    .requiresAuthentication
 
   def createConstraint(project: Int): Action[ScheduleConstraint] = Action.async(parse.json[ScheduleConstraint])(req => {
     model.createConstraint(project, req.body).map(res => Ok(Json.toJson(res)))

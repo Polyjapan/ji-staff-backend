@@ -57,6 +57,13 @@ class ScheduleController @Inject()(cc: ControllerComponents, model: SchedulingMo
       Ok(views.html.schedule.scheduleByTask(res.toList))
     }))//.requiresAuthentication
 
+  // Map[Task, List[TaskSlot with Staff]]
+  def getScheduleByTaskAndTaskIdHtml(project: Int, task: Int) =
+    Action.async(req => model.getScheduleByTasks(project, Some(task)).map(res => {
+      // TODO: fix template!
+      Ok(views.html.schedule.scheduleByTask(res.toList))
+    }))//.requiresAuthentication
+
 
   def generateSchedule(project: Int) = Action.async(req => {
     service.buildSchedule(project).map(res => Ok(Json.toJson(res)))

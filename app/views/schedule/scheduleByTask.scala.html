@@ -36,8 +36,11 @@
             <script>
                     var timetable = new Timetable();
                     timetable.addLocations(@Html(generateStaffs(day.schedule)));
-                    timetable.setScope(@(day.startTime / 60),@(day.endTime / 60));
+                    timetable.setScope(5, 23);
 
+                    window.setInterval(() => {
+                        window.location.reload();
+                    }, 300 * 1000);
 
                 @for(col <- day.schedule) {
 

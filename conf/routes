@@ -175,6 +175,7 @@ GET           /scheduling/projects/:project/schedule/byStaff.html               
 GET           /scheduling/projects/:project/schedule/byStaff/:staff.html          scheduling.controllers.ScheduleController.getScheduleByStaffAndStaffIdHtml(project: Int, staff: Int)
 GET           /scheduling/projects/:project/schedule/byTask                       scheduling.controllers.ScheduleController.getScheduleByTask(project: Int)
 GET           /scheduling/projects/:project/schedule/byTask.html                  scheduling.controllers.ScheduleController.getScheduleByTaskHtml(project: Int)
+GET           /scheduling/projects/:project/schedule/byTask/:task.html            scheduling.controllers.ScheduleController.getScheduleByTaskAndTaskIdHtml(project: Int, task: Int)
 +nocsrf
 POST          /scheduling/projects/:project/schedule/generate                     scheduling.controllers.ScheduleController.generateSchedule(project: Int)
 
