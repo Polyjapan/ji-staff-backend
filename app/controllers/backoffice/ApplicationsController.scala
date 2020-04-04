@@ -40,7 +40,7 @@ class ApplicationsController @Inject()(cc: ControllerComponents, mail: MailingSe
             case (id, state, user) => ApplicationListing(ReducedUserData(profiles(user.userId)), state, id)
           }))
       }
-  }).requiresAuthentication
+  }).requiresAdmin
 
   def getApplication(application: Int): Action[AnyContent] = Action.async({
     // Map[(data.User, Applications.ApplicationState.Value), Map[Forms.FormPage, Seq[(Forms.Field, String)]]]
@@ -56,7 +56,7 @@ class ApplicationsController @Inject()(cc: ControllerComponents, mail: MailingSe
 
         case None => Future.successful(NotFound)
       }
-  }).requiresAuthentication
+  }).requiresAdmin
 
 
   def exportForm(form: Int): Action[AnyContent] = Action.async({
@@ -98,7 +98,7 @@ class ApplicationsController @Inject()(cc: ControllerComponents, mail: MailingSe
           case Right(_) => InternalServerError
         }
     }
-  }).requiresAuthentication
+  }).requiresAdmin
 
 
   private def sendStateMail(applicationId: Int, targetState: ApplicationState.Value) = {
@@ -133,7 +133,7 @@ class ApplicationsController @Inject()(cc: ControllerComponents, mail: MailingSe
         case NoSuchUser => NotFound
         case IllegalStateTransition => Forbidden
       }
-  }).requiresAuthentication
+  }).requiresAdmin
 
   def getComments(application: Int): Action[AnyContent] = Action.async({
     applications
@@ -146,7 +146,7 @@ class ApplicationsController @Inject()(cc: ControllerComponents, mail: MailingSe
           seq.map { case (com, user) => CommentWithAuthor(ReducedUserData(profiles(user.userId)), com) }
       }
       .map(list => Ok(Json.toJson(list)))
-  }).requiresAuthentication
+  }).requiresAdmin
 
   def addComment(application: Int): Action[ApplicationComment] = Action.async(parse.json[ApplicationComment])({ v =>
     val comment = v.body.copy(userId = v.user.userId, applicationId = application)
@@ -161,5 +161,5 @@ class ApplicationsController @Inject()(cc: ControllerComponents, mail: MailingSe
         } else Future.successful(Ok)
       } else Future.successful(NotFound)
     })
-  }).requiresAuthentication
+  }).requiresAdmin
 }

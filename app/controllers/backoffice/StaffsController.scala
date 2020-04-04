@@ -35,7 +35,7 @@ class StaffsController @Inject()(cc: ControllerComponents, auth: AuthApi, staffs
         case Right(_) => InternalServerError
       }
     })
-  }).requiresAuthentication
+  }).requiresAdmin
 
   def getAdmins: Action[AnyContent] = Action.async {
     auth.getGroupMembers("comite-ji").map {
@@ -45,11 +45,11 @@ class StaffsController @Inject()(cc: ControllerComponents, auth: AuthApi, staffs
         InternalServerError
       }
     }
-  }.requiresAuthentication
+  }.requiresAdmin
 
   def setLevels(event: Int): Action[List[(Int, Int)]] = Action.async(parse.json[List[(Int, Int)]]) { req =>
     staffs.setLevels(event, req.body).map(r => Ok)
-  }.requiresAuthentication
+  }.requiresAdmin
 
   def addCapabilities(event: Int): Action[List[List[Int]]] = Action.async(parse.json[List[List[Int]]]) { req =>
     val caps =
@@ -58,7 +58,7 @@ class StaffsController @Inject()(cc: ControllerComponents, auth: AuthApi, staffs
           .flatMap { case (staffId, caps) => caps.map(cap => (event, staffId, cap) )}
 
     staffs.addCapabilities(caps).map(_ => Ok)
-  }.requiresAuthentication
+  }.requiresAdmin
 
   def exportStaffs(event: Int): Action[AnyContent] = Action.async({
     staffs.listStaffsDetails(event).flatMap {
@@ -107,7 +107,7 @@ class StaffsController @Inject()(cc: ControllerComponents, auth: AuthApi, staffs
           case Right(_) => InternalServerError
         }
     }
-  }).requiresAuthentication
+  }).requiresAdmin
 
 
 }

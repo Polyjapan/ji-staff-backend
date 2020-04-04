@@ -114,7 +114,7 @@ package object models {
       .join(capabilities).on { case (staffCap, cap) => staffCap.capabilityId === cap.id }
       .map { case (staffCap, cap) => (staffCap.staffNumber, cap.name) }
       .result
-      .map(res => res.groupBy(_._1).mapValues(_.map(_._2).toList).withDefaultValue(List.empty[String]))
+      .map(res => res.groupMapReduce(_._1)(p => List(p._2))(_ ::: _).withDefaultValue(List.empty[String]))
   }
 
   val staffCapabilities = TableQuery[StaffCapabilities]

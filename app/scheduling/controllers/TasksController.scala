@@ -14,14 +14,14 @@ class TasksController @Inject()(cc: ControllerComponents, model: SchedulingModel
 
   def getTasks(project: Int) = Action.async(req => {
     tasks.getTasks(project).map(res => Ok(Json.toJson(res)))
-  }).requiresAuthentication
+  }).requiresAdmin
 
   def getTask(project: Int, task: Int) = Action.async(req => {
     tasks.getTask(project, task).map {
       case Some(res) => Ok(Json.toJson(res))
       case None => NotFound
     }
-  }).requiresAuthentication
+  }).requiresAdmin
 
   case class CreateUpdateTask(name: String, minAge: Option[Int], minExperience: Option[Int], taskType: Option[Int], addDifficulties: List[String], removeDifficulties: List[String])
 
@@ -37,7 +37,7 @@ class TasksController @Inject()(cc: ControllerComponents, model: SchedulingModel
     val task = scheduling.models.Task(None, project, req.body.name, req.body.minAge.getOrElse(0), req.body.minExperience.getOrElse(0), req.body.taskType)
 
     withResolvedCapabilities(req.body) { (add, remove) => tasks.createTask(task, add -- remove).map(r => Ok(Json.toJson(r)))}
-  }).requiresAuthentication
+  }).requiresAdmin
 
   def duplicateTask(project: Int): Action[Int] = Action.async(parse.json[Int])(req => {
     val copyOf = req.body
@@ -53,26 +53,26 @@ class TasksController @Inject()(cc: ControllerComponents, model: SchedulingModel
         })
       case None => Future(NotFound)
     }
-  }).requiresAuthentication
+  }).requiresAdmin
 
   def updateTask(project: Int, taskId: Int): Action[CreateUpdateTask] = Action.async(parse.json[CreateUpdateTask])(req => {
     val task = scheduling.models.Task(Some(taskId), project, req.body.name, req.body.minAge.getOrElse(0), req.body.minExperience.getOrElse(0), req.body.taskType)
 
     withResolvedCapabilities(req.body) { (add, remove) => tasks.updateTask(task, add, remove).map(r => Ok)}
-  }).requiresAuthentication
+  }).requiresAdmin
 
   def deleteTask(project: Int, taskId: Int) = Action.async(req => {
     tasks.deleteTask(project, taskId).map(_ => Ok)
-  }).requiresAuthentication
+  }).requiresAdmin
 
   def getTaskSlots(project: Int, task: Int) = Action.async(req => {
     tasks.getTaskSlots(project, task).map(r => Ok(Json.toJson(r)))
-  }).requiresAuthentication
+  }).requiresAdmin
 
   def generateSlots(project: Int, task: Int) = Action.async(body => {
     model.buildSlotsForTask(project, task).map {
       case true => Ok
       case false => NotFound
     }
-  }).requiresAuthentication
+  }).requiresAdmin
 }

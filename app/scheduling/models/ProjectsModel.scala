@@ -21,8 +21,7 @@ class ProjectsModel@Inject()(protected val dbConfigProvider: DatabaseConfigProvi
     db.run(scheduleProjects.join(models.events).on(_.event === _.eventId).result)
       .map(list => list
         .map { case (proj, ev) => (ev, proj.copy(event = ev.eventId.get)) }
-        .groupBy(_._1)
-        .mapValues(_.map(_._2))
+        .groupMap(_._1)(_._2)
       )
   }
 

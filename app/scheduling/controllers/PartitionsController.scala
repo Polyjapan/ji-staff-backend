@@ -14,19 +14,19 @@ class PartitionsController @Inject()(cc: ControllerComponents, model: Partitions
   def getPartitionsForTask(project: Int, task: Int) = Action.async(req => {
     model.getPartitionsForTask(project, task)
       .map(res => Ok(Json.toJson(res)))
-  }).requiresAuthentication
+  }).requiresAdmin
 
   def createPartitionForTask(project: Int, task: Int): Action[TaskTimePartition] = Action.async(parse.json[TaskTimePartition])(req => {
     model.createPartition(req.body.copy(task = task)).map(r => Ok(Json.toJson(r)))
-  }).requiresAuthentication
+  }).requiresAdmin
 
   def updatePartition(project: Int, task: Int, partition: Int): Action[TaskTimePartition] = Action.async(parse.json[TaskTimePartition])(req => {
     model.updatePartition(req.body.copy(taskPartitionId = Some(partition), task = task)).map(r => Ok)
-  }).requiresAuthentication
+  }).requiresAdmin
 
 
   def deletePartition(project: Int, task: Int, partition: Int) = Action.async(req => {
     model.deletePartition(task, partition).map(r => Ok)
-  }).requiresAuthentication
+  }).requiresAdmin
 
 }

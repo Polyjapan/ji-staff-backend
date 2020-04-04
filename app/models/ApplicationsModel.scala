@@ -160,10 +160,10 @@ class ApplicationsModel @Inject()(protected val dbConfigProvider: DatabaseConfig
                     .map { case (application, content) => (application.userId, content.fieldId, content.value) }
                     .result
                     .map(seq => {
-                      seq.groupBy(_._1).mapValues(_.map {
+                      seq.groupBy(_._1).view.mapValues(_.map {
                         case (_, fieldId, value) => (fieldId, value)
                       }.filter(pair => fieldIds(pair._1)) // Keep only fields that are in the form
-                      )
+                      ).toMap
                     })
                     .map(map => Some((fields, staffMap, map)))
 
@@ -205,11 +205,11 @@ class ApplicationsModel @Inject()(protected val dbConfigProvider: DatabaseConfig
         .result
     ).map(_
       .groupBy(_._1) // group by (user, state) pair
+      .view
       .mapValues(_
         .map(_._2)
-        .groupBy(_._1) // group by page
-        .mapValues(_.map(_._2)) // keep field-value pairs
-      )
+        .groupMap(_._1)(_._2)
+      ).toMap
     )
   }
 

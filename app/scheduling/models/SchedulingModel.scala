@@ -64,6 +64,7 @@ class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
       .map { result => {
         result
           .groupBy(_._1.timeSlot.day)
+          .view
           .mapValues(seq => {
             val times = seq.map(_._1.timeSlot)
             (
@@ -72,6 +73,7 @@ class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
               seq
             )
           })
+          .toMap
       }
       }
   }

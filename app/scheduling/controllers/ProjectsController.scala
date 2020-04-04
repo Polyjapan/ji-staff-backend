@@ -19,18 +19,18 @@ class ProjectsController @Inject()(cc: ControllerComponents, model: ProjectsMode
 
   def getProjects(event: Int): Action[AnyContent] = Action.async(_ =>
     model.getProjects(event).map(lst => Ok(Json.toJson(lst)))
-  ).requiresAuthentication
+  ).requiresAdmin
 
   def getAllProjects: Action[AnyContent] = Action.async(_ =>
     model.getAllProjects.map(lst => Ok(Json.toJson(lst)))
-  ).requiresAuthentication
+  ).requiresAdmin
 
   def getProject(project: Int): Action[AnyContent] = Action.async(_ =>
     model.getProject(project).map {
       case Some(p) => Ok(Json.toJson(p))
       case None => NotFound
     }
-  ).requiresAuthentication
+  ).requiresAdmin
 
   def createProject(event: Int): Action[CreateProject] = Action.async(bodyParser = parse.json[CreateProject])(req => {
     model.createProject(event, req.body.name, req.body.maxHoursPerStaff, req.body.minBreakMinutes, req.body.maxSameShiftType)
@@ -40,5 +40,5 @@ class ProjectsController @Inject()(cc: ControllerComponents, model: ProjectsMode
         } else Future.successful(projectId)
       })
       .map(id => Ok(Json.toJson(id)))
-  }).requiresAuthentication
+  }).requiresAdmin
 }

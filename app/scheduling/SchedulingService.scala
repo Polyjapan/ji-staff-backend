@@ -41,16 +41,20 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
     val amt = staffs.size.toDouble
     val difficultyRarityScore: Map[String, Double] = staffs.flatMap(s => s.capabilities)
       .groupBy(a => a)
+      .view
       .mapValues(_.size / amt)
       .mapValues(avail => 1 / avail)
+      .toMap
       .withDefaultValue(1)
 
     val experienceRarityScore: Map[Int, Double] = staffs.map(staff => staff.experience)
       .foldLeft(Map[Int, Int]().withDefaultValue(0)) { (map, exp) => (1 to exp).foldLeft(map) {
         (map, exp) => map.updated(exp, map(exp) + 1)
       } }
+      .view
       .mapValues(_ / amt)
       .mapValues(avail => 1 / avail)
+      .toMap
       .withDefaultValue(1)
 
     println("Difficulties rarity score:")
@@ -205,7 +209,7 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
         val staff = nextStaff.get
         val appliableConstraints = constraints.filter(c => c.appliesTo(staff, slot))
         val constr = appliableConstraints
-          .map(c => c.offerAssignation(staff, staffs, slot, attributions.toMap.mapValues(_.toSet)))
+          .map(c => c.offerAssignation(staff, staffs, slot, attributions.view.mapValues(_.toSet).toMap))
 
         if (!constr.exists(_.isEmpty)) {
           val staffs = constr.foldLeft(Set(staff))(_ union _)

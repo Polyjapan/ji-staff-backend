@@ -1,5 +1,7 @@
 package utils
 
+import java.time.Clock
+
 import data.UserSession
 import play.api.Configuration
 import play.api.mvc._
@@ -50,12 +52,14 @@ object AuthenticationPostfix {
   }
 
   implicit class AuthenticationPostfix[T](action: Action[T]) {
-    def requiresAuthentication(implicit conf: Configuration): Action[T] = AuthenticationAction(action, AuthorizationHandler.ensuringAuthentication)
+    def requiresAdmin(implicit conf: Configuration): Action[T] = requiresGroup("resp-staffs")
 
     def requiresGroup(group: String)(implicit conf: Configuration): Action[T] = AuthenticationAction(action, AuthorizationHandler.ensuringGroup(group))
   }
 
   implicit class UserRequestHeader(request: RequestHeader)(implicit conf: Configuration) {
+    implicit val clock = Clock.systemUTC()
+
     private def session = Some(request.jwtSession).filter(_.claim.isValid)
 
     def optUser: Option[UserSession] = session.flatMap(_.getAs[UserSession]("user"))

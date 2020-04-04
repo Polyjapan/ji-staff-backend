@@ -25,14 +25,14 @@ class EditionController @Inject()(cc: ControllerComponents, model: EditionsModel
   def getEdition(id: Int): Action[AnyContent] = Action.async(model.getEdition(id).map {
     case Some(res) => Ok(Json.toJson(res))
     case _ => NotFound
-  }).requiresAuthentication
+  }).requiresAdmin
 
   def getStats(id: Int): Action[AnyContent] = Action.async(model.getEditionStats(id).map { res =>
     Ok(Json.toJson(res))
-  }).requiresAuthentication
+  }).requiresAdmin
 
   def getEditions: Action[AnyContent] =
-    Action.async(model.getEditions.map(res => Ok(Json.toJson(res)))).requiresAuthentication
+    Action.async(model.getEditions.map(res => Ok(Json.toJson(res)))).requiresAdmin
 
   def createEdition: Action[CreateEdition] = Action.async(parse.json[CreateEdition])(rq => {
     // 1st we create the edition, whatever happens
@@ -43,18 +43,18 @@ class EditionController @Inject()(cc: ControllerComponents, model: EditionsModel
         Future.successful(evId)
       }
     }).map(evId => Ok(Json.toJson(evId)))
-  }).requiresAuthentication
+  }).requiresAdmin
 
   def updateEdition(id: Int): Action[CreateEdition] = Action.async(parse.json[CreateEdition])(rq => {
     model.updateNameAndDate(id, rq.body.name, rq.body.date).map(updated => if (updated > 0) Ok else NotFound)
-  }).requiresAuthentication
+  }).requiresAdmin
 
   def updateActiveStatus(id: Int): Action[Boolean] = Action.async(parse.text(7).map(value => value == "true"))(rq => {
     model.updateActive(id, rq.body).map(updated => if (updated > 0) Ok else NotFound)
-  }).requiresAuthentication
+  }).requiresAdmin
 
   def updateMainForm(id: Int): Action[Int] = Action.async(parse.json[Int])(rq => {
     model.updateMainForm(id, rq.body).map(updated => if (updated > 0) Ok else NotFound)
-  }).requiresAuthentication
+  }).requiresAdmin
 
 }

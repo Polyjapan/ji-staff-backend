@@ -27,11 +27,11 @@ class LogsController @Inject()(cc: ControllerComponents, logs: LogsModel)
 
   def arrived(event: Int): Action[Int] = Action.async(parse.text(10).map(_.toInt)){ req =>
     logs.addStaffLog(event, req.body, StaffLogType.Arrived).map { case Some(prof) => Ok(Json.toJson(ReducedUserData(prof))) case None => NotFound }
-  }.requiresAuthentication
+  }.requiresAdmin
 
   def left(event: Int): Action[Int] = Action.async(parse.text(10).map(_.toInt)){ req =>
     logs.addStaffLog(event, req.body, StaffLogType.Left).map { case Some(prof) => Ok(Json.toJson(ReducedUserData(prof))) case None => NotFound }
-  }.requiresAuthentication
+  }.requiresAdmin
 
   private def missingStaffs(event: Int, eventType: StaffLogType.Value): Future[Result] = {
     logs.getMissingStaffs(event, eventType).map {
@@ -41,11 +41,11 @@ class LogsController @Inject()(cc: ControllerComponents, logs: LogsModel)
 
   def notArrived(event: Int) = Action.async {
     missingStaffs(event, StaffLogType.Arrived)
-  }.requiresAuthentication
+  }.requiresAdmin
 
   def notLeft(event: Int) = Action.async {
     missingStaffs(event, StaffLogType.Left)
-  }.requiresAuthentication
+  }.requiresAdmin
 
 
 }

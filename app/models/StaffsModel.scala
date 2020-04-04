@@ -92,14 +92,14 @@ class StaffsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
               .map { case (((staff, user), _), content) => ((staff.staffNumber, staff.userId, user.birthDate), content.fieldId, content.value) }
               .result
               .map(seq => {
-                seq.groupBy(_._1).mapValues(answers => {
+                seq.groupBy(_._1).view.mapValues(answers => {
                   val ans = answers
                     .map {
                       case (_, fieldId, value) => (fieldId, value)
                     }.filter(pair => fieldIds(pair._1))
 
                   ans
-                })
+                }).toMap
               })
               .map(map => (fields, map))
         }

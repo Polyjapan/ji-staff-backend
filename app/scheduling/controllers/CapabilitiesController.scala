@@ -14,9 +14,9 @@ class CapabilitiesController @Inject()(cc: ControllerComponents, model: Capabili
 
   def getCapabilities = Action.async(req => {
     model.getCapabilities.map(seq => Ok(Json.toJson(seq.map { case (id, cap) => Json.obj("id" -> id, "cap" -> cap)})))
-  }).requiresAuthentication
+  }).requiresAdmin
 
   def createCapability = Action.async(parse.text(50))(req => {
     model.createCapability(req.body).map(res => Ok(Json.toJson(res)))
-  }).requiresAuthentication
+  }).requiresAdmin
 }

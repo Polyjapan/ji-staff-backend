@@ -37,5 +37,5 @@ class UsersController @Inject()(cc: ControllerComponents, auth: AuthApi, staffs:
 
       case Right(_) => Future.successful(NotFound)
     }
-  }).requiresAuthentication
+  }).requiresAdmin
 }

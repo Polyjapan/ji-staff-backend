@@ -14,9 +14,9 @@ class TaskTypesController @Inject()(cc: ControllerComponents, model: TaskTypesMo
 
   def getTaskTypes = Action.async(req => {
     model.getTaskTypes.map(seq => Ok(Json.toJson(seq.map { case (id, tpe) => Json.obj("id" -> id, "type" -> tpe)})))
-  }).requiresAuthentication
+  }).requiresAdmin
 
   def createTaskType = Action.async(parse.text(50))(req => {
     model.createTaskType(req.body).map(res => Ok(Json.toJson(res)))
-  }).requiresAuthentication
+  }).requiresAdmin
 }
