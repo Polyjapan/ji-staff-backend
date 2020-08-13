@@ -13,24 +13,30 @@ import scala.concurrent.{ExecutionContext, Future}
 class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec: ExecutionContext) {
 
   def buildSchedule(project: Int): Future[SchedulingResult] = {
-    // 1st regen all slots
-    schedulingModel.buildSlotsForProject(project).flatMap { _ =>
+    // 1st, generate a new version
+    schedulingModel.newVersion(project).flatMap(version => {
+      // 2nd, regen all slots
+      schedulingModel.buildSlotsForProject(project, version).flatMap { _ =>
+        // 3rd, get data
+        schedulingModel.getScheduleData(project, version).map {
+          case (proj, staffs, slots, constraints) =>
+            println(s"Generating planning for ${slots.size} slots and ${staffs.size} staffs (project id: $project, version: $version)")
+            computePlanification(proj, staffs, slots, constraints)
+        }.flatMap { case (list, result) =>
+          println(s"DONE computing schedule v$version of project $project, generated " + list.size + " assignations")
+          schedulingModel.pushSchedule(list).map(_ => result)
+        }
+      }
+    })
 
-      // 2nd get data
-      schedulingModel.getScheduleData(project).map {
-        case (proj, staffs, slots, constraints) =>
-          println("Generating planning for " + slots.size + " slots and " + staffs.size + " staffs")
-          computePlanification(proj, staffs, slots, constraints)
-      }.flatMap { case (list, result) => {
-        println("DONE computing schedule, generated " + list.size + " assignations")
-        schedulingModel.pushSchedule(list).map(_ => result)
-      }
-      }
-    }
+
   }
 
 
   private def computePlanification(project: ScheduleProject, staffs: Seq[scheduling.Staff], slots: Iterable[scheduling.TaskSlot], constraintsSeq: Seq[ScheduleConstraint]): (List[StaffAssignation], SchedulingResult) = {
+    /**
+     * Defines an ordering for periods, to make sure the shifts are filled earliest to latest
+     */
     implicit val periodsOrdering: Ordering[Period] = (x, y) => {
       if (x.day == y.day) {
         if (x.timeStart != y.timeStart) x.timeStart - y.timeStart
@@ -38,6 +44,13 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
       } else (x.day.getTime - y.day.getTime).toInt
     }
 
+    /**
+     * Defines a "difficulty rarity score", trying to determine how hard it will be to find a staff for a given task
+     * difficulty.<br>
+     * The formula is quite simple: for each difficulty `d` we compute the number of staffs that have `d` in their list
+     * of capabilities (skills), and divide it by the total number of staffs.<br>
+     * We then inverse this value, so that a rare skill has a higher score.
+     */
     val amt = staffs.size.toDouble
     val difficultyRarityScore: Map[String, Double] = staffs.flatMap(s => s.capabilities)
       .groupBy(a => a)
@@ -47,10 +60,19 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
       .toMap
       .withDefaultValue(1)
 
+    /**
+     * Defines an "experience rarity score", trying to determine how hard it will be to find a staff for a given task
+     * minimal experience.<br>
+     * The formula is quite simple: for each experience level `x` we compute the number of staffs that have an experience
+     * level >= to `x`, and divide it by the total number of staffs.<br>
+     * We then inverse this value, so that a rare skill has a higher score.
+     */
     val experienceRarityScore: Map[Int, Double] = staffs.map(staff => staff.experience)
-      .foldLeft(Map[Int, Int]().withDefaultValue(0)) { (map, exp) => (1 to exp).foldLeft(map) {
-        (map, exp) => map.updated(exp, map(exp) + 1)
-      } }
+      .foldLeft(Map[Int, Int]().withDefaultValue(0)) { (map, exp) =>
+        (1 to exp).foldLeft(map) {
+          (map, exp) => map.updated(exp, map(exp) + 1)
+        }
+      }
       .view
       .mapValues(_ / amt)
       .mapValues(avail => 1 / avail)
@@ -62,10 +84,23 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
     println("Experience rarity score:")
     println(experienceRarityScore)
 
+    /**
+     * This method determines the rarity score of a task, i.e. the estimated difficulty to find a staff to fill the
+     * task<br>
+     * The score is computed as the product of the experience rarity score with the difficulty rarity score
+     *
+     * @param task the task to check the rarity
+     * @return the rarity score of the task - higher is more rare
+     */
     def taskRarityScore(task: Task) = {
       (task.difficulties.map(difficultyRarityScore).product * experienceRarityScore(task.minExperience) * 1000).toInt
     }
 
+    /**
+     * This ordering of task slots ensures we first fill the positions that have the highest rarity score.
+     * This avoids using highly skilled staffs on long lasting tasks that are not specialized and then not having
+     * enough skilled staffs at the same time for a very specialized task.
+     */
     implicit val slotsOrdering: Ordering[TaskSlot] = (x, y) => {
       val a = periodsOrdering.compare(x.timeSlot, y.timeSlot)
       val b = taskRarityScore(x.task) - taskRarityScore(y.task)

@@ -26,40 +26,40 @@ class ScheduleController @Inject()(cc: ControllerComponents, model: SchedulingMo
   implicit val scheduleDayTaskFormat = Json.writes[ScheduleDay[StaffData, String]]
 
   // Map[Staff, List[TaskSlot with Task]]
-  def getScheduleByStaff(project: Int) =
-    Action.async(req => model.getScheduleByStaff(project).map(res => {
+  def getScheduleByStaff(project: Int, version: Option[Int]) =
+    Action.async(req => model.getScheduleByStaff(project, version = version).map(res => {
       Ok(Json.toJson(res.toList))
     }))//.requiresAuthentication
 
   // Map[Staff, List[TaskSlot with Task]]
-  def getScheduleByStaffHtml(project: Int) =
-    Action.async(req => model.getScheduleByStaff(project).map(res => {
+  def getScheduleByStaffHtml(project: Int, version: Option[Int]) =
+    Action.async(req => model.getScheduleByStaff(project, version = version).map(res => {
       Ok(views.html.schedule.schedule(res.toList))
     }))//.requiresAuthentication
 
   // Map[Staff, List[TaskSlot with Task]]
-  def getScheduleByStaffAndStaffIdHtml(project: Int, staff: Int) =
-    Action.async(req => model.getScheduleByStaff(project, Some(staff)).map(res => {
+  def getScheduleByStaffAndStaffIdHtml(project: Int, staff: Int, version: Option[Int]) =
+    Action.async(req => model.getScheduleByStaff(project, Some(staff), version = version).map(res => {
       Ok(views.html.schedule.schedule(res.toList))
     }))//.requiresAuthentication
 
   // Map[Task, List[TaskSlot with Staff]]
-  def getScheduleByTask(project: Int) =
-    Action.async(req => model.getScheduleByTasks(project).map(res => {
+  def getScheduleByTask(project: Int, version: Option[Int]) =
+    Action.async(req => model.getScheduleByTasks(project, version = version).map(res => {
       println(Json.toJson(res.head.schedule.head.content.head))
       Ok(Json.toJson(res.toList))
     }))//.requiresAuthentication
 
   // Map[Task, List[TaskSlot with Staff]]
-  def getScheduleByTaskHtml(project: Int) =
-    Action.async(req => model.getScheduleByTasks(project).map(res => {
+  def getScheduleByTaskHtml(project: Int, version: Option[Int]) =
+    Action.async(req => model.getScheduleByTasks(project, version = version).map(res => {
       // TODO: fix template!
       Ok(views.html.schedule.scheduleByTask(res.toList))
     }))//.requiresAuthentication
 
   // Map[Task, List[TaskSlot with Staff]]
-  def getScheduleByTaskAndTaskIdHtml(project: Int, task: Int) =
-    Action.async(req => model.getScheduleByTasks(project, Some(task)).map(res => {
+  def getScheduleByTaskAndTaskIdHtml(project: Int, task: Int, version: Option[Int]) =
+    Action.async(req => model.getScheduleByTasks(project, Some(task), version = version).map(res => {
       // TODO: fix template!
       Ok(views.html.schedule.scheduleByTask(res.toList))
     }))//.requiresAuthentication

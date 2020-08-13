@@ -31,10 +31,11 @@ class TasksModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
       )
   }
 
-  def deleteTask(project: Int, taskId: Int) = db.run(tasks.filter(t => t.projectId === project && t.id === taskId).delete)
+  def deleteTask(project: Int, taskId: Int): Future[Int] =
+    db.run(tasks.filter(t => t.projectId === project && t.id === taskId).map(_.deleted).update(true))
 
   def getTasks(project: Int): Future[Seq[scheduling.Task]] = {
-    this.getTaskWithFilter(_.projectId === project)
+    this.getTaskWithFilter(task => task.projectId === project && task.deleted === false)
   }
 
   def getTask(project: Int, task: Int): Future[Option[scheduling.Task]] = {
@@ -57,24 +58,7 @@ class TasksModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
     )
   }
 
-  /**
-   * Returns a list of task slots for a project<br>
-   * The tasks embeded in the slots have no project and no capabilities included
-   *
-   * @param project
-   * @return
-   */
-  def getCompleteTaskSlots(project: Int, taskId: Int): Future[Seq[scheduling.TaskSlot]] = {
-    db.run(tasks.filter(task => task.id === taskId && task.projectId === project)
-      .join(taskSlots).on(_.id === _.taskId)
-      .result)
-      .map(list => list.map {
-        case (task, slot) =>
-          scheduling.TaskSlot(slot.taskSlotId.get, scheduling.Task(task.taskId, task.projectId, task.name, task.minAge, task.minExperience, Nil, task.taskType), slot.staffsRequired, slot.timeSlot)
-      })
-  }
-
-  def getTaskSlots(project: Int, taskId: Int): Future[Seq[scheduling.models.TaskSlot]] =
+  def getTaskSlots(taskId: Int): Future[Seq[scheduling.models.TaskSlot]] =
     db.run(taskSlots.filter(_.taskId === taskId).sortBy(slot => (slot.day, slot.start, slot.end)).result)
 
 }

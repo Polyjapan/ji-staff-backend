@@ -1,14 +1,15 @@
 package scheduling
 
-import java.sql.{Date, Time}
+import java.sql.{Date, Time, Timestamp}
 
+import akka.http.scaladsl.model.DateTime
 import data.User
 import play.api.libs.json.{Json, OWrites}
 import scheduling.constraints.{BannedTaskConstraint, _}
 import slick.lifted.Tag
 import slick.jdbc.MySQLProfile.api._
-import scala.concurrent.duration._
 
+import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
 
 package object models {
@@ -18,7 +19,7 @@ package object models {
 
   private[scheduling] case class Task(taskId: Option[Int], projectId: Int, name: String, minAge: Int, minExperience: Int, taskType: Option[Int])
 
-  case class TaskSlot(taskSlotId: Option[Int], taskId: Int, staffsRequired: Int, timeSlot: Period) {
+  case class TaskSlot(taskSlotId: Option[Int], taskId: Int, staffsRequired: Int, timeSlot: Period, versionId: Int = 0) {
     def assign(staff: User) = StaffAssignation(taskSlotId.get, staff.userId)
   }
 
@@ -67,12 +68,33 @@ package object models {
 
     def taskTypeId = column[Option[Int]]("task_type_id")
 
+    def deleted = column[Boolean]("deleted", O.Default(true))
+
     def project = foreignKey("project", projectId, scheduleProjects)(_.id, onDelete = ForeignKeyAction.Cascade)
 
     def * = (id.?, projectId, name, minAge, minExperience, taskTypeId).shaped <> (Task.tupled, Task.unapply)
   }
 
   val tasks = TableQuery[Tasks]
+
+
+  private[models] class ScheduleVersions(tag: Tag) extends Table[ScheduleVersion](tag, "schedule_versions") {
+    def id = column[Int]("version_id", O.PrimaryKey, O.AutoInc)
+
+    def projectId = column[Int]("project_id")
+
+    def generationTime = column[Timestamp]("generation_time", O.AutoInc) // AutoInc here means auto generated
+
+    def versionTag = column[Option[String]]("tag")
+
+    def visible = column[Boolean]("visible", O.Default(false))
+
+    def project = foreignKey("project", projectId, scheduleProjects)(_.id, onDelete = ForeignKeyAction.Cascade)
+
+    def * = (id.?, projectId, generationTime.?, versionTag, visible).shaped <> (ScheduleVersion.tupled, ScheduleVersion.unapply)
+  }
+
+  val scheduleVersions = TableQuery[ScheduleVersions]
 
   private[models] class Capabilities(tag: Tag) extends Table[(Int, String)](tag, "schedule_capabilities") {
     def id = column[Int]("capability_id", O.PrimaryKey, O.AutoInc)
@@ -160,9 +182,12 @@ package object models {
 
     def staffsRequired = column[Int]("staffs_required")
 
-    def task = foreignKey("task", taskId, tasks)(_.id, onDelete = ForeignKeyAction.Cascade)
+    def versionId = column[Int]("version_id")
 
-    def * = (id.?, taskId, staffsRequired, period).shaped <> (TaskSlot.tupled, TaskSlot.unapply)
+    def task = foreignKey("task", taskId, tasks)(_.id, onDelete = ForeignKeyAction.Cascade)
+    def version = foreignKey("version", versionId, scheduleVersions)(_.id, onDelete = ForeignKeyAction.Cascade)
+
+    def * = (id.?, taskId, staffsRequired, period, versionId).shaped <> (TaskSlot.tupled, TaskSlot.unapply)
   }
 
   val taskSlots = TableQuery[TaskSlots]

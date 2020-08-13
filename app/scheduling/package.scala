@@ -1,7 +1,8 @@
-import java.sql.{Date, Time}
+import java.sql.{Date, Time, Timestamp}
 import java.time.LocalTime
 import java.time.temporal.ChronoField
 
+import org.joda.time.DateTime
 import play.api.libs.json.{Format, Json, OFormat, OWrites}
 import scheduling.models.TaskTimePartition
 
@@ -151,5 +152,9 @@ package object scheduling {
   case class StaffData(staffNumber: Int, staffName: String)
 
   implicit val schedulingResultFormat: OWrites[SchedulingResult] = Json.writes[SchedulingResult]
+
+  case class ScheduleVersion(id: Option[Int], project: Int, generationTime: Option[Timestamp] = None, tag: Option[String] = None, visible: Boolean = false)
+
+  implicit val scheduleVersionFormat: OWrites[ScheduleVersion] = Json.writes[ScheduleVersion]
 
 }

@@ -66,13 +66,10 @@ class TasksController @Inject()(cc: ControllerComponents, model: SchedulingModel
   }).requiresAdmin
 
   def getTaskSlots(project: Int, task: Int) = Action.async(req => {
-    tasks.getTaskSlots(project, task).map(r => Ok(Json.toJson(r)))
-  }).requiresAdmin
+    partitions.getPartitionsForTask(project, task).map { partitionsSeq =>
+      val slots = partitionsSeq.flatMap(part => part.produceSlots)
 
-  def generateSlots(project: Int, task: Int) = Action.async(body => {
-    model.buildSlotsForTask(project, task).map {
-      case true => Ok
-      case false => NotFound
+      Ok(Json.toJson(slots))
     }
   }).requiresAdmin
 }

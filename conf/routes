@@ -158,9 +158,12 @@ PUT           /scheduling/projects/:project/tasks/:task/partitions/:id          
 #-- Tasks partitions slots
 
 GET           /scheduling/projects/:project/tasks/:task/slots                     scheduling.controllers.TasksController.getTaskSlots(project: Int, task: Int)
-+nocsrf
-POST          /scheduling/projects/:project/tasks/:task/slots/generate            scheduling.controllers.TasksController.generateSlots(project: Int, task: Int)
 
+GET           /scheduling/projects/:project/schedule/versions                     scheduling.controllers.VersionsController.getVersions(project: Int)
++nocsrf
+POST          /scheduling/projects/:project/schedule/versions/active              scheduling.controllers.VersionsController.setActiveVersion(project: Int)
++nocsrf
+POST          /scheduling/projects/:project/schedule/versions/:id/tag             scheduling.controllers.VersionsController.setTag(project: Int, id: Int)
 
 GET           /scheduling/projects/:project/constraints                           scheduling.controllers.ConstraintsController.getConstraints(project: Int)
 +nocsrf
@@ -170,12 +173,12 @@ PUT           /scheduling/projects/:project/constraints/:constraint             
 +nocsrf
 POST          /scheduling/projects/:project/constraints/delete                    scheduling.controllers.ConstraintsController.deleteConstraint(project: Int)
 
-GET           /scheduling/projects/:project/schedule/byStaff                      scheduling.controllers.ScheduleController.getScheduleByStaff(project: Int)
-GET           /scheduling/projects/:project/schedule/byStaff.html                 scheduling.controllers.ScheduleController.getScheduleByStaffHtml(project: Int)
-GET           /scheduling/projects/:project/schedule/byStaff/:staff.html          scheduling.controllers.ScheduleController.getScheduleByStaffAndStaffIdHtml(project: Int, staff: Int)
-GET           /scheduling/projects/:project/schedule/byTask                       scheduling.controllers.ScheduleController.getScheduleByTask(project: Int)
-GET           /scheduling/projects/:project/schedule/byTask.html                  scheduling.controllers.ScheduleController.getScheduleByTaskHtml(project: Int)
-GET           /scheduling/projects/:project/schedule/byTask/:task.html            scheduling.controllers.ScheduleController.getScheduleByTaskAndTaskIdHtml(project: Int, task: Int)
+GET           /scheduling/projects/:project/schedule/byStaff                      scheduling.controllers.ScheduleController.getScheduleByStaff(project: Int, version: Option[Int])
+GET           /scheduling/projects/:project/schedule/byStaff.html                 scheduling.controllers.ScheduleController.getScheduleByStaffHtml(project: Int, version: Option[Int])
+GET           /scheduling/projects/:project/schedule/byStaff/:staff.html          scheduling.controllers.ScheduleController.getScheduleByStaffAndStaffIdHtml(project: Int, staff: Int, version: Option[Int])
+GET           /scheduling/projects/:project/schedule/byTask                       scheduling.controllers.ScheduleController.getScheduleByTask(project: Int, version: Option[Int])
+GET           /scheduling/projects/:project/schedule/byTask.html                  scheduling.controllers.ScheduleController.getScheduleByTaskHtml(project: Int, version: Option[Int])
+GET           /scheduling/projects/:project/schedule/byTask/:task.html            scheduling.controllers.ScheduleController.getScheduleByTaskAndTaskIdHtml(project: Int, task: Int, version: Option[Int])
 +nocsrf
 POST          /scheduling/projects/:project/schedule/generate                     scheduling.controllers.ScheduleController.generateSchedule(project: Int)
 
