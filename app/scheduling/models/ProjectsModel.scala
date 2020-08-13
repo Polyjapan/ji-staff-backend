@@ -38,7 +38,7 @@ class ProjectsModel@Inject()(protected val dbConfigProvider: DatabaseConfigProvi
     // Only clone: constraints (4 tables), tasks (tasks + partitions)
 
     db.run(
-      tasks.filter(_.projectId === source).result.flatMap(result => {
+      tasks.filter(task => task.projectId === source && task.deleted === false).result.flatMap(result => {
         val ids = result.map(_.taskId.get)
         ((tasks returning (tasks.map(_.id))) ++= result.map(_.copy(taskId = None, projectId = target)))
           .map(res => ids zip res).map(_.toMap)
