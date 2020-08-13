@@ -1,28 +1,24 @@
 package scheduling.models
 
 import javax.inject.Inject
-import models.{fields, fieldsAdditional, forms, pages}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.MySQLProfile
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class ProjectsModel@Inject()(protected val dbConfigProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext)
+class ProjectsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext)
   extends HasDatabaseConfigProvider[MySQLProfile] {
 
   import profile.api._
 
   def getProjects(event: Int): Future[Seq[scheduling.ScheduleProject]] = {
-    db.run(scheduleProjects.filter(_.event === event).join(models.events).on(_.event === _.eventId).result)
-      .map(list => list.map { case (proj, ev) => scheduling.ScheduleProject(proj.projectId.get, ev, proj.projectTitle, proj.maxTimePerStaff, proj.minBreakMinutes, proj.maxSameShiftType)})
+    db.run(scheduleProjects.filter(_.event === event).result)
+      .map(list => list.map { proj => scheduling.ScheduleProject(proj.projectId.get, proj.event, proj.projectTitle, proj.maxTimePerStaff, proj.minBreakMinutes, proj.maxSameShiftType) })
   }
 
-  def getAllProjects: Future[Map[data.Event, Seq[scheduling.models.ScheduleProject]]] = {
-    db.run(scheduleProjects.join(models.events).on(_.event === _.eventId).result)
-      .map(list => list
-        .map { case (proj, ev) => (ev, proj.copy(event = ev.eventId.get)) }
-        .groupMap(_._1)(_._2)
-      )
+  def getAllProjects: Future[Map[Int, Seq[scheduling.models.ScheduleProject]]] = {
+    db.run(scheduleProjects.result)
+      .map(list => list.groupMap(_.event)(e => e))
   }
 
   def getProject(project: Int): Future[Option[scheduling.models.ScheduleProject]] = {
@@ -33,7 +29,7 @@ class ProjectsModel@Inject()(protected val dbConfigProvider: DatabaseConfigProvi
     db.run(scheduleProjects.returning(scheduleProjects.map(_.id)) += ScheduleProject(None, event, name, maxHoursPerStaff, minBreak, maxSameShift))
   }
 
-  def cloneProject(source: Int, target: Int, cloneSlots: Boolean = false, cloneConstraints: Boolean = false) = {
+  def cloneProject(source: Int, target: Int, cloneConstraints: Boolean = false) = {
     // Never clone generated stuff.
     // Only clone: constraints (4 tables), tasks (tasks + partitions)
 
@@ -50,18 +46,8 @@ class ProjectsModel@Inject()(protected val dbConfigProvider: DatabaseConfigProvi
               .flatMap(r => taskCapabilities ++= r.map { case (task, cap) => (idMap(task), cap) })
           }
 
-        val withSlots = if (cloneSlots) {
-          partAndCaps.andThen {
-            taskSlots.filter(_.taskId.inSet(idMap.keys)).result
-              .flatMap(r =>
-                ((taskSlots returning (taskSlots.map(_.id))) ++= r.map(l => l.copy(taskSlotId = None, taskId = idMap(l.taskId))))
-                  .map(res => (r.map(_.taskSlotId.get)) zip res).map(_.toMap)
-              )
-          }
-        } else partAndCaps
-
         if (cloneConstraints) {
-          withSlots.andThen {
+          partAndCaps.andThen {
             associationConstraints.filter(_.projectId === source).result
               .flatMap(r => associationConstraints ++= r.map(_.copy(projectId = target)))
           }.andThen {

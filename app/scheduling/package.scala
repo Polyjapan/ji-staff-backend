@@ -2,7 +2,7 @@ import java.sql.{Date, Time, Timestamp}
 import java.time.LocalTime
 import java.time.temporal.ChronoField
 
-import org.joda.time.DateTime
+import ch.japanimpact.api.events.events.SimpleEvent
 import play.api.libs.json.{Format, Json, OFormat, OWrites}
 import scheduling.models.TaskTimePartition
 
@@ -10,7 +10,7 @@ package object scheduling {
 
   import data._
 
-  case class ScheduleProject(id: Int, event: Event, projectTitle: String, maxTimePerStaff: Int, minBreakMinutes: Int, maxSameShiftType: Int)
+  case class ScheduleProject(id: Int, event: Int, projectTitle: String, maxTimePerStaff: Int, minBreakMinutes: Int, maxSameShiftType: Int)
 
   implicit val scheduleProjectFormat: OWrites[ScheduleProject] = Json.writes[ScheduleProject]
 

@@ -13,7 +13,7 @@ import utils.AuthenticationPostfix._
 class ProjectsController @Inject()(cc: ControllerComponents, model: ProjectsModel)
                                   (implicit conf: Configuration, ec: ExecutionContext) extends AbstractController(cc) {
 
-  case class CreateProject(name: String, maxHoursPerStaff: Int, minBreakMinutes: Int, maxSameShiftType: Int, copyOf: Option[Int], copySlots: Option[Boolean], copyConstraints: Option[Boolean])
+  case class CreateProject(name: String, maxHoursPerStaff: Int, minBreakMinutes: Int, maxSameShiftType: Int, copyOf: Option[Int], copyConstraints: Option[Boolean])
 
   implicit val createProjectReads: Reads[CreateProject] = Json.reads[CreateProject]
 
@@ -36,7 +36,7 @@ class ProjectsController @Inject()(cc: ControllerComponents, model: ProjectsMode
     model.createProject(event, req.body.name, req.body.maxHoursPerStaff, req.body.minBreakMinutes, req.body.maxSameShiftType)
       .flatMap(projectId => {
         if (req.body.copyOf.isDefined) {
-          model.cloneProject(req.body.copyOf.get, projectId, req.body.copySlots.getOrElse(false), req.body.copyConstraints.getOrElse(false)).map(_ => projectId)
+          model.cloneProject(req.body.copyOf.get, projectId, req.body.copyConstraints.getOrElse(false)).map(_ => projectId)
         } else Future.successful(projectId)
       })
       .map(id => Ok(Json.toJson(id)))

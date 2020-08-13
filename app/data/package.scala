@@ -2,9 +2,9 @@ import java.sql.{Date, Time, Timestamp}
 import java.text.SimpleDateFormat
 import java.util.{Calendar, GregorianCalendar}
 
+import ch.japanimpact.api.events.events.SimpleEvent
 import ch.japanimpact.auth.api.UserProfile
 import data.Applications.{ApplicationComment, ApplicationState}
-import data.ReturnTypes.{ApplicationResult, CommentWithAuthor}
 import play.api.libs.json._
 import utils.EnumUtils
 
@@ -16,7 +16,7 @@ package object data {
   val TimeFormat = new SimpleDateFormat("HH:mm")
 
   case class User(userId: Int, birthDate: Date) {
-    def ageAt(date: Date): Int = {
+    def ageAt(date: java.util.Date): Int = {
       val eventDateCalendar = new GregorianCalendar()
       val birthDateCalendar = new GregorianCalendar()
       eventDateCalendar.setTime(date)
@@ -29,7 +29,7 @@ package object data {
     }
   }
 
-  case class Event(eventId: Option[Int], eventBegin: Date, name: String, mainForm: Option[Int], isActive: Boolean)
+  // case class Event(eventId: Option[Int], eventBegin: Date, name: String, mainForm: Option[Int], isActive: Boolean)
 
   implicit val tsFormat: Format[Timestamp] = new Format[Timestamp] {
     override def writes(o: Timestamp): JsValue = JsNumber(o.getTime)
@@ -104,7 +104,7 @@ package object data {
       }
     }
 
-    case class Form(formId: Option[Int], eventId: Int, internalName: String, name: String, shortDescription: String, description: String, maxAge: Int, minAge: Int, requiresStaff: Boolean, hidden: Boolean, closeDate: Option[Timestamp])
+    case class Form(formId: Option[Int], eventId: Int, isMain: Boolean, internalName: String, name: String, shortDescription: String, description: String, maxAge: Int, minAge: Int, requiresStaff: Boolean, hidden: Boolean, closeDate: Option[Timestamp])
 
     case class FormPage(pageId: Option[Int], formId: Int, name: String, description: String, maxAge: Int, minAge: Int, ordering: Option[Int]) extends Ordered[FormPage] {
       override def compare(that: FormPage): Int = {
@@ -128,7 +128,7 @@ package object data {
     implicit val formPageFormat: Format[FormPage] = Json.format[FormPage]
   }
 
-  implicit val eventFormat: Writes[Event] = Json.writes[Event]
+  // implicit val eventFormat: Writes[Event] = Json.writes[Event]
   implicit val userFormat: Format[User] = Json.format[User]
 
   object Applications {
@@ -165,9 +165,9 @@ package object data {
 
     case class CommentWithAuthor(author: ReducedUserData, comment: ApplicationComment)
 
-    case class StaffingHistory(staffNumber: Int, application: Int, event: Event)
+    case class StaffingHistory(staffNumber: Int, application: Int, event: SimpleEvent)
 
-    case class ApplicationHistory(application: Int, state: ApplicationState.Value, form: Forms.Form, event: Event)
+    case class ApplicationHistory(application: Int, state: ApplicationState.Value, form: Forms.Form, event: SimpleEvent)
 
     implicit val userDataFormat: OFormat[UserData] = Json.format[UserData]
     implicit val reducedUserDataFormat: OFormat[ReducedUserData] = Json.format[ReducedUserData]

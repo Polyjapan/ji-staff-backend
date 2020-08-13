@@ -35,13 +35,9 @@ GET           /back/login/:ticket                                               
 
 GET           /back/editions                                                      controllers.backoffice.EditionController.getEditions
 +nocsrf
-POST          /back/editions                                                      controllers.backoffice.EditionController.createEdition
-+nocsrf
-PUT           /back/editions/:id                                                  controllers.backoffice.EditionController.updateEdition(id: Int)
-+nocsrf
-PUT           /back/editions/:id/active                                           controllers.backoffice.EditionController.updateActiveStatus(id: Int)
-+nocsrf
 PUT           /back/editions/:id/mainForm                                         controllers.backoffice.EditionController.updateMainForm(id: Int)
++nocsrf
+POST          /back/editions/clone                                                controllers.backoffice.EditionController.cloneEdition
 GET           /back/stats/:id                                                     controllers.backoffice.EditionController.getStats(id: Int)
 GET           /back/editions/:id                                                  controllers.backoffice.EditionController.getEdition(id: Int)
 

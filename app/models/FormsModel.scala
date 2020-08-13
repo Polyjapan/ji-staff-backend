@@ -14,18 +14,21 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
  * @author Louis Vialar
  */
-class FormsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, editions: EditionsModel)(implicit ec: ExecutionContext) extends HasDatabaseConfigProvider[MySQLProfile] {
+class FormsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, editions: EventsModel)(implicit ec: ExecutionContext) extends HasDatabaseConfigProvider[MySQLProfile] {
 
 
   import profile.api._
 
   def getMainForm: Future[Option[Form]] =
-    db.run(
-      editions.activeEventsWithMainForm
-        .join(forms).on(_.mainForm.getOrElse(0) === _.formId)
-        .map(_._2)
-        .result
-        .headOption)
+    editions.getCurrentEdition.flatMap {
+      case Some(ev) =>
+        db.run(
+          forms.filter(f => f.eventId === ev.id && f.isMain)
+          .result
+          .headOption
+        )
+      case None => Future.successful(None)
+    }
 
   def getForm(id: Int): Future[Option[Form]] =
     db.run(
@@ -34,10 +37,10 @@ class FormsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
         .headOption)
 
   def getForms: Future[Seq[Form]] =
-    db.run(editions.activeEvents.map(_.eventId)
-      .join(forms).on(_ === _.eventId)
-      .map(_._2)
-      .result)
+    editions.getCurrentEdition.flatMap {
+      case Some(event) => db.run(forms.filter(_.eventId === event.id.get).result)
+      case None => Future.successful(Seq())
+    }
 
   def getForms(event: Int): Future[Seq[Form]] =
     db.run(forms.filter(_.eventId === event).result)
@@ -121,11 +124,21 @@ class FormsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
         }
     )
 
-  def createForm(form: Form): Future[Int] =
-    db.run(forms returning (forms.map(_.formId)) += form)
+  private def unsetMainForms(form: Form): Future[_] = if (form.isMain) {
+    // If the request sets the form as main, any other form should no longer be main form
+    db.run(forms.filter(f => f.eventId === form.eventId && f.formId =!= form.formId).map(_.isMain).update(false))
+  } else {
+    Future.successful(0)
+  }
 
-  def updateForm(form: Form): Future[Int] =
-    db.run(forms.filter(f => f.formId === form.formId.get && f.eventId === form.eventId).update(form))
+  def createForm(form: Form): Future[Int] =
+    unsetMainForms(form) flatMap { _ => db.run(forms returning (forms.map(_.formId)) += form) }
+
+  def updateForm(form: Form): Future[Int] = {
+    unsetMainForms(form) flatMap { _ =>
+      db.run(forms.filter(f => f.formId === form.formId.get && f.eventId === form.eventId).update(form))
+    }
+  }
 
   def createPage(page: Forms.FormPage): Future[Int] =
     db.run(pages.returning(pages.map(_.formPageId)) += page)

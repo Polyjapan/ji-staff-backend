@@ -35,22 +35,6 @@ package object models {
 
   val users = TableQuery[Users]
 
-  private[models] class Events(tag: Tag) extends Table[Event](tag, "events") {
-    def eventId = column[Int]("event_id", O.PrimaryKey, O.AutoInc)
-
-    def eventBegin = column[Date]("event_begin")
-
-    def name = column[String]("name")
-
-    def mainForm = column[Option[Int]]("main_form", O.Default(null))
-
-    def isActive = column[Boolean]("is_active")
-
-    def * = (eventId.?, eventBegin, name, mainForm, isActive).shaped <> (Event.tupled, Event.unapply)
-  }
-
-  val events = TableQuery[Events]
-
   implicit val typeMap: JdbcType[Forms.FieldType.Value] with BaseTypedType[Forms.FieldType.Value] = EnumUtils.methodMap(Forms.FieldType, MySQLProfile)
 
   private[models] class Fields(tag: Tag) extends Table[Forms.Field](tag, "fields") {
@@ -94,6 +78,8 @@ package object models {
 
     def eventId = column[Int]("event")
 
+    def isMain = column[Boolean]("is_main", O.Default(false))
+
     def internalName = column[String]("internal_name")
 
     def name = column[String]("name")
@@ -112,7 +98,7 @@ package object models {
 
     def closeDate = column[Option[Timestamp]]("close_date")
 
-    def * = (formId.?, eventId, internalName, name, description, shortDescription, maxAge, minAge, staffOnly, hidden, closeDate)
+    def * = (formId.?, eventId, isMain, internalName, name, description, shortDescription, maxAge, minAge, staffOnly, hidden, closeDate)
       .shaped <> (Forms.Form.tupled, Forms.Form.unapply)
   }
 
@@ -264,4 +250,5 @@ package object models {
   }
 
   val staffFoodParticularities = TableQuery[StaffFoodParticularities]
+
 }

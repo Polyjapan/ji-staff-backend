@@ -7,7 +7,7 @@ import javax.inject.{Inject, Singleton}
 import models.ApplicationsModel.UpdateStateResult._
 import models.ApplicationsModel._
 import models.AppsModel._
-import models.{ApplicationsModel, AppsModel, EditionsModel, FormsModel}
+import models.{ApplicationsModel, AppsModel, EventsModel, FormsModel}
 import play.api.libs.json.{Format, Json}
 import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
 import services.MailingService
@@ -19,7 +19,7 @@ import scala.concurrent.{ExecutionContext, Future}
  * @author Louis Vialar
  */
 @Singleton
-class ApplicationsController @Inject()(cc: ControllerComponents)(implicit apps: AppsModel, ec: ExecutionContext, applications: ApplicationsModel, mailing: MailingService, forms: FormsModel, events: EditionsModel) extends AbstractController(cc) {
+class ApplicationsController @Inject()(cc: ControllerComponents)(implicit apps: AppsModel, ec: ExecutionContext, applications: ApplicationsModel, mailing: MailingService, forms: FormsModel, events: EventsModel) extends AbstractController(cc) {
   def getState(form: Int, user: Int): Action[AnyContent] = Action.async {
     applications.getState(user, form).map {
       case Some(s) => Ok(Json.toJson(s))

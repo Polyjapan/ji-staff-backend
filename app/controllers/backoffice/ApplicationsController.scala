@@ -3,12 +3,14 @@ package controllers.backoffice
 import java.io.ByteArrayOutputStream
 import java.sql.Date
 
+import ch.japanimpact.api.events.events.SimpleEvent
+import ch.japanimpact.api.events.{EventsService, events}
 import ch.japanimpact.auth.api.{AuthApi, UserProfile}
 import data.Applications._
 import data.ReturnTypes._
 import data._
 import javax.inject.{Inject, Singleton}
-import models.{ApplicationsModel, StaffsModel}
+import models.{ApplicationsModel, EventsModel, StaffsModel}
 import models.ApplicationsModel.UpdateStateResult._
 import play.api.Configuration
 import play.api.libs.json.{Json, OFormat}
@@ -23,7 +25,7 @@ import scala.concurrent.{ExecutionContext, Future}
  * @author Louis Vialar
  */
 @Singleton
-class ApplicationsController @Inject()(cc: ControllerComponents, mail: MailingService, staffs: StaffsModel)
+class ApplicationsController @Inject()(cc: ControllerComponents, mail: MailingService, staffs: StaffsModel, events: EventsService)
                                       (implicit conf: Configuration, ec: ExecutionContext,
                                        applications: ApplicationsModel, api: AuthApi) extends AbstractController(cc) {
 
@@ -102,18 +104,23 @@ class ApplicationsController @Inject()(cc: ControllerComponents, mail: MailingSe
 
 
   private def sendStateMail(applicationId: Int, targetState: ApplicationState.Value) = {
-    applications.getApplicationMeta(applicationId).map {
-      case (User(id, _), form, event) =>
-        val mainForm = event.mainForm.contains(form.formId.get)
+
+    applications.getApplicationMeta(applicationId).flatMap {
+      case (User(id, _), form) =>
+        def eventFuture: Future[SimpleEvent] = events.getEvent(form.eventId).map(_.toOption.get.event)
+
         targetState match {
-          case ApplicationState.Accepted if mainForm =>
-            staffs.getStaffId(event.eventId.get, id).flatMap(staffNum => mail.applicationAccept(id, event.name, staffNum.get))
+          case ApplicationState.Accepted if form.isMain =>
+            staffs.getStaffId(form.eventId, id)
+              .flatMap(staffNum =>
+                eventFuture flatMap { event => mail.applicationAccept(id, event.name, staffNum.get) }
+              )
 
           case ApplicationState.Accepted =>
             mail.formAccept(id, form.name)
 
-          case ApplicationState.Refused if mainForm =>
-            mail.applicationRefuse(id, event.name)
+          case ApplicationState.Refused if form.isMain =>
+            eventFuture flatMap {event => mail.applicationRefuse(id, event.name) }
 
           case ApplicationState.Refused =>
             mail.formRefuse(id, form.name)
@@ -156,7 +163,7 @@ class ApplicationsController @Inject()(cc: ControllerComponents, mail: MailingSe
       if (res > 0) {
         if (comment.userVisible) {
           applications.getApplicationMeta(application).flatMap {
-            case (user, form, _) => mail.formComment(user.userId, form.name, v.user.firstName, comment.value)
+            case (user, form) => mail.formComment(user.userId, form.name, v.user.firstName, comment.value)
           }.map(_ => Ok)
         } else Future.successful(Ok)
       } else Future.successful(NotFound)

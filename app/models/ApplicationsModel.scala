@@ -2,6 +2,8 @@ package models
 
 import java.sql.Timestamp
 
+import ch.japanimpact.api.events.EventsService
+import ch.japanimpact.api.events.events.Event
 import data.Applications.ApplicationComment
 import data.Applications.ApplicationState._
 import data.ReturnTypes.ApplicationHistory
@@ -16,7 +18,7 @@ import scala.util.Success
 /**
  * @author Louis Vialar
  */
-class ApplicationsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, staffsModel: StaffsModel)(implicit ec: ExecutionContext) extends HasDatabaseConfigProvider[MySQLProfile] {
+class ApplicationsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, staffsModel: StaffsModel, events: EventsService)(implicit ec: ExecutionContext) extends HasDatabaseConfigProvider[MySQLProfile] {
 
 
   import ApplicationsModel.{UpdateFieldsResult, UpdateStateResult}
@@ -52,7 +54,13 @@ class ApplicationsModel @Inject()(protected val dbConfigProvider: DatabaseConfig
         if (!allowed) Future.successful(UpdateStateResult.IllegalStateTransition)
         else {
           if (state == Accepted || currentState == Accepted) {
-            db.run(applications.filter(_.applicationId === id).join(events).on(_.formId === _.mainForm).map(pair => (pair._1.userId, pair._2.eventId)).result.headOption).flatMap {
+            db.run(
+              applications
+                .filter(_.applicationId === id)
+                .join(forms).on((l, r) => l.formId === r.formId && r.isMain)
+                .map { case (application, mainForm) => (application.userId, mainForm.eventId) }
+                .result.headOption
+            ).flatMap {
               case Some((userId, eventId)) =>
                 if (state == Accepted)
                   staffsModel.addStaff(eventId, userId).flatMap(i => doUpdate(id))
@@ -65,7 +73,7 @@ class ApplicationsModel @Inject()(protected val dbConfigProvider: DatabaseConfig
           } else {
             doUpdate(id)
           }
-          }.map(i => UpdateStateResult.Success)
+        }.map(i => UpdateStateResult.Success)
     }
   }
 
@@ -138,12 +146,11 @@ class ApplicationsModel @Inject()(protected val dbConfigProvider: DatabaseConfig
 
   def listReplies(formId: Int): Future[Option[(Seq[Forms.Field], Map[Int, Int], Map[Int, Seq[(Int, String)]])]] = {
     db.run {
-      forms.filter(_.formId === formId).result.headOption.flatMap[Option[(Seq[data.Forms.Field], Map[Int,Int], Map[Int,Seq[(Int, String)]])],slick.dbio.NoStream,Effect.Read] {
+      forms.filter(_.formId === formId).result.headOption.flatMap[Option[(Seq[data.Forms.Field], Map[Int, Int], Map[Int, Seq[(Int, String)]])], slick.dbio.NoStream, Effect.Read] {
         case Some(form) =>
           // Get the staff IDs for the event
-          events.filter(event => event.eventId === form.eventId)
-            .join(staffs).on((event, staff) => event.eventId === staff.eventId)
-            .map { case (_, staff) => (staff.userId, staff.staffNumber) }
+            staffs.filter(_.eventId === form.eventId)
+            .map { case (staff) => (staff.userId, staff.staffNumber) }
             .result
             .map(seq => seq.toMap)
             .flatMap(staffMap => {
@@ -183,13 +190,20 @@ class ApplicationsModel @Inject()(protected val dbConfigProvider: DatabaseConfig
         .result)
   }
 
-  def getApplicationMeta(application: Int): Future[(data.User, data.Forms.Form, data.Event)] =
-    db.run(applications.filter(_.applicationId === application)
-      .join(users).on(_.userId === _.userId)
-      .join(forms).on(_._1.formId === _.formId)
-      .join(events).on(_._2.eventId === _.eventId)
-      .map { case (((_, user), form), event) => (user, form, event) }
-      .result.head)
+  /**
+   * Gets the metadata of an application, i.e. the form and the user
+   * @return a 4-tuple containing the user and the form
+   */
+  def getApplicationMeta(application: Int): Future[(data.User, data.Forms.Form)] =
+    db.run(
+      applications
+        .filter(_.applicationId === application)
+        .join(users).on(_.userId === _.userId)
+        .join(forms).on(_._1.formId === _.formId)
+        .map { case (((_, user), form)) => (user, form) }
+        .result
+        .head
+    )
 
   def getApplication(application: Int): Future[Map[(data.User, Applications.ApplicationState.Value), Map[Forms.FormPage, Seq[(Forms.Field, Option[String])]]]] = {
     db.run(
@@ -218,10 +232,16 @@ class ApplicationsModel @Inject()(protected val dbConfigProvider: DatabaseConfig
   def getApplicationsForUser(user: Int): Future[Seq[ApplicationHistory]] =
     db.run(applications.filter(_.userId === user)
       .join(forms).on(_.formId === _.formId)
-      .join(events).on(_._2.eventId === _.eventId)
-      .map { case ((app, form), ev) => (app.applicationId, app.state, form, ev) }
+      .map { case ((app, form)) => (app.applicationId, app.state, form) }
       .result
-    ).map(_.map(ApplicationHistory.tupled))
+    ).flatMap { list =>
+      // TODO: this is uggly and expensive, do something better please
+      // Suggestion: implement a good caching mechanism in EventService
+      // TODO: better error handling
+      val futures = list.map(tuple => events.getEvent(tuple._3.eventId).map(_.toOption.get.event).map(ev => (tuple._1, tuple._2, tuple._3, ev)))
+
+      Future.sequence(futures)
+    }.map(_.map(ApplicationHistory.tupled))
 }
 
 object ApplicationsModel {

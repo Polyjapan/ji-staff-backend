@@ -4,6 +4,7 @@ import java.sql.Date
 
 import ch.japanimpact.auth.api.AuthApi
 import javax.inject.Inject
+import models.EventsModel
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import scheduling.constraints.ScheduleConstraint
 import scheduling.{ScheduleColumn, ScheduleDay, ScheduleLine, ScheduleVersion, StaffData}
@@ -12,7 +13,7 @@ import slick.jdbc.MySQLProfile
 import scala.collection.immutable
 import scala.concurrent.{ExecutionContext, Future}
 
-class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, val partitions: PartitionsModel, val auth: AuthApi)(implicit ec: ExecutionContext)
+class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, val partitions: PartitionsModel, val auth: AuthApi, val events: EventsModel)(implicit ec: ExecutionContext)
   extends HasDatabaseConfigProvider[MySQLProfile] {
 
 
@@ -179,20 +180,19 @@ class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
   private val capsJoin = taskCapabilities.join(capabilities).on(_.capabilityId === _.id)
 
   def getScheduleData(projectId: Int, version: Int): Future[(scheduling.ScheduleProject, Seq[scheduling.Staff], immutable.Iterable[scheduling.TaskSlot], Seq[ScheduleConstraint])] = {
-    db.run {
-      // Type Inference in Slick is a bit buggy... We need to force it.
-      val req: DBIOAction[(scheduling.ScheduleProject, Seq[scheduling.Staff], immutable.Iterable[scheduling.TaskSlot], Seq[ScheduleConstraint]), NoStream, Effect.Read] = scheduleProjects.filter(_.id === projectId)
-        .join(models.events).on(_.event === _.eventId)
-        .result.head
-        .flatMap {
-          case (project, event) =>
-            val staffCaps = capabilitiesMappingRequestForEvent(event.eventId.get)
+    db.run(scheduleProjects.filter(_.id === projectId).result.head)
+      .flatMap { project => events.getEdition(project.event).map(ev => (project, ev)) }
+
+      .flatMap {
+        case (project, Some(event)) =>
+          db.run {
+            val staffCaps = capabilitiesMappingRequestForEvent(project.event)
 
             val staffs = staffCaps.flatMap(staffCapsMap => {
-              models.staffs.filter(_.eventId === event.eventId)
+              models.staffs.filter(_.eventId === project.event)
                 .join(models.users).on(_.userId === _.userId).map { case (staff, user) => (user, staff.staffLevel, staff.staffNumber) }
                 .result
-                .map(_.map(pair => scheduling.Staff(pair._1, staffCapsMap(pair._3), pair._2, pair._1.ageAt(event.eventBegin))))
+                .map(_.map(pair => scheduling.Staff(pair._1, staffCapsMap(pair._3), pair._2, pair._1.ageAt(event.start.toDate))))
             })
 
 
@@ -227,13 +227,12 @@ class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
                 }
               }
 
-            val proj = scheduling.ScheduleProject(project.projectId.get, event, project.projectTitle, project.maxTimePerStaff, project.minBreakMinutes, project.maxSameShiftType)
+            val proj = scheduling.ScheduleProject(project.projectId.get, project.event, project.projectTitle, project.maxTimePerStaff, project.minBreakMinutes, project.maxSameShiftType)
 
 
             staffs.flatMap(staffs => constraints.flatMap(constraints => slots.map(slots => (proj, staffs, slots, constraints))))
-        }
-
-      req
-    }
+          }
+        case _ => Future.failed(new Exception("Event not found"))
+      }
   }
 }

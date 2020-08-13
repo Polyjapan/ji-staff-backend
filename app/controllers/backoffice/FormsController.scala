@@ -1,8 +1,6 @@
 package controllers.backoffice
 
-import java.io.ByteArrayOutputStream
-
-import ch.japanimpact.auth.api.{AuthApi, UserAddress}
+import ch.japanimpact.auth.api.AuthApi
 import utils.AuthenticationPostfix._
 import data.Forms
 import data.Forms.{Form, FormPage}
@@ -23,7 +21,7 @@ class FormsController @Inject()(cc: ControllerComponents, forms: FormsModel, aut
   def getForms(event: Int): Action[AnyContent] = Action.async(forms.getForms(event).map(r => Ok(Json.toJson(r)))).requiresAdmin
 
   def createForm: Action[Form] = Action.async(parse.json[Form])(rq =>
-    forms.createForm(rq.body.copy(formId = None)).map(id => Ok(Json.toJson(id)))
+    forms.createForm(rq.body.copy(formId = None, isMain = false)).map(id => Ok(Json.toJson(id)))
   ).requiresAdmin
 
   def updateForm(form: Int): Action[Form] = Action.async(parse.json[Form])(rq =>

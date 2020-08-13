@@ -18,6 +18,7 @@ lazy val root = (project in file("."))
       "com.typesafe.play" %% "play-mailer" % "8.0.0",
       "com.typesafe.play" %% "play-mailer-guice" % "8.0.0",
       "com.pauldijou" %% "jwt-play" % "4.2.0",
+      "ch.japanimpact" %% "ji-events-api" % "1.0-SNAPSHOT",
       "com.github.tototoshi" %% "scala-csv" % "1.3.6"
     ),
 
