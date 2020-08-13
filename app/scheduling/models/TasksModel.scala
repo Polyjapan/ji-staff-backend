@@ -25,7 +25,7 @@ class TasksModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
             case (task, Some((_, cap))) => (task, Some(cap._2))
             case (task, None) => (task, None)
           }
-          .groupBy(_._1).mapValues(_.map(_._2))
+          .groupMap(_._1)(_._2)
           .map { case (task, caps) => scheduling.Task(task.taskId, task.projectId, task.name, task.minAge, task.minExperience, caps.flatten.toList, task.taskType) }
           .toSeq
       )
@@ -59,7 +59,8 @@ class TasksModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
 
   /**
    * Returns a list of task slots for a project<br>
-   *   The tasks embeded in the slots have no project and no capabilities included
+   * The tasks embeded in the slots have no project and no capabilities included
+   *
    * @param project
    * @return
    */

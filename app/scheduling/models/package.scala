@@ -7,6 +7,7 @@ import play.api.libs.json.{Json, OWrites}
 import scheduling.constraints.{BannedTaskConstraint, _}
 import slick.lifted.Tag
 import slick.jdbc.MySQLProfile.api._
+import scala.concurrent.duration._
 
 import scala.concurrent.ExecutionContext
 
@@ -213,7 +214,7 @@ package object models {
     def end = column[Time]("end")
 
     def period = (day.?, start.?, end.?).shaped <> ({
-      case (Some(d), s, e) => Some(Period(d, s.getOrElse(new Time(0, 0, 0)), e.getOrElse(new Time(23, 59, 59))))
+      case (Some(d), s, e) => Some(Period(d, s.getOrElse(new Time(0)), e.getOrElse(new Time((23.hours + 59.minutes + 59.seconds).toMillis))))
       case _ => None
     }, (o: Option[Period]) => o match {
       case Some(Period(d, s, e)) => Some(Some(d), Some(s), Some(e))

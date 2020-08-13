@@ -103,7 +103,7 @@ package object constraints {
       else {
         // Avoid them to be together
         val overlappingSlots = assignations
-          .filterKeys(k => k.task == task.task && k.timeSlot.isOverlapping(task.timeSlot))
+          .view.filterKeys(k => k.task == task.task && k.timeSlot.isOverlapping(task.timeSlot))
           .flatMap(_._2)
           .toSet
 

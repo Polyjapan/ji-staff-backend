@@ -33,7 +33,7 @@ package object scheduling {
      */
     def isIncludedIn(other: Period): Boolean = other.day == day && other.timeStart <= timeStart && other.timeEnd >= timeEnd
 
-    override def toString: String = day + " from " + start + " to " + end
+    override def toString: String = day.toString + " from " + start.toString + " to " + end.toString
 
     def isOverlappingWithBreakTime(other: Period, breakTime: Int): Boolean = {
       val (start1, end1) = (timeStart, timeEnd)

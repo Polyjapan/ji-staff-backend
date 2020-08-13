@@ -262,8 +262,7 @@ class SchedulingService @Inject()(schedulingModel: SchedulingModel)(implicit ec:
 
     // Compute stats
     val stats = attributions.toList.flatMap { case (slot, staffs) => staffs.map(staff => staff -> slot) }.groupBy(_._1)
-      .mapValues(_.map(_._2.timeSlot.duration.toDouble / 60D).sum)
-      .values
+      .map(pair => pair._2.map(_._2.timeSlot.duration.toDouble / 60D).sum)
 
     val (avg, std) = if (stats.nonEmpty) {
       val sum = stats.sum

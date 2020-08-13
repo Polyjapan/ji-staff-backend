@@ -83,8 +83,11 @@ class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
       result.map {
         case (day, (minTime, maxTime, seq)) =>
           val columns = seq.groupBy(_._3)
-            .mapValues(col => col.map { case (slot, task, _) => ScheduleLine(slot, task) })
-            .map { case (staff, lines) => ScheduleColumn(staff, lines.toList) }
+            .map {
+              case (staff, col) =>
+                val lines = col.map { case (slot, task, _) => ScheduleLine(slot, task) }
+                ScheduleColumn(staff, lines.toList)
+            }
 
           ScheduleDay(day, minTime, maxTime, columns.toList.sortBy(_.header.staffNumber))
       }
@@ -96,8 +99,8 @@ class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
       result.map {
         case (day, (minTime, maxTime, seq)) =>
           val columns = seq.groupBy(_._2)
-            .mapValues(col => col.map { case (slot, _, staff) => ScheduleLine(slot, staff) })
-            .flatMap { case (task, lines) =>
+            .flatMap { case (task, col) =>
+              val lines = col.map { case (slot, _, staff) => ScheduleLine(slot, staff) }
               val slots = lines.map(_.slot.timeSlot)
               val maxSim = slots.map(slot => slots.count(s2 => s2.isOverlapping(slot))).max
 
