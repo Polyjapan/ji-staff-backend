@@ -63,7 +63,7 @@ class ProjectsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProv
             bannedTaskTypesConstraints.filter(_.projectId === source).result
               .flatMap(r => bannedTaskTypesConstraints ++= r.map(c => c.copy(projectId = target)))
           }
-        } else withSlots
+        } else partAndCaps
 
       }))
   }

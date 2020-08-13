@@ -10,7 +10,7 @@ lazy val root = (project in file("."))
     version := "1.0",
     scalaVersion := "2.13.1",
 
-    libraryDependencies ++= Seq(evolutions, ehcache, ws, specs2 % Test, guice,
+    libraryDependencies ++= Seq(evolutions, caffeine, ws, specs2 % Test, guice,
       "ch.japanimpact" %% "jiauthframework" % "1.0-SNAPSHOT",
       "com.typesafe.play" %% "play-slick" % "5.0.0",
       "com.typesafe.play" %% "play-slick-evolutions" % "5.0.0",
