@@ -153,10 +153,17 @@ package object data {
 
     case class UserData(profile: UserProfile, birthDate: Date)
 
+    object UserData {
+      def fromData(data: ch.japanimpact.auth.api.UserData, birthDate: Date): UserData =
+        UserData(UserProfile(data.id.get, data.email, data.details, data.address), birthDate)
+    }
+
     case class ReducedUserData(firstName: String, lastName: String, email: String)
 
     object ReducedUserData {
       def apply(profile: UserProfile): ReducedUserData = ReducedUserData(profile.details.firstName, profile.details.lastName, profile.email)
+
+      def apply(data: ch.japanimpact.auth.api.UserData): ReducedUserData = ReducedUserData(data.details.firstName, data.details.lastName, data.email)
     }
 
     case class ApplicationResult(user: UserData, state: ApplicationState.Value, content: Iterable[FilledPage])

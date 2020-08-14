@@ -1,16 +1,15 @@
 package controllers.backoffice
 
-import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
 
-import ch.japanimpact.auth.api.{AuthApi, UserAddress, UserProfile}
+import ch.japanimpact.auth.api.UserProfile
 import data.ReturnTypes.ReducedUserData
 import data.StaffLogType
 import javax.inject.Inject
-import models.{LogsModel, StaffsModel}
+import models.LogsModel
 import play.api.Configuration
 import play.api.libs.json.{Json, Writes}
-import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents, Result}
+import play.api.mvc.{AbstractController, Action, ControllerComponents, Result}
 import utils.AuthenticationPostfix._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -25,11 +24,11 @@ class LogsController @Inject()(cc: ControllerComponents, logs: LogsModel)
 
   implicit val staffLineWrites: Writes[StaffLine] = Json.writes[StaffLine]
 
-  def arrived(event: Int): Action[Int] = Action.async(parse.text(10).map(_.toInt)){ req =>
+  def arrived(event: Int): Action[Int] = Action.async(parse.text(10).map(_.toInt)) { req =>
     logs.addStaffLog(event, req.body, StaffLogType.Arrived).map { case Some(prof) => Ok(Json.toJson(ReducedUserData(prof))) case None => NotFound }
   }.requiresAdmin
 
-  def left(event: Int): Action[Int] = Action.async(parse.text(10).map(_.toInt)){ req =>
+  def left(event: Int): Action[Int] = Action.async(parse.text(10).map(_.toInt)) { req =>
     logs.addStaffLog(event, req.body, StaffLogType.Left).map { case Some(prof) => Ok(Json.toJson(ReducedUserData(prof))) case None => NotFound }
   }.requiresAdmin
 

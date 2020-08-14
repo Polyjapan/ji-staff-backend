@@ -3,7 +3,7 @@ package services
 import javax.inject.Inject
 import play.api.Configuration
 import play.twirl.api.Html
-import ch.japanimpact.auth.api.{AuthApi, UserProfile}
+import ch.japanimpact.auth.api.{UserData, UserProfile, UsersApi}
 import play.api.libs.mailer.{Email, MailerClient}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -11,10 +11,10 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
  * @author Louis Vialar
  */
-class MailingService @Inject()(protected val mailer: MailerClient)(implicit ec: ExecutionContext, config: Configuration, authApi: AuthApi) {
-  private def sendMail(userId: Int, title: String, content: UserProfile => Html) = {
-    authApi.getUserProfile(userId).map {
-      case Left(userProfile) =>
+class MailingService @Inject()(protected val mailer: MailerClient)(implicit ec: ExecutionContext, config: Configuration, users: UsersApi) {
+  private def sendMail(userId: Int, title: String, content: UserData => Html) = {
+    users(userId).get.map {
+      case Right(userProfile) =>
         mailer.send(Email(
           "Japan Impact - " + title,
           "Staffs Japan Impact <noreply@japan-impact.ch>",
@@ -43,8 +43,8 @@ class MailingService @Inject()(protected val mailer: MailerClient)(implicit ec: 
     sendMail(userId, "Nouveau commentaire sur le formulaire " + formName, profile => views.html.emails.newComment(profile, author, formName, comment))
 
   def formSent(userId: Int, formName: String, eventName: String): Future[String] = {
-    authApi.getUserProfile(userId).map {
-      case Left(userProfile) =>
+    users(userId).get.map {
+      case Right(userProfile) =>
         mailer.send(Email(
           "Nouvelle réponse au formulaire " + formName,
           "Staffs Japan Impact <noreply@japan-impact.ch>",

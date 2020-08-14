@@ -1,4 +1,5 @@
-@(user: ch.japanimpact.auth.api.UserProfile, author: String, formName: String, comment: String)
+@import views.html.emails.template
+@(user: ch.japanimpact.auth.api.UserData, author: String, formName: String, comment: String)
 
 @template("Nouveau commentaire sur le formulaire " + formName, user) {
 

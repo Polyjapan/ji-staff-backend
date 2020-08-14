@@ -1,19 +1,18 @@
 package controllers.backoffice
 
 import java.io.ByteArrayOutputStream
-import java.sql.Date
 
+import ch.japanimpact.api.events.EventsService
 import ch.japanimpact.api.events.events.SimpleEvent
-import ch.japanimpact.api.events.{EventsService, events}
-import ch.japanimpact.auth.api.{AuthApi, UserProfile}
+import ch.japanimpact.auth.api.UsersApi
 import data.Applications._
 import data.ReturnTypes._
 import data._
 import javax.inject.{Inject, Singleton}
-import models.{ApplicationsModel, EventsModel, StaffsModel}
 import models.ApplicationsModel.UpdateStateResult._
+import models.{ApplicationsModel, StaffsModel}
 import play.api.Configuration
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.Json
 import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
 import services.MailingService
 import utils.AuthenticationPostfix._
@@ -27,20 +26,28 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class ApplicationsController @Inject()(cc: ControllerComponents, mail: MailingService, staffs: StaffsModel, events: EventsService)
                                       (implicit conf: Configuration, ec: ExecutionContext,
-                                       applications: ApplicationsModel, api: AuthApi) extends AbstractController(cc) {
+                                       applications: ApplicationsModel, api: UsersApi) extends AbstractController(cc) {
 
 
   def listApplications(form: Int, state: Option[String]): Action[AnyContent] = Action.async({
-    applications.getApplications(form, state.map(v => EnumUtils.snakeNames(ApplicationState)(v)))
-      .flatMap(applications => {
-        api.getUserProfiles(applications.map(_._3.userId).toSet).map(map => (applications, map.left.getOrElse(Map())))
-      })
-
-      .map {
-        case (applications, profiles) =>
-          Ok(Json.toJson(applications.map {
-            case (id, state, user) => ApplicationListing(ReducedUserData(profiles(user.userId)), state, id)
-          }))
+    this.applications
+      .getApplications(form, state.map(v => EnumUtils.snakeNames(ApplicationState)(v)))
+      .flatMap { applications =>
+        val userIds = applications.map(_._3.userId).toSet
+        api.getUsersWithIds(userIds)
+          .map {
+            case Right(users) =>
+              val list: Seq[ApplicationListing] = applications.flatMap {
+                case (applicationId, applicationState, user) =>
+                  users
+                    .unapply(user.userId) // Get the optionnal user data
+                    .map(userData => ApplicationListing(ReducedUserData(userData), applicationState, applicationId))
+              }
+              Ok(Json.toJson(list))
+            case err =>
+              println("API Error: " + err)
+              InternalServerError
+          }
       }
   }).requiresAdmin
 
@@ -50,8 +57,9 @@ class ApplicationsController @Inject()(cc: ControllerComponents, mail: MailingSe
       .map(res => res.headOption)
       .flatMap {
         case Some(((user, state), content)) =>
-          api.getUserProfile(user.userId).map(profile => {
-            ApplicationResult(UserData(profile.left.get, user.birthDate), state, content.map {
+          api(user.userId).get.map(profile => {
+            // TODO: Error handling...
+            ApplicationResult(data.ReturnTypes.UserData.fromData(profile.toOption.get, user.birthDate), state, content.map {
               case (page, fields) => FilledPage(page, fields.map(FilledPageField.tupled))
             })
           }).map(p => Ok(Json.toJson(p)))
@@ -67,8 +75,8 @@ class ApplicationsController @Inject()(cc: ControllerComponents, mail: MailingSe
         val fieldsOrdering = fields.map(_.fieldId.get).zipWithIndex.toMap
         val userIds = map.keySet
 
-        api.getUserProfiles(userIds).map {
-          case Left(profiles) =>
+        api.getUsersWithIds(userIds).map {
+          case Right(profiles) =>
 
             val header =
               List("ID Staff") ++ List("Prénom") ++ List("Nom") ++ List("Email") ++ fields.map(_.name)
@@ -97,7 +105,7 @@ class ApplicationsController @Inject()(cc: ControllerComponents, mail: MailingSe
 
             Ok(os.toString("UTF-8")).as("text/csv; charset=utf-8")
 
-          case Right(_) => InternalServerError
+          case Left(_) => InternalServerError
         }
     }
   }).requiresAdmin
@@ -120,7 +128,7 @@ class ApplicationsController @Inject()(cc: ControllerComponents, mail: MailingSe
             mail.formAccept(id, form.name)
 
           case ApplicationState.Refused if form.isMain =>
-            eventFuture flatMap {event => mail.applicationRefuse(id, event.name) }
+            eventFuture flatMap { event => mail.applicationRefuse(id, event.name) }
 
           case ApplicationState.Refused =>
             mail.formRefuse(id, form.name)
@@ -146,7 +154,8 @@ class ApplicationsController @Inject()(cc: ControllerComponents, mail: MailingSe
     applications
       .getAllComments(application)
       .flatMap { seq =>
-        api.getUserProfiles(seq.map(_._2.userId).toSet).map(map => (seq, map.left.get))
+        // TODO: Error handling
+        api.getUsersWithIds(seq.map(_._2.userId).toSet).map(map => (seq, map.toOption.get))
       }
       .map {
         case (seq, profiles) =>

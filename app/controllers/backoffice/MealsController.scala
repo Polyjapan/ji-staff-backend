@@ -1,20 +1,19 @@
 package controllers.backoffice
 
-import ch.japanimpact.auth.api.AuthApi
 import data.Meals.Meal
 import javax.inject.Inject
 import models.MealsModel
 import play.api.Configuration
 import play.api.libs.json.Json
 import play.api.mvc.{AbstractController, Action, ControllerComponents}
+import utils.AuthenticationPostfix._
 
 import scala.concurrent.ExecutionContext
-import utils.AuthenticationPostfix._
 
 /**
  * @author Louis Vialar
  */
-class MealsController @Inject()(cc: ControllerComponents, auth: AuthApi, meals: MealsModel)
+class MealsController @Inject()(cc: ControllerComponents, meals: MealsModel)
                                (implicit ec: ExecutionContext, conf: Configuration) extends AbstractController(cc) {
 
   def createMeal: Action[Meal] = Action.async(parse.json[Meal]) { rq =>

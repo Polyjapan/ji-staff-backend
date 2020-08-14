@@ -2,16 +2,15 @@ package controllers.backoffice
 
 import java.time.Clock
 
-import ch.japanimpact.auth.api.AuthApi
 import ch.japanimpact.auth.api.cas.CASService
 import data.UserSession
 import javax.inject.Inject
+import pdi.jwt.JwtSession
 import play.api.Configuration
 import play.api.libs.json.Json
 import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
-import pdi.jwt.JwtSession
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 /**
  * @author Louis Vialar

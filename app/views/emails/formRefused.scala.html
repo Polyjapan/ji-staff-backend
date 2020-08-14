@@ -1,4 +1,5 @@
-@(user: ch.japanimpact.auth.api.UserProfile, formName: String)
+@import views.html.emails.template
+@(user: ch.japanimpact.auth.api.UserData, formName: String)
 
 @template("Formulaire " + formName + " refusé", user) {
 

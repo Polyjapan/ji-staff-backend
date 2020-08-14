@@ -1,6 +1,5 @@
 package controllers.backoffice
 
-import ch.japanimpact.auth.api.AuthApi
 import utils.AuthenticationPostfix._
 import data.Forms
 import data.Forms.{Form, FormPage}
@@ -16,7 +15,7 @@ import scala.concurrent.ExecutionContext
  * @author Louis Vialar
  */
 @Singleton
-class FormsController @Inject()(cc: ControllerComponents, forms: FormsModel, auth: AuthApi)(implicit ec: ExecutionContext, config: Configuration) extends AbstractController(cc) {
+class FormsController @Inject()(cc: ControllerComponents, forms: FormsModel)(implicit ec: ExecutionContext, config: Configuration) extends AbstractController(cc) {
 
   def getForms(event: Int): Action[AnyContent] = Action.async(forms.getForms(event).map(r => Ok(Json.toJson(r)))).requiresAdmin
 

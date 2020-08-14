@@ -55,12 +55,12 @@ class StaffsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
   def listStaffs(event: Int): Future[Seq[Staff]] = {
     val capabilitiesRequest = scheduling.models.capabilitiesMappingRequestForEvent(event)
 
-    db.run(capabilitiesRequest.flatMap(capabilities => staffs
-      .filter(_.eventId === event)
-      .sortBy(_.staffNumber)
+    db.run(capabilitiesRequest.flatMap(capabilities =>
+      staffs.filter(_.eventId === event).sortBy(_.staffNumber)
       .join(users).on(_.userId === _.userId)
-      .join(applications).on(_._2.userId === _.userId)
-      .map { case ((staff, user), application) => (staff.staffNumber, application.applicationId, user, staff.staffLevel) }
+      .join(forms).on((l, r) => r.isMain && r.eventId === event)
+      .join(applications).on((l, r) => l._1._2.userId === r.userId && l._2.formId === r.formId)
+      .map { case (((staff, user), _), application) => (staff.staffNumber, application.applicationId, user, staff.staffLevel) }
       .result
       .map(list => list.map(t4 => (t4._1, t4._2, t4._3, t4._4, capabilities(t4._1))).map(Staff.tupled)))
     )

@@ -4,7 +4,7 @@ package models
 import java.sql.Timestamp
 import java.util.{Calendar, Date, GregorianCalendar}
 
-import ch.japanimpact.auth.api.AuthApi
+import ch.japanimpact.auth.api.UsersApi
 import data.ReturnTypes.ReducedUserData
 import data.{StaffArrivalLog, StaffLogType}
 import javax.inject.Inject
@@ -16,7 +16,7 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
  * @author Louis Vialar
  */
-class LogsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, auth: AuthApi)(implicit ec: ExecutionContext) extends HasDatabaseConfigProvider[MySQLProfile] {
+class LogsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, auth: UsersApi)(implicit ec: ExecutionContext) extends HasDatabaseConfigProvider[MySQLProfile] {
 
   import profile.api._
 
@@ -25,7 +25,7 @@ class LogsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
       .flatMap {
         case Some(userId) =>
           db.run(staffArrivalLogs += StaffArrivalLog(staff, event, None, logType)).flatMap(_ => {
-            auth.getUserProfile(userId).map(_.left.toOption)
+            auth(userId).get.map(_.toOption)
           })
         case None => Future(None)
       }
@@ -70,8 +70,9 @@ class LogsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvider
       if (missingStaffs.isEmpty) {
         Future(Set.empty[ReducedUserData])
       } else {
-        auth.getUserProfiles(missingStaffs).map {
-          case Left(res) => res.values.map(prof => ReducedUserData(prof)).toSet
+        auth.getUsersWithIds(missingStaffs).map {
+              // TODO: Opti is not good, this is O(n)
+          case Right(res) => res.andThen(userData => ReducedUserData(userData)).elementWise.unapplySeq(missingStaffs.toSeq).get.toSet
           case _ => Set.empty[ReducedUserData]
         }
       }

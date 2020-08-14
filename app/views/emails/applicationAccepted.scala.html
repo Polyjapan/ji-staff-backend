@@ -1,4 +1,5 @@
-@(user: ch.japanimpact.auth.api.UserProfile, eventName: String, staffNum: Int)
+@import views.html.emails.template
+@(user: ch.japanimpact.auth.api.UserData, eventName: String, staffNum: Int)
 
 @template("Candidature acceptée", user) {
 

@@ -1,12 +1,7 @@
 import java.time.Clock
 
-import ch.japanimpact.auth.api.AuthApi
 import com.google.inject.{AbstractModule, Provides}
 import javax.inject.Singleton
-import play.api.Configuration
-import play.api.libs.ws.WSClient
-
-import scala.concurrent.ExecutionContext
 
 /**
  * This class is a Guice module that tells Guice how to bind several
@@ -23,10 +18,7 @@ class ApplicationModule extends AbstractModule {
   /** Module configuration + binding */
   override def configure(): Unit = {}
 
-
   @Provides
-  def provideAuthClient(ws: WSClient)(implicit ec: ExecutionContext, config: Configuration): AuthApi = AuthApi(ws)
-
-  @Provides @Singleton
+  @Singleton
   def provideClock = Clock.systemUTC()
 }

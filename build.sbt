@@ -11,7 +11,7 @@ lazy val root = (project in file("."))
     scalaVersion := "2.13.1",
 
     libraryDependencies ++= Seq(evolutions, caffeine, ws, specs2 % Test, guice,
-      "ch.japanimpact" %% "jiauthframework" % "1.0-SNAPSHOT",
+      "ch.japanimpact" %% "jiauthframework" % "2.0-SNAPSHOT",
       "com.typesafe.play" %% "play-slick" % "5.0.0",
       "com.typesafe.play" %% "play-slick-evolutions" % "5.0.0",
       "mysql" % "mysql-connector-java" % "5.1.34",

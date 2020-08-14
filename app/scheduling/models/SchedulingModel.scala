@@ -2,7 +2,7 @@ package scheduling.models
 
 import java.sql.Date
 
-import ch.japanimpact.auth.api.AuthApi
+import ch.japanimpact.auth.api.{UserData, UsersApi}
 import javax.inject.Inject
 import models.EventsModel
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
@@ -13,7 +13,7 @@ import slick.jdbc.MySQLProfile
 import scala.collection.immutable
 import scala.concurrent.{ExecutionContext, Future}
 
-class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, val partitions: PartitionsModel, val auth: AuthApi, val events: EventsModel)(implicit ec: ExecutionContext)
+class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, val users: UsersApi, val partitions: PartitionsModel, val events: EventsModel)(implicit ec: ExecutionContext)
   extends HasDatabaseConfigProvider[MySQLProfile] {
 
 
@@ -66,12 +66,12 @@ class SchedulingModel @Inject()(protected val dbConfigProvider: DatabaseConfigPr
           }
           .flatMap { result =>
             val ids = result.map(_._2._1).toSet // user ids
-            auth.getUserProfiles(ids)
+            users.getUsersWithIds(ids)
               .map { a =>
-                val map = a.left.getOrElse(Map())
+                val map = a.getOrElse(Map.empty[Int, UserData])
                 result.map {
                   case ((task, slot), (userId, staffNumber)) =>
-                    (slot, task, StaffData(staffNumber, map.get(userId).map(u => u.details.firstName + " " + u.details.lastName).getOrElse("unknown")))
+                    (slot, task, StaffData(staffNumber, map.unapply(userId).map(u => u.details.firstName + " " + u.details.lastName).getOrElse("unknown")))
                 }
               }
           }

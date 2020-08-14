@@ -2,7 +2,7 @@ package controllers.backoffice
 
 import java.io.ByteArrayOutputStream
 
-import ch.japanimpact.auth.api.{AuthApi, UserAddress, UserProfile}
+import ch.japanimpact.auth.api.{GroupsApi, UserAddress, UserData, UserProfile, UsersApi}
 import javax.inject.Inject
 import models.StaffsModel
 import play.api.Configuration
@@ -15,7 +15,7 @@ import scala.concurrent.ExecutionContext
 /**
  * @author Louis Vialar
  */
-class StaffsController @Inject()(cc: ControllerComponents, auth: AuthApi, staffs: StaffsModel)
+class StaffsController @Inject()(cc: ControllerComponents, users: UsersApi, groups: GroupsApi, staffs: StaffsModel)
                                 (implicit ec: ExecutionContext, conf: Configuration) extends AbstractController(cc) {
 
   case class StaffLine(staffNumber: Int, applicationId: Int, user: UserProfile, level: Int, capabilities: List[String])
@@ -24,23 +24,26 @@ class StaffsController @Inject()(cc: ControllerComponents, auth: AuthApi, staffs
 
   def getStaffs(event: Int): Action[AnyContent] = Action.async({
     staffs.listStaffs(event).flatMap(list => {
-      val staffIdMap = list.map(line => (line.user.userId, (line))).toMap
+      val staffs = list.sortBy(_.staffNumber)
+      val staffIds = staffs.map(_.user.userId).toSet
 
-      auth.getUserProfiles(staffIdMap.keySet).map {
-        case Left(seq) => Ok(Json.toJson(seq.map({
-          case (k, v) =>
-            val staff = staffIdMap(k)
-            StaffLine(staff.staffNumber, staff.application, v, staff.level, staff.capabilities)
-        }).toList.sortBy(l => l.staffNumber)  ))
-        case Right(_) => InternalServerError
+      users.getUsersWithIds(staffIds).map {
+        case Right(usersMap) =>
+          val lines = staffs.map { staff =>
+            val userData = usersMap(staff.user.userId)
+            val userProfile = UserProfile(userData.id.get, userData.email, userData.details, userData.address)
+            StaffLine(staff.staffNumber, staff.application, userProfile, staff.level, staff.capabilities)
+          }
+          Ok(Json.toJson(lines))
+        case _ => InternalServerError
       }
     })
   }).requiresAdmin
 
   def getAdmins: Action[AnyContent] = Action.async {
-    auth.getGroupMembers("comite-ji").map {
-      case Left(profiles) => Ok(Json.toJson(profiles))
-      case Right(e) => {
+    groups("comite-ji").getMembers.map {
+      case Right(profiles) => Ok(Json.toJson(profiles))
+      case Left(e) => {
         println("API Error " + e)
         InternalServerError
       }
@@ -54,8 +57,8 @@ class StaffsController @Inject()(cc: ControllerComponents, auth: AuthApi, staffs
   def addCapabilities(event: Int): Action[List[List[Int]]] = Action.async(parse.json[List[List[Int]]]) { req =>
     val caps =
       req.body.filter(_.size > 1)
-          .map(list => (list.head, list.tail))
-          .flatMap { case (staffId, caps) => caps.map(cap => (event, staffId, cap) )}
+        .map(list => (list.head, list.tail))
+        .flatMap { case (staffId, caps) => caps.map(cap => (event, staffId, cap)) }
 
     staffs.addCapabilities(caps).map(_ => Ok)
   }.requiresAdmin
@@ -66,8 +69,8 @@ class StaffsController @Inject()(cc: ControllerComponents, auth: AuthApi, staffs
         val userIds = map.map(_._1._2).toSet
         val fieldsOrdering = fields.map(_.fieldId.get).zipWithIndex.toMap
 
-        auth.getUserProfiles(userIds).map {
-          case Left(profiles) =>
+        users.getUsersWithIds(userIds).map {
+          case Right(profiles) =>
 
             val header =
               List("#", "Prénom", "Nom", "Téléphone", "Email", "Adresse", "Adresse 2", "NPA", "Ville", "Pays", "Date de naissance") ++ fields.map(_.name)
@@ -104,7 +107,7 @@ class StaffsController @Inject()(cc: ControllerComponents, auth: AuthApi, staffs
 
             Ok(os.toString("UTF-8")).as("text/csv; charset=utf-8")
 
-          case Right(_) => InternalServerError
+          case _ => InternalServerError
         }
     }
   }).requiresAdmin
