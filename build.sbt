@@ -4,11 +4,25 @@
 import sbt.Keys.{libraryDependencies, resolvers}
 
 lazy val root = (project in file("."))
-  .enablePlugins(PlayScala)
+  .enablePlugins(PlayScala, JDebPackaging, SystemdPlugin, JavaServerAppPackaging)
   .settings(
     name := "jistaffbackend2",
     version := "1.0",
     scalaVersion := "2.13.1",
+
+    maintainer in Linux := "Louis Vialar <louis@japan-impact.ch>",
+
+    javaOptions in Universal ++= Seq(
+      // Provide the PID file
+      s"-Dpidfile.path=/dev/null",
+      // s"-Dpidfile.path=/run/${packageName.value}/play.pid",
+
+      // Set the configuration to the production file
+      s"-Dconfig.file=/usr/share/${packageName.value}/conf/production.conf",
+
+      // Apply DB evolutions automatically
+      "-DapplyEvolutions.default=true"
+    ),
 
     libraryDependencies ++= Seq(evolutions, caffeine, ws, specs2 % Test, guice,
       "ch.japanimpact" %% "jiauthframework" % "2.0-SNAPSHOT",

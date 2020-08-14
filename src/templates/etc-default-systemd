@@ -1,0 +1,22 @@
+# #####################################
+# ##### Environment Configuration #####
+# #####################################
+
+# This file is parsed by systemd. You can modify it to specify environment
+# variables for the application.
+#
+# For a description of the format, see: `man systemd.exec`, section
+# `EnvironmentFile`.
+
+# Set the port for the app
+# -----------------
+# HTTP_PORT=9000
+# export HTTP_PORT
+
+# Setting JAVA_OPTS
+# -----------------
+# JAVA_OPTS="-Dpidfile.path=/var/run/${{app_name}}/play.pid -Dconfig.file=${{chdir}}/conf/production.conf"
+
+# Setting PIDFILE
+# ---------------
+# PIDFILE="/var/run/jistaffbackend2/play.pid"
