@@ -24,6 +24,7 @@ lazy val root = (project in file("."))
       "-DapplyEvolutions.default=true"
     ),
 
+
     libraryDependencies ++= Seq(evolutions, caffeine, ws, specs2 % Test, guice,
       "ch.japanimpact" %% "jiauthframework" % "2.0-SNAPSHOT",
       "com.typesafe.play" %% "play-slick" % "5.0.0",
@@ -36,8 +37,9 @@ lazy val root = (project in file("."))
       "com.github.tototoshi" %% "scala-csv" % "1.3.6"
     ),
 
+    resolvers += "Japan Impact Releases" at "https://repository.japan-impact.ch/releases",
+    resolvers += "Japan Impact Snapshots" at "https://repository.japan-impact.ch/snapshots",
     resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases",
-
     resolvers += "Akka Snapshot Repository" at "https://repo.akka.io/snapshots/",
 
     resolvers += Resolver.mavenLocal,
