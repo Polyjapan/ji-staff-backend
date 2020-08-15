@@ -21,4 +21,4 @@ jobs:
         # Artifact name
         name: Backend.zip
         # Directory containing files to upload
-        path: backend/target/
+        path: target/
