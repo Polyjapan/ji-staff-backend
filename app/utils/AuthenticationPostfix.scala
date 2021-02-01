@@ -55,6 +55,8 @@ object AuthenticationPostfix {
     def requiresAdmin(implicit conf: Configuration): Action[T] = requiresGroup("resp-staffs")
 
     def requiresGroup(group: String)(implicit conf: Configuration): Action[T] = AuthenticationAction(action, AuthorizationHandler.ensuringGroup(group))
+
+    def requiresAuth(implicit conf: Configuration): Action[T] = AuthenticationAction(action, AuthorizationHandler.ensuringAuthentication)
   }
 
   implicit class UserRequestHeader(request: RequestHeader)(implicit conf: Configuration) {

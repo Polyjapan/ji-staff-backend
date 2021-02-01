@@ -67,5 +67,5 @@ class ScheduleController @Inject()(cc: ControllerComponents, model: SchedulingMo
 
   def generateSchedule(project: Int) = Action.async(req => {
     service.buildSchedule(project).map(res => Ok(Json.toJson(res)))
-  })
+  }).requiresAdmin
 }
