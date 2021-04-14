@@ -1,8 +1,10 @@
 package models
 
+import ch.japanimpact.api.APIError
 import ch.japanimpact.api.events.EventsService
 import ch.japanimpact.api.events.events.{Event, SimpleEvent}
 import data.Applications.ApplicationState
+
 import javax.inject.Inject
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.MySQLProfile
@@ -19,8 +21,10 @@ class EventsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
   def getCurrentEdition: Future[Option[SimpleEvent]] =
     eventsApi.getCurrentEvent().map(_.toOption.map(_.event))
 
-  def getEditions: Future[Iterable[SimpleEvent]] =
-    eventsApi.getEvents().map(_.toOption.getOrElse(Seq())).map(_.map(_.event))
+  def getEditions: Future[Either[APIError, Iterable[SimpleEvent]]] =
+    eventsApi.getEvents()
+      .map(either => either.map(iterable => iterable.map(eventData => eventData.event)))
+      //.map(_.toOption.getOrElse(Seq())).map(_.map(_.event))
 
   def getEdition(id: Int): Future[Option[SimpleEvent]] =
     eventsApi.getEvent(id).map(_.toOption.map(_.event))

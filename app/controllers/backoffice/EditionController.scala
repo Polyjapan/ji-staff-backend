@@ -29,7 +29,10 @@ class EditionController @Inject()(cc: ControllerComponents, model: EventsModel, 
   }).requiresAdmin
 
   def getEditions: Action[AnyContent] =
-    Action.async(model.getEditions.map(res => Ok(Json.toJson(res)))).requiresAdmin
+    Action.async(model.getEditions.map {
+      case Left(err) => InternalServerError(Json.toJson(err))
+      case Right(res) => Ok(Json.toJson(res))
+    }).requiresAdmin
 
   def updateMainForm(id: Int): Action[Int] = Action.async(parse.json[Int])(rq => {
     model.updateMainForm(id, rq.body).map(result => if (result) Ok else NotFound)

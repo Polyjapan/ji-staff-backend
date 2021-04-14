@@ -4,7 +4,7 @@
 import sbt.Keys.{libraryDependencies, resolvers}
 
 lazy val root = (project in file("."))
-  .enablePlugins(PlayScala, JDebPackaging, SystemdPlugin, JavaServerAppPackaging)
+  .enablePlugins(PlayScala, JDebPackaging, SystemdPlugin, JavaServerAppPackaging, DockerPlugin)
   .settings(
     name := "jistaffbackend2",
     version := "1.0",
@@ -48,6 +48,11 @@ lazy val root = (project in file("."))
     scalacOptions ++= Seq(
       "-feature",
       "-deprecation"
-    )
+    ),
+
+
+    dockerExposedPorts := Seq(80),
+    dockerUsername := Some("polyjapan"),
+    dockerBaseImage := "openjdk:11",
   )
 
