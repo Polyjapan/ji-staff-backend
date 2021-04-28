@@ -26,7 +26,7 @@ lazy val root = (project in file("."))
 
 
     libraryDependencies ++= Seq(evolutions, caffeine, ws, specs2 % Test, guice,
-      "ch.japanimpact" %% "jiauthframework" % "2.0-SNAPSHOT",
+      "ch.japanimpact" %% "jiauthframework" % "2.0.1",
       "com.typesafe.play" %% "play-slick" % "5.0.0",
       "com.typesafe.play" %% "play-slick-evolutions" % "5.0.0",
       "mysql" % "mysql-connector-java" % "5.1.34",
