@@ -1,6 +1,5 @@
 
 import java.sql.{Date, Time, Timestamp}
-
 import data.Applications.ApplicationComment
 import data.Meals.{Meal, MealTaken}
 import slick.jdbc.MySQLProfile.api._
@@ -8,6 +7,8 @@ import slick.ast.BaseTypedType
 import slick.jdbc.{JdbcType, MySQLProfile}
 import utils.EnumUtils
 import data.{Forms, StaffArrivalLog, _}
+
+import java.time.LocalDate
 
 
 /**
@@ -28,7 +29,7 @@ package object models {
   private[models] class Users(tag: Tag) extends Table[User](tag, "users") {
     def userId = column[Int]("user_id", O.PrimaryKey)
 
-    def birthDate = column[Date]("birth_date")
+    def birthDate = column[LocalDate]("birth_date")
 
     def * = (userId, birthDate).shaped <> (User.tupled, User.unapply)
   }

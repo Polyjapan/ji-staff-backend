@@ -1,14 +1,15 @@
 package models
 
 import java.sql.Date
-
 import data.ReturnTypes.StaffingHistory
 import data.{Forms, User}
+
 import javax.inject.Inject
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.dbio.Effect.Write
 import slick.jdbc.MySQLProfile
 
+import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
@@ -66,7 +67,7 @@ class StaffsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
     )
   }
 
-  def listStaffsDetails(eventId: Int): Future[(Seq[Forms.Field], Map[(Int, Int, Date), Seq[(Int, String)]])] = {
+  def listStaffsDetails(eventId: Int): Future[(Seq[Forms.Field], Map[(Int, Int, LocalDate), Seq[(Int, String)]])] = {
     db.run {
       forms.filter(f => f.eventId === eventId && f.isMain)
         .join(pages).on(_.formId === _.formId).map(_._2)
@@ -79,7 +80,7 @@ class StaffsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
 
           (formId.get, rest)
         })
-        .flatMap[(Seq[data.Forms.Field], Map[(Int, Int, Date), Seq[(Int, String)]]), slick.dbio.NoStream, Effect.Read] {
+        .flatMap[(Seq[data.Forms.Field], Map[(Int, Int, LocalDate), Seq[(Int, String)]]), slick.dbio.NoStream, Effect.Read] {
           case (formId, fields) =>
             val fieldIds = fields.map(f => f.fieldId.get).toSet
 

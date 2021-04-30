@@ -1,12 +1,16 @@
+import anorm.{Macro, RowParser, ToParameterList}
+
 import java.sql.{Date, Time, Timestamp}
 import java.text.SimpleDateFormat
 import java.util.{Calendar, GregorianCalendar}
-
 import ch.japanimpact.api.events.events.SimpleEvent
 import ch.japanimpact.auth.api.UserProfile
 import data.Applications.{ApplicationComment, ApplicationState}
 import play.api.libs.json._
 import utils.EnumUtils
+import anorm.ParameterMetaData
+
+import java.time.LocalDate
 
 /**
  * @author Louis Vialar
@@ -15,18 +19,24 @@ package object data {
   val AngularDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
   val TimeFormat = new SimpleDateFormat("HH:mm")
 
-  case class User(userId: Int, birthDate: Date) {
+  case class User(userId: Int, birthDate: LocalDate) {
     def ageAt(date: java.util.Date): Int = {
       val eventDateCalendar = new GregorianCalendar()
-      val birthDateCalendar = new GregorianCalendar()
       eventDateCalendar.setTime(date)
-      birthDateCalendar.setTime(birthDate)
 
-      val ageAtEndOfYear = eventDateCalendar.get(Calendar.YEAR) - birthDateCalendar.get(Calendar.YEAR)
+      val ageAtEndOfYear = eventDateCalendar.get(Calendar.YEAR) - birthDate.getYear
 
-      if (eventDateCalendar.get(Calendar.DAY_OF_YEAR) < birthDateCalendar.get(Calendar.DAY_OF_YEAR)) ageAtEndOfYear - 1
+      if (eventDateCalendar.get(Calendar.DAY_OF_YEAR) < birthDate.getDayOfYear) ageAtEndOfYear - 1
       else ageAtEndOfYear
     }
+  }
+
+  object User {
+    implicit val userFormat: Format[User] = Json.format[User]
+    implicit val parser: RowParser[User] = Macro.namedParser[User](Macro.ColumnNaming.SnakeCase)
+    implicit val writer: ToParameterList[User] = Macro.toParameters[User]()
+
+    def tupled(tuple: (Int, LocalDate)): User = User(tuple._1, tuple._2)
   }
 
   // case class Event(eventId: Option[Int], eventBegin: Date, name: String, mainForm: Option[Int], isActive: Boolean)
@@ -47,7 +57,7 @@ package object data {
 
     override def reads(json: JsValue): JsResult[Date] = json match {
       case JsString(str) => try {
-        JsSuccess(Date.valueOf(str))
+        JsSuccess(java.sql.Date.valueOf(str))
       } catch {
         case _ =>
           val time = AngularDateFormat.parse(str).getTime
@@ -85,6 +95,7 @@ package object data {
 
   implicit val staffLogTypeFormat: Format[StaffLogType.Value] = EnumUtils.format(StaffLogType)
   implicit val staffLogFormat: Format[StaffArrivalLog] = Json.format[StaffArrivalLog]
+
 
   object Forms {
 
@@ -126,10 +137,11 @@ package object data {
     implicit val formFormat: Format[Form] = Json.format[Form]
     implicit val fieldFormat: Format[Field] = Json.format[Field]
     implicit val formPageFormat: Format[FormPage] = Json.format[FormPage]
+
+
   }
 
   // implicit val eventFormat: Writes[Event] = Json.writes[Event]
-  implicit val userFormat: Format[User] = Json.format[User]
 
   object Applications {
 
@@ -151,10 +163,10 @@ package object data {
 
     case class FilledPage(page: Forms.FormPage, fields: Seq[FilledPageField])
 
-    case class UserData(profile: UserProfile, birthDate: Date)
+    case class UserData(profile: UserProfile, birthDate: LocalDate)
 
     object UserData {
-      def fromData(data: ch.japanimpact.auth.api.UserData, birthDate: Date): UserData =
+      def fromData(data: ch.japanimpact.auth.api.UserData, birthDate: LocalDate): UserData =
         UserData(UserProfile(data.id.get, data.email, data.details, data.address), birthDate)
     }
 

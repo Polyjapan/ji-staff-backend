@@ -25,16 +25,17 @@ lazy val root = (project in file("."))
     ),
 
 
-    libraryDependencies ++= Seq(evolutions, caffeine, ws, specs2 % Test, guice,
+    libraryDependencies ++= Seq(jdbc , evolutions, caffeine, ws, specs2 % Test, guice,
       "ch.japanimpact" %% "jiauthframework" % "2.0.1",
       "com.typesafe.play" %% "play-slick" % "5.0.0",
-      "com.typesafe.play" %% "play-slick-evolutions" % "5.0.0",
       "mysql" % "mysql-connector-java" % "5.1.34",
       "com.typesafe.play" %% "play-mailer" % "8.0.0",
       "com.typesafe.play" %% "play-mailer-guice" % "8.0.0",
       "com.pauldijou" %% "jwt-play" % "4.2.0",
       "ch.japanimpact" %% "ji-events-api" % "1.0-SNAPSHOT",
-      "com.github.tototoshi" %% "scala-csv" % "1.3.6"
+      "ch.japanimpact" %% "ji-uploads-api" % "1.1",
+      "com.github.tototoshi" %% "scala-csv" % "1.3.6",
+      "org.playframework.anorm" %% "anorm" % "2.6.10"
     ),
 
     resolvers += "Japan Impact Releases" at "https://repository.japan-impact.ch/releases",
