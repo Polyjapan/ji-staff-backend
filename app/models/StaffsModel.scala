@@ -3,6 +3,7 @@ package models
 import java.sql.Date
 import data.ReturnTypes.StaffingHistory
 import data.{Forms, User}
+import play.api.db.Database
 
 import javax.inject.Inject
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
@@ -15,7 +16,7 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
  * @author Louis Vialar
  */
-class StaffsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, editions: EventsModel)(implicit ec: ExecutionContext) extends HasDatabaseConfigProvider[MySQLProfile] {
+class StaffsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvider, val database: Database, editions: EventsModel)(implicit ec: ExecutionContext) extends HasDatabaseConfigProvider[MySQLProfile] {
 
   import profile.api._
 
@@ -68,6 +69,7 @@ class StaffsModel @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
   }
 
   def listStaffsDetails(eventId: Int): Future[(Seq[Forms.Field], Map[(Int, Int, LocalDate), Seq[(Int, String)]])] = {
+    // TODO: break this method in multiple parts. Makes no sense currently
     db.run {
       forms.filter(f => f.eventId === eventId && f.isMain)
         .join(pages).on(_.formId === _.formId).map(_._2)

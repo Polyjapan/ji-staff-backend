@@ -21,6 +21,7 @@ GET           /front/applications/:id/replies/:user                             
 GET           /front/staffs/isStaff/:user                                         controllers.front.StaffsController.isStaff(user: Int)
 GET           /front/staffs/staffId/:user                                         controllers.front.StaffsController.getStaffNumber(user: Int)
 GET           /front/staffs                                                       controllers.front.StaffsController.getStaffList
+GET           /front/staffs/:event                                                       controllers.front.StaffsController.getStaffListForEvent(event: Int)
 
 +nocsrf
 POST          /front/applications/:id/replies/:user                               controllers.front.ApplicationsController.postReplies(id: Int, user: Int)

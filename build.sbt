@@ -7,7 +7,7 @@ lazy val root = (project in file("."))
   .enablePlugins(PlayScala, JDebPackaging, SystemdPlugin, JavaServerAppPackaging, DockerPlugin)
   .settings(
     name := "jistaffbackend2",
-    version := "1.0",
+    version := "1.1",
     scalaVersion := "2.13.1",
 
     maintainer in Linux := "Louis Vialar <louis@japan-impact.ch>",
